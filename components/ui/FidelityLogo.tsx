@@ -9,7 +9,7 @@ interface FidelityLogoProps {
 export const FidelityLogo: React.FC<FidelityLogoProps> = ({
   className = '',
   showText = true,
-  size = 'md'
+  size = 'sm'
 }) => {
   const sizeClasses = {
     sm: showText ? 'h-4' : 'w-4 h-4',
@@ -51,11 +51,7 @@ export const FidelityLogo: React.FC<FidelityLogoProps> = ({
         </div>
 
         {/* Fidelity text */}
-        <div className="text-[#1B3B7A] font-bold tracking-tight">
-          <span className="font-[var(--fontPlayfair)]" style={{ fontSize: 'calc(1em * 2.2)' }}>
-            Fidelity
-          </span>
-        </div>
+       
       </div>
     </div>
   );
