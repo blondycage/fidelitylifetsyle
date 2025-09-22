@@ -18,7 +18,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
           <div
             className="absolute inset-0 w-full h-full"
             style={{
-              backgroundImage: `url('https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=1200&h=800&fit=crop&crop=center&q=80')`,
+              backgroundImage: `url('https://i.ibb.co/qFxjY1sW/Images.png)`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat'
@@ -26,18 +26,9 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
           />
 
           {/* Curved overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-900/70 via-blue-800/50 to-transparent">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-900/10 via-blue-800/10 to-transparent">
             {/* SVG Curve */}
-            <svg
-              className="absolute bottom-0 right-0 w-full h-full"
-              viewBox="0 0 100 100"
-              preserveAspectRatio="none"
-            >
-              <path
-                d="M0,100 Q50,0 100,100 L100,100 L0,100 Z"
-                fill="rgba(255,255,255,0.1)"
-              />
-            </svg>
+           
           </div>
         </div>
 
