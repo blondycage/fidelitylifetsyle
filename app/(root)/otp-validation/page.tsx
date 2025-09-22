@@ -130,26 +130,15 @@ const OTPValidation = () => {
 
   return (
     <AuthLayout
-      title="Verify Your Email"
-      subtitle="Enter the 6-digit code sent to your email"
+      title="Authentication required"
+      subtitle={`Enter the OTP code sent to ${maskEmail(email)}`}
     >
       <div className="space-y-6">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-[var(--greenHex)] rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 7.89a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <p className="text-sm text-[var(--greyHex)] mb-6">
-            We sent a 6-digit verification code to <br />
-            <span className="font-medium text-[var(--blueHex)]">{maskEmail(email)}</span>
-          </p>
-        </div>
-
         <div className="space-y-4">
           <OTPInput
             length={6}
             onComplete={handleOTPComplete}
+            onChange={setOtp}
             error={error}
           />
 
@@ -160,42 +149,32 @@ const OTPValidation = () => {
           )}
         </div>
 
-        <div className="text-center space-y-4">
-          <p className="text-sm text-[var(--greyHex)]">
-            Didn't receive the code?
-          </p>
+        <div className="pt-4">
+          <Button
+            onClick={() => otp && handleOTPComplete(otp)}
+            disabled={!otp || otp.length !== 6}
+            className="w-full bg-[var(--blueHex)] hover:bg-blue-600 text-white py-3 rounded-lg font-medium disabled:opacity-50"
+          >
+            Verify
+            <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </Button>
+        </div>
 
+        <div className="text-center">
           <Button
             onClick={handleResendOTP}
             disabled={resendCooldown > 0}
             loading={resendLoading}
             variant="secondary"
+            className="text-[var(--blueHex)] bg-transparent hover:bg-blue-50"
           >
             {resendCooldown > 0
-              ? `Resend in ${formatTime(resendCooldown)}`
-              : 'Resend Code'
+              ? `Resend code in ${formatTime(resendCooldown)}`
+              : 'Resend code'
             }
           </Button>
-        </div>
-
-        <div className="flex justify-center space-x-4 text-sm">
-          <button
-            onClick={() => router.push('/signup')}
-            className="text-[var(--greyHex)] hover:text-[var(--blueHex)] transition-colors"
-          >
-            ← Back to Sign Up
-          </button>
-
-          <button
-            onClick={() => {
-              localStorage.removeItem('registrationEmail');
-              localStorage.removeItem('userType');
-              router.push('/signin');
-            }}
-            className="text-[var(--greyHex)] hover:text-[var(--blueHex)] transition-colors"
-          >
-            Sign In Instead
-          </button>
         </div>
       </div>
     </AuthLayout>

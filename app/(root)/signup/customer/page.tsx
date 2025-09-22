@@ -98,8 +98,8 @@ const CustomerSignup = () => {
 
   return (
     <AuthLayout
-      title="Join as Customer"
-      subtitle="Create your account to explore lifestyle experiences"
+      title="Create Account"
+      subtitle="Enter your details to get started."
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         {errors.general && (
@@ -134,8 +134,8 @@ const CustomerSignup = () => {
         <Input
           type="email"
           name="email"
-          placeholder="Enter your email address"
-          label="Email Address"
+          placeholder="Email"
+          label="Email"
           value={formData.email}
           onChange={handleInputChange}
           error={errors.email}
@@ -145,7 +145,7 @@ const CustomerSignup = () => {
         <Input
           type="tel"
           name="phoneNumber"
-          placeholder="Enter your phone number"
+          placeholder="Phone number"
           label="Phone Number"
           value={formData.phoneNumber}
           onChange={handleInputChange}
@@ -155,7 +155,7 @@ const CustomerSignup = () => {
 
         <PasswordInput
           name="password"
-          placeholder="Create a strong password"
+          placeholder="Password"
           label="Password"
           value={formData.password}
           onChange={handleInputChange}
@@ -166,7 +166,7 @@ const CustomerSignup = () => {
 
         <PasswordInput
           name="confirmPassword"
-          placeholder="Confirm your password"
+          placeholder="Confirm password"
           label="Confirm Password"
           value={formData.confirmPassword}
           onChange={handleInputChange}
@@ -175,40 +175,17 @@ const CustomerSignup = () => {
           showStrengthIndicator={false}
         />
 
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            id="terms"
-            className="w-4 h-4 text-[var(--blueHex)] bg-gray-100 border-gray-300 rounded focus:ring-[var(--blueHex)] focus:ring-2"
-            required
-          />
-          <label htmlFor="terms" className="ml-2 text-sm text-[var(--greyHex)]">
-            I agree to the{' '}
-            <button type="button" className="text-[var(--blueHex)] hover:underline">
-              Terms of Service
-            </button>{' '}
-            and{' '}
-            <button type="button" className="text-[var(--blueHex)] hover:underline">
-              Privacy Policy
-            </button>
-          </label>
-        </div>
-
-        <Button type="submit" loading={loading}>
-          Create Customer Account
-        </Button>
-
-        <div className="text-center">
-          <span className="text-sm text-[var(--greyHex)]">
-            Want to sell your services?{' '}
-            <button
-              type="button"
-              onClick={() => router.push('/signup/vendor')}
-              className="text-[var(--blueHex)] hover:underline font-medium"
-            >
-              Join as Vendor
-            </button>
-          </span>
+        <div className="pt-4">
+          <Button
+            type="submit"
+            loading={loading}
+            className="w-full bg-[var(--greenHex)] hover:bg-green-600 text-white py-3 rounded-lg font-medium flex items-center justify-center"
+          >
+            Create account
+            <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </Button>
         </div>
 
         <div className="text-center">
@@ -217,9 +194,9 @@ const CustomerSignup = () => {
             <button
               type="button"
               onClick={() => router.push('/signin')}
-              className="text-[var(--blueHex)] hover:underline font-medium"
+              className="text-[var(--greenHex)] hover:underline font-medium"
             >
-              Sign in
+              Login
             </button>
           </span>
         </div>
