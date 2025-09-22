@@ -19,7 +19,7 @@ export const Button: React.FC<ButtonProps> = ({
   className = '',
   loading = false,
 }) => {
-  const baseClasses = 'w-full px-6 py-3 rounded-lg font-medium text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
+  const baseClasses = 'w-full px-6 py-3 rounded-full font-medium text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
 
   const variantClasses = {
     primary: 'bg-[var(--blueHex)] text-white hover:bg-blue-700 focus:ring-blue-500 disabled:bg-gray-400',

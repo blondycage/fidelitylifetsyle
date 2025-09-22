@@ -14,13 +14,13 @@ const VendorSignup = () => {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    firstName: 'Vendor', // Default value for vendor signup
-    lastName: 'User', // Default value for vendor signup
-    email: 'vendor@example.com', // This will be updated based on business email
+    firstName: '',
+    lastName: '',
+    email: '',
     phoneNumber: '',
-    password: 'TempPassword123!', // Will be set later
-    confirmPassword: 'TempPassword123!', // Will be set later
-    username: '', // Will be generated from business name
+    password: '',
+    confirmPassword: '',
+    username: '',
     businessType: '',
     businessName: '',
     businessAddress: '',
@@ -37,13 +37,41 @@ const VendorSignup = () => {
     }
   };
 
-  const validateForm = () => {
+  const validateStep1 = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.businessName.trim()) newErrors.businessName = 'Business name is required';
+    if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
+    if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
+    if (!formData.email.trim()) newErrors.email = 'Email is required';
+    if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email is invalid';
     if (!formData.phoneNumber.trim()) newErrors.phoneNumber = 'Phone number is required';
     if (!/^\+?[\d\s\-()]+$/.test(formData.phoneNumber)) newErrors.phoneNumber = 'Phone number is invalid';
+    if (!formData.username.trim()) newErrors.username = 'Username is required';
+    if (formData.username.length < 3) newErrors.username = 'Username must be at least 3 characters';
+
+    // Enhanced password validation
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else {
+      const passwordValidation = validatePassword(formData.password);
+      if (!passwordValidation.isValid) {
+        newErrors.password = passwordValidation.errors[0] || 'Password does not meet requirements';
+      }
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateStep2 = () => {
+    const newErrors: Record<string, string> = {};
+
     if (!formData.businessType) newErrors.businessType = 'Business type is required';
+    if (!formData.businessName.trim()) newErrors.businessName = 'Business name is required';
     if (!formData.businessAddress.trim()) newErrors.businessAddress = 'Business address is required';
     if (!formData.businessDescription.trim()) newErrors.businessDescription = 'Business description is required';
     if (formData.businessDescription.length < 20) newErrors.businessDescription = 'Description must be at least 20 characters';
@@ -52,24 +80,30 @@ const VendorSignup = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleNext = () => {
+    if (validateStep1()) {
+      setStep(2);
+    }
+  };
+
+  const handleBack = () => {
+    setStep(1);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) return;
+    if (!validateStep2()) return;
 
     setLoading(true);
     try {
-      // Generate username and email from business name
-      const generatedUsername = formData.businessName.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-      const generatedEmail = `${generatedUsername}@business.example.com`;
-
       const payload: VendorPayload = {
         firstName: formData.firstName,
         lastName: formData.lastName,
-        email: generatedEmail,
+        email: formData.email,
         phoneNumber: formData.phoneNumber,
         password: formData.password,
-        username: generatedUsername,
+        username: formData.username,
         businessType: formData.businessType,
         businessProfileDTO: {
           name: formData.businessName,
@@ -83,7 +117,7 @@ const VendorSignup = () => {
       if (response.responseCode === 200 || response.responseCode === 201) {
         toast.success('Vendor account created successfully! Please check your email for verification.');
 
-        localStorage.setItem('registrationEmail', generatedEmail);
+        localStorage.setItem('registrationEmail', formData.email);
         localStorage.setItem('userType', 'VENDOR');
         router.push('/otp-validation');
       } else {
@@ -116,10 +150,15 @@ const VendorSignup = () => {
 
   return (
     <AuthLayout
-      title="Vendor account"
-      subtitle="Enter your business details."
+      title={step === 1 ? "Vendor account" : "Business Details"}
+      subtitle={step === 1 ? "Select a category to get started." : "Tell us about your business"}
     >
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={step === 1 ? (e) => { e.preventDefault(); handleNext(); } : handleSubmit} className="space-y-6">
+        {/* Progress indicator */}
+        <div className="flex justify-center space-x-2 mb-6">
+          <div className={`w-3 h-3 rounded-full ${step >= 1 ? 'bg-[var(--blueHex)]' : 'bg-gray-300'}`} />
+          <div className={`w-3 h-3 rounded-full ${step >= 2 ? 'bg-[var(--blueHex)]' : 'bg-gray-300'}`} />
+        </div>
 
         {errors.general && (
           <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
@@ -130,31 +169,92 @@ const VendorSignup = () => {
         {/* Step 1: Personal Information */}
         {step === 1 && (
           <>
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                type="text"
+                name="firstName"
+                placeholder="First name"
+                label="First Name"
+                value={formData.firstName}
+                onChange={handleInputChange}
+                error={errors.firstName}
+                required
+              />
+              <Input
+                type="text"
+                name="lastName"
+                placeholder="Last name"
+                label="Last Name"
+                value={formData.lastName}
+                onChange={handleInputChange}
+                error={errors.lastName}
+                required
+              />
+            </div>
+
             <Input
-              type="text"
-              name="businessName"
-              placeholder="Business name"
-              label="Business name"
-              value={formData.businessName}
+              type="email"
+              name="email"
+              placeholder="Enter your email address"
+              label="Email Address"
+              value={formData.email}
               onChange={handleInputChange}
-              error={errors.businessName}
+              error={errors.email}
               required
             />
 
             <Input
               type="tel"
               name="phoneNumber"
-              placeholder="Phone number"
-              label="Phone number"
+              placeholder="Enter your phone number"
+              label="Phone Number"
               value={formData.phoneNumber}
               onChange={handleInputChange}
               error={errors.phoneNumber}
               required
             />
 
+            <Input
+              type="text"
+              name="username"
+              placeholder="Choose a unique username"
+              label="Username"
+              value={formData.username}
+              onChange={handleInputChange}
+              error={errors.username}
+              required
+            />
+
+            <PasswordInput
+              name="password"
+              placeholder="Create a strong password"
+              label="Password"
+              value={formData.password}
+              onChange={handleInputChange}
+              error={errors.password}
+              required
+              showStrengthIndicator={true}
+            />
+
+            <PasswordInput
+              name="confirmPassword"
+              placeholder="Confirm your password"
+              label="Confirm Password"
+              value={formData.confirmPassword}
+              onChange={handleInputChange}
+              error={errors.confirmPassword}
+              required
+              showStrengthIndicator={false}
+            />
+          </>
+        )}
+
+        {/* Step 2: Business Information */}
+        {step === 2 && (
+          <>
             <div>
               <label className="block text-sm font-medium text-[var(--greyHex)] mb-2">
-                Category <span className="text-red-500">*</span>
+                Business Type <span className="text-red-500">*</span>
               </label>
               <select
                 name="businessType"
@@ -163,7 +263,7 @@ const VendorSignup = () => {
                 className="w-full px-4 py-3 bg-[var(--inputHex)] border border-[var(--borderHex)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--blueHex)] focus:border-transparent"
                 required
               >
-                <option value="">Category</option>
+                <option value="">Select your business type</option>
                 {businessTypes.map((type) => (
                   <option key={type.value} value={type.value}>
                     {type.label}
@@ -177,9 +277,20 @@ const VendorSignup = () => {
 
             <Input
               type="text"
+              name="businessName"
+              placeholder="Enter your business name"
+              label="Business Name"
+              value={formData.businessName}
+              onChange={handleInputChange}
+              error={errors.businessName}
+              required
+            />
+
+            <Input
+              type="text"
               name="businessAddress"
-              placeholder="Address"
-              label="Address"
+              placeholder="Enter your business address"
+              label="Business Address"
               value={formData.businessAddress}
               onChange={handleInputChange}
               error={errors.businessAddress}
@@ -188,37 +299,76 @@ const VendorSignup = () => {
 
             <div>
               <label className="block text-sm font-medium text-[var(--greyHex)] mb-2">
-                Description <span className="text-red-500">*</span>
+                Business Description <span className="text-red-500">*</span>
               </label>
               <textarea
                 name="businessDescription"
-                placeholder="Describe your business..."
+                placeholder="Describe your business, services, and what makes you unique..."
                 value={formData.businessDescription}
                 onChange={handleInputChange}
                 rows={4}
                 className="w-full px-4 py-3 bg-[var(--inputHex)] border border-[var(--borderHex)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--blueHex)] focus:border-transparent placeholder-[var(--inputPlaceholderHex)] resize-none"
                 required
               />
-              {errors.businessDescription && (
-                <p className="mt-1 text-sm text-red-500">{errors.businessDescription}</p>
-              )}
+              <div className="flex justify-between text-xs text-[var(--greyHex)] mt-1">
+                <span>{errors.businessDescription && <span className="text-red-500">{errors.businessDescription}</span>}</span>
+                <span>{formData.businessDescription.length}/500</span>
+              </div>
+            </div>
+
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="business-terms"
+                className="w-4 h-4 text-[var(--blueHex)] bg-gray-100 border-gray-300 rounded focus:ring-[var(--blueHex)] focus:ring-2"
+                required
+              />
+              <label htmlFor="business-terms" className="ml-2 text-sm text-[var(--greyHex)]">
+                I certify that the business information provided is accurate and I agree to the{' '}
+                <button type="button" className="text-[var(--blueHex)] hover:underline">
+                  Vendor Terms
+                </button>
+              </label>
             </div>
           </>
         )}
 
+        {/* Navigation Buttons */}
+        <div className="flex space-x-4">
+          {step === 2 && (
+            <Button
+              type="button"
+              onClick={handleBack}
+              variant="secondary"
+              className="flex-1"
+            >
+              ← Back
+            </Button>
+          )}
 
-        {/* Create Account Button */}
-        <div className="pt-4">
           <Button
             type="submit"
             loading={loading}
-            className="w-full bg-[var(--greenHex)] hover:bg-green-600 text-white py-3 rounded-lg font-medium flex items-center justify-center"
+            className="flex-1 bg-[var(--greenHex)] hover:bg-green-600 text-white py-3 rounded-full font-medium flex items-center justify-center"
           >
-            Create account
+            {step === 1 ? 'Next Step →' : 'Create account'}
             <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
             </svg>
           </Button>
+        </div>
+
+        <div className="text-center">
+          <span className="text-sm text-[var(--greyHex)]">
+            Looking for experiences?{' '}
+            <button
+              type="button"
+              onClick={() => router.push('/signup/customer')}
+              className="text-[var(--blueHex)] hover:underline font-medium"
+            >
+              Join as Customer
+            </button>
+          </span>
         </div>
 
         <div className="text-center">

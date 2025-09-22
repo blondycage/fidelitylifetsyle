@@ -179,7 +179,7 @@ const CustomerSignup = () => {
           <Button
             type="submit"
             loading={loading}
-            className="w-full bg-[var(--greenHex)] hover:bg-green-600 text-white py-3 rounded-lg font-medium flex items-center justify-center"
+            className="w-full bg-[var(--greenHex)] hover:bg-green-600 text-white py-3 rounded-full font-medium flex items-center justify-center"
           >
             Create account
             <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

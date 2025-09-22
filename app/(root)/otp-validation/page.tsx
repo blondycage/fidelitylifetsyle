@@ -153,7 +153,7 @@ const OTPValidation = () => {
           <Button
             onClick={() => otp && handleOTPComplete(otp)}
             disabled={!otp || otp.length !== 6}
-            className="w-full bg-[var(--blueHex)] hover:bg-blue-600 text-white py-3 rounded-lg font-medium disabled:opacity-50"
+            className="w-full bg-[var(--blueHex)] hover:bg-blue-600 text-white py-3 rounded-full font-medium disabled:opacity-50"
           >
             Verify
             <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

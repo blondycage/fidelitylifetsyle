@@ -93,6 +93,32 @@ const Signin = () => {
       subtitle="Enter your details to log in."
     >
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* User Type Toggle */}
+        <div className="flex bg-[var(--inputHex)] rounded-lg p-1">
+          <button
+            type="button"
+            onClick={() => setUserType('CUSTOMER')}
+            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+              userType === 'CUSTOMER'
+                ? 'bg-white text-[var(--blueHex)] shadow-sm'
+                : 'text-[var(--greyHex)]'
+            }`}
+          >
+            Customer
+          </button>
+          <button
+            type="button"
+            onClick={() => setUserType('VENDOR')}
+            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+              userType === 'VENDOR'
+                ? 'bg-white text-[var(--blueHex)] shadow-sm'
+                : 'text-[var(--greyHex)]'
+            }`}
+          >
+            Vendor
+          </button>
+        </div>
+
         {errors.general && (
           <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
             {errors.general}
@@ -131,7 +157,7 @@ const Signin = () => {
         </div>
 
         <div className="pt-4">
-          <Button type="submit" loading={loading} className="w-full bg-[var(--greenHex)] hover:bg-green-600 text-white py-3 rounded-lg font-medium flex items-center justify-center">
+          <Button type="submit" loading={loading} className="w-full bg-[var(--greenHex)] hover:bg-green-600 text-white py-3 rounded-full font-medium flex items-center justify-center">
             Log in
             <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -163,8 +189,9 @@ const Signin = () => {
 
         <Button
           type="button"
-          variant="secondary"
-          className="w-full border-2 border-[var(--blueHex)] text-[var(--blueHex)] bg-white hover:bg-blue-50 py-3 rounded-lg font-medium flex items-center justify-center"
+        
+          className="w-full border-2 border-[var(--blueHex)] bg-[var(--blueHex)] text-white hover:bg-blue-600 hover:border-blue-600 py-3 rounded-full font-medium flex items-center justify-center transition-all duration-200"
+       
         >
           <svg className="mr-2 w-5 h-5" viewBox="0 0 24 24">
             <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -174,34 +201,6 @@ const Signin = () => {
           </svg>
           Continue with Google
         </Button>
-
-        {/* User Type Toggle - Hidden by default, can be shown for admin/dev purposes */}
-        <div className="hidden">
-          <div className="flex bg-[var(--inputHex)] rounded-lg p-1">
-            <button
-              type="button"
-              onClick={() => setUserType('CUSTOMER')}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                userType === 'CUSTOMER'
-                  ? 'bg-white text-[var(--blueHex)] shadow-sm'
-                  : 'text-[var(--greyHex)]'
-              }`}
-            >
-              Customer
-            </button>
-            <button
-              type="button"
-              onClick={() => setUserType('VENDOR')}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                userType === 'VENDOR'
-                  ? 'bg-white text-[var(--blueHex)] shadow-sm'
-                  : 'text-[var(--greyHex)]'
-              }`}
-            >
-              Vendor
-            </button>
-          </div>
-        </div>
       </form>
 
       <ForgotPasswordModal
