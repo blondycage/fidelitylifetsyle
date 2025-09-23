@@ -53,7 +53,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4 lg:p-8 flex items-center justify-center">
+    <div className="auth-zoom min-h-screen bg-gray-100 p-4 lg:p-8 flex items-center justify-center">
       <div className="w-full max-w-6xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col lg:flex-row min-h-[600px]">
         {/* Image Section - Slider with overlay and border radius */}
         <div className="hidden lg:block lg:w-1/2 relative m-6 mr-3 rounded-2xl overflow-hidden">

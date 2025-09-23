@@ -31,6 +31,22 @@ body, html {
   font-family: var(--fontRoboto), Arial, Helvetica, sans-serif;
 }
 
+/* Zoom out effect for authentication screens only */
+.auth-zoom {
+  zoom: 0.8;
+}
+
+/* Fallback for browsers that don't support zoom */
+@supports not (zoom: 0.8) {
+  .auth-zoom {
+    transform: scale(0.8);
+    transform-origin: top left;
+    width: 125%; /* Compensate for the scale to maintain full coverage */
+    height: 125%; /* Compensate for the scale to maintain full coverage */
+    min-height: 125vh; /* Ensure full height coverage */
+  }
+}
+
 /* Custom text shadows for carousel */
 .text-shadow-lg {
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
