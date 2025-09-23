@@ -123,10 +123,10 @@ export const BusinessVerificationModal: React.FC<BusinessVerificationModalProps>
         <div className="p-4 sm:p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div className="text-center flex-1">
-              <h2 className="text-lg sm:text-xl font-bold text-black font-[var(--fontPlayfair)]">
+              <h2 className="text-lg sm:text-xl font-bold text-black font-roboto">
                 Business Verification
               </h2>
-              <p className="text-[var(--greyHex)] mt-1 text-xs sm:text-sm font-[var(--fontOpen)]">
+              <p className="text-[var(--greyHex)] mt-1 text-xs sm:text-sm font-roboto">
                 Continue with an existing fidelity account.
               </p>
             </div>

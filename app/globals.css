@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@theme {
+  --font-family-roboto: var(--fontRoboto);
+}
+
 :root {
   /* Official Fidelity Colors from Logo */
   --whiteHex: #ffffff;
@@ -24,7 +28,7 @@
 body, html {
   background: var(--whiteHex);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--fontRoboto), Arial, Helvetica, sans-serif;
 }
 
 /* Custom text shadows for carousel */

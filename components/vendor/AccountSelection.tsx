@@ -31,10 +31,10 @@ export const AccountSelection: React.FC<AccountSelectionProps> = ({ onNext, onPr
       <div className="w-full">
         {/* Header */}
         <div className="mb-8 pt-8">
-          <h1 className="text-2xl font-bold text-[var(--blueHex)] font-[var(--fontPlayfair)]">
+          <h1 className="text-2xl font-bold text-[var(--blueHex)] font-roboto">
             Complete your profile
           </h1>
-          <p className="text-[var(--greyHex)] mt-2 font-[var(--fontOpen)]">
+          <p className="text-[var(--greyHex)] mt-2 font-roboto">
             Let's get you started, ready to streamline
           </p>
         </div>
@@ -83,10 +83,10 @@ export const AccountSelection: React.FC<AccountSelectionProps> = ({ onNext, onPr
                     <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-[var(--blueHex)] mb-2 font-[var(--fontPlayfair)]">
+                <h3 className="text-lg font-semibold text-[var(--blueHex)] mb-2 font-roboto">
                   Existing Fidelity Account
                 </h3>
-                <p className="text-sm text-[var(--greyHex)] font-[var(--fontOpen)]">
+                <p className="text-sm text-[var(--greyHex)] font-roboto">
                   Connect your existing Fidelity Bank account
                 </p>
               </div>
@@ -120,10 +120,10 @@ export const AccountSelection: React.FC<AccountSelectionProps> = ({ onNext, onPr
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-[var(--blueHex)] mb-2 font-[var(--fontPlayfair)]">
+                <h3 className="text-lg font-semibold text-[var(--blueHex)] mb-2 font-roboto">
                   New Fidelity Account
                 </h3>
-                <p className="text-sm text-[var(--greyHex)] font-[var(--fontOpen)]">
+                <p className="text-sm text-[var(--greyHex)] font-roboto">
                   Create a new Fidelity Bank account
                 </p>
               </div>
