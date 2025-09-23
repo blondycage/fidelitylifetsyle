@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 
 interface FidelityLogoProps {
   className?: string;
@@ -22,14 +23,13 @@ export const FidelityLogo: React.FC<FidelityLogoProps> = ({
     // Just the logo mark
     return (
       <div className={`${sizeClasses[size]} ${className} flex items-center justify-center`}>
-        <svg viewBox="0 0 120 120" className="w-full h-full">
-          {/* Blue square background */}
-          <rect x="0" y="0" width="120" height="120" fill="#1B3B7A"/>
-          {/* White diagonal line */}
-          <path d="M0 120 L120 0 L120 40 L40 120 Z" fill="#ffffff"/>
-          {/* Green triangle */}
-          <path d="M40 120 L120 40 L120 120 Z" fill="#7CB342"/>
-        </svg>
+        <Image
+          src="/images/lifestyle.png"
+          alt="Fidelity Lifestyle Banking Logo"
+          width={120}
+          height={120}
+          className="w-full h-full object-contain"
+        />
       </div>
     );
   }
@@ -40,18 +40,19 @@ export const FidelityLogo: React.FC<FidelityLogoProps> = ({
       <div className="flex items-center">
         {/* Logo mark */}
         <div className="h-full aspect-square mr-3">
-          <svg viewBox="0 0 120 120" className="w-full h-full">
-            {/* Blue square background */}
-            <rect x="0" y="0" width="120" height="120" fill="#1B3B7A"/>
-            {/* White diagonal line */}
-            <path d="M0 120 L120 0 L120 40 L40 120 Z" fill="#ffffff"/>
-            {/* Green triangle */}
-            <path d="M40 120 L120 40 L120 120 Z" fill="#7CB342"/>
-          </svg>
+          <Image
+            src="/images/lifestyle.png"
+            alt="Fidelity Lifestyle Banking Logo"
+            width={120}
+            height={120}
+            className="w-full h-full object-contain"
+          />
         </div>
 
         {/* Fidelity text */}
-       
+        <span className="text-xl font-bold text-[var(--blueHex)] font-roboto">
+          Fidelity Lifestyle
+        </span>
       </div>
     </div>
   );
