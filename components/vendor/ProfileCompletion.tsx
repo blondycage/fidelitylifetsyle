@@ -40,10 +40,10 @@ export const ProfileCompletion: React.FC<ProfileCompletionProps> = ({ onNext }) 
       <div className="w-full">
         {/* Header */}
         <div className="mb-8 pt-8">
-          <h1 className="text-2xl font-bold text-[var(--blueHex)] font-roboto">
+          <h1 className="text-2xl font-bold text-[var(--blueHex)] font-urbanist">
             Complete your profile
           </h1>
-          <p className="text-[var(--greyHex)] mt-2 font-roboto">
+          <p className="text-[var(--greyHex)] mt-2 font-urbanist">
             Let's get you started, ready to streamline
           </p>
         </div>
@@ -65,7 +65,7 @@ export const ProfileCompletion: React.FC<ProfileCompletionProps> = ({ onNext }) 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Personal Info */}
             <div>
-              <h2 className="text-lg font-semibold text-[var(--blueHex)] mb-4 font-roboto">
+              <h2 className="text-lg font-semibold text-[var(--blueHex)] mb-4 font-urbanist">
                 Personal Info
               </h2>
               <div className="space-y-4">
@@ -110,7 +110,7 @@ export const ProfileCompletion: React.FC<ProfileCompletionProps> = ({ onNext }) 
 
             {/* Business Info */}
             <div>
-              <h2 className="text-lg font-semibold text-[var(--blueHex)] mb-4 font-roboto">
+              <h2 className="text-lg font-semibold text-[var(--blueHex)] mb-4 font-urbanist">
                 Business Info
               </h2>
               <div className="space-y-4">

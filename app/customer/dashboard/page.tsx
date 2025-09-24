@@ -42,7 +42,7 @@ const CustomerDashboard = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <h1 className="text-2xl font-bold text-[var(--blueHex)] font-roboto">
+                <h1 className="text-2xl font-bold text-[var(--blueHex)] font-urbanist">
                   Fidelity
                 </h1>
               </div>
@@ -70,10 +70,10 @@ const CustomerDashboard = () => {
         <div className="px-4 py-6 sm:px-0">
           {/* Welcome Section */}
           <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <h2 className="text-2xl font-bold text-[var(--blueHex)] mb-2 font-roboto">
+            <h2 className="text-2xl font-bold text-[var(--blueHex)] mb-2 font-urbanist">
               Welcome to Fidelity Lifestyle!
             </h2>
-            <p className="text-[var(--greyHex)] mb-4 font-roboto">
+            <p className="text-[var(--greyHex)] mb-4 font-urbanist">
               Discover amazing experiences, restaurants, hotels, and events.
             </p>
           </div>
@@ -130,10 +130,10 @@ const CustomerDashboard = () => {
                 className="w-full h-48 object-cover"
               />
               <div className="p-6">
-                <h3 className="text-lg font-semibold text-[var(--blueHex)] mb-2 font-roboto">
+                <h3 className="text-lg font-semibold text-[var(--blueHex)] mb-2 font-urbanist">
                   Featured Restaurant
                 </h3>
-                <p className="text-[var(--greyHex)] text-sm mb-4 font-roboto">
+                <p className="text-[var(--greyHex)] text-sm mb-4 font-urbanist">
                   Discover our restaurant of the month with exclusive offers for Fidelity customers.
                 </p>
                 <button className="bg-[var(--blueHex)] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
@@ -149,10 +149,10 @@ const CustomerDashboard = () => {
                 className="w-full h-48 object-cover"
               />
               <div className="p-6">
-                <h3 className="text-lg font-semibold text-[var(--blueHex)] mb-2 font-roboto">
+                <h3 className="text-lg font-semibold text-[var(--blueHex)] mb-2 font-urbanist">
                   Upcoming Events
                 </h3>
-                <p className="text-[var(--greyHex)] text-sm mb-4 font-roboto">
+                <p className="text-[var(--greyHex)] text-sm mb-4 font-urbanist">
                   Don't miss out on the hottest events happening this month.
                 </p>
                 <button className="bg-[var(--greenHex)] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-600 transition-colors">

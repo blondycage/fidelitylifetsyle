@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { ForgotPasswordModal } from '@/components/ui/ForgotPasswordModal';
 import { userLogin } from '@/services/authService';
 import { UserLoginPayloadProps } from '@/types/api';
+import { ArrowRight } from 'iconsax-react';
 
 const Signin = () => {
   const router = useRouter();
@@ -159,9 +160,7 @@ const Signin = () => {
         <div className="pt-4">
           <Button type="submit" loading={loading} className="w-full bg-[var(--greenHex)] hover:bg-green-600 text-white py-3 rounded-full font-medium flex items-center justify-center">
             Log in
-            <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
+            <ArrowRight size={16} className="ml-2" />
           </Button>
         </div>
 

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Open_Sans, Roboto } from "next/font/google";
+import { Playfair_Display, Open_Sans, Urbanist } from "next/font/google";
 import { Toaster } from 'react-hot-toast';
 import "./globals.css";
 
@@ -13,10 +13,10 @@ const openSans = Open_Sans({
   subsets: ["latin"],
 });
 
-const roboto = Roboto({
-  variable: "--fontRoboto",
+const urbanist = Urbanist({
+  variable: "--fontUrbanist",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "700"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -32,7 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${playfairDisplay.variable} ${openSans.variable} ${roboto.variable} font-roboto antialiased`}
+        className={`${playfairDisplay.variable} ${openSans.variable} ${urbanist.variable} font-urbanist antialiased`}
       >
         {children}
         <Toaster

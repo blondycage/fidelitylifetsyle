@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
+import { CloseCircle } from 'iconsax-react';
 
 interface BusinessVerificationModalProps {
   isOpen: boolean;
@@ -14,7 +15,6 @@ export const BusinessVerificationModal: React.FC<BusinessVerificationModalProps>
   onComplete
 }) => {
   const [formData, setFormData] = useState({
-    name: '',
     accountNumber: '',
     idNumber: ''
   });
@@ -39,19 +39,19 @@ export const BusinessVerificationModal: React.FC<BusinessVerificationModalProps>
   const validateForm = () => {
     const newErrors: {[key: string]: string} = {};
 
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
-    }
-
     if (!formData.accountNumber.trim()) {
       newErrors.accountNumber = 'Account number is required';
+    } else if (formData.accountNumber.length < 10) {
+      newErrors.accountNumber = 'Account number must be at least 10 digits';
     }
 
     if (!formData.idNumber.trim()) {
       newErrors.idNumber = 'BVN is required';
     } else if (formData.idNumber.length !== 11) {
       newErrors.idNumber = 'BVN must be 11 digits';
-    } 
+    } else if (!/^\d+$/.test(formData.idNumber)) {
+      newErrors.idNumber = 'BVN must contain only numbers';
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -117,26 +117,24 @@ export const BusinessVerificationModal: React.FC<BusinessVerificationModalProps>
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-white bg-opacity-70 flex items-center justify-center z-50 p-4 sm:p-6">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 sm:p-6">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md sm:max-w-lg max-h-[95vh] sm:max-h-[90vh] overflow-y-auto border border-gray-200">
         {/* Modal Header */}
         <div className="p-4 sm:p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div className="text-center flex-1">
-              <h2 className="text-lg sm:text-xl font-bold text-black font-roboto">
+              <h2 className="text-lg sm:text-xl font-bold text-black font-urbanist">
                 Business Verification
               </h2>
-              <p className="text-[var(--greyHex)] mt-1 text-xs sm:text-sm font-roboto">
+              <p className="text-[var(--greyHex)] mt-1 text-xs sm:text-sm font-urbanist">
                 Continue with an existing fidelity account.
               </p>
             </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 ml-2 sm:ml-4 p-1"
+              className="text-[var(--blueHex)] hover:text-blue-700 ml-2 sm:ml-4 p-1 transition-colors"
             >
-              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <CloseCircle size={24} color="currentColor" />
             </button>
           </div>
         </div>
@@ -152,25 +150,6 @@ export const BusinessVerificationModal: React.FC<BusinessVerificationModalProps>
           <div className="space-y-4 sm:space-y-6">
             <div>
               <label className="block text-xs sm:text-sm font-medium text-[var(--greyHex)] mb-2">
-                Name
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
-                className={`w-full px-3 py-2 sm:py-3 bg-gray-100 border-0 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--blueHex)] text-[var(--greyHex)] text-sm sm:text-base ${
-                  errors.name ? 'ring-2 ring-red-500' : ''
-                }`}
-                placeholder="John Doe"
-                disabled={isLoading}
-              />
-              {errors.name && (
-                <p className="mt-1 text-xs sm:text-sm text-red-600">{errors.name}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-[var(--greyHex)] mb-2">
                 Account number
               </label>
               <div className="relative">
@@ -178,10 +157,10 @@ export const BusinessVerificationModal: React.FC<BusinessVerificationModalProps>
                   type="text"
                   value={formData.accountNumber}
                   onChange={(e) => handleInputChange('accountNumber', e.target.value)}
-                  className={`w-full px-3 py-2 sm:py-3 border border-dashed border-blue-300 rounded-md focus:outline-none   text-sm sm:text-base ${
+                  className={`w-full px-3 py-2 sm:py-3 border border-dashed border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--blueHex)] text-sm sm:text-base ${
                     errors.accountNumber ? 'ring-2 ring-red-500' : ''
                   }`}
-                  placeholder=""
+                  placeholder="Enter your account number"
                   disabled={isLoading}
                 />
                 
@@ -202,7 +181,7 @@ export const BusinessVerificationModal: React.FC<BusinessVerificationModalProps>
                 className={`w-full px-3 py-2 sm:py-3 border border-[var(--borderHex)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--blueHex)] text-sm sm:text-base ${
                   errors.idNumber ? 'ring-2 ring-red-500' : ''
                 }`}
-                placeholder=""
+                placeholder="Enter your 11-digit BVN"
                 maxLength={11}
                 disabled={isLoading}
               />
@@ -218,7 +197,7 @@ export const BusinessVerificationModal: React.FC<BusinessVerificationModalProps>
           <button
             onClick={handleSubmit}
             disabled={isLoading}
-            className={`w-full py-2.5 sm:py-3 rounded-lg font-medium transition-colors flex items-center justify-center text-sm sm:text-base ${
+            className={`w-full py-2.5 sm:py-3 rounded-full font-semibold transition-all duration-200 flex items-center justify-center text-sm sm:text-base shadow-md hover:shadow-lg ${
               isLoading
                 ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
                 : 'bg-[var(--blueHex)] text-white hover:bg-blue-700'

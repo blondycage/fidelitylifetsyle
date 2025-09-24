@@ -50,7 +50,7 @@ export const FidelityLogo: React.FC<FidelityLogoProps> = ({
         </div>
 
         {/* Fidelity text */}
-        <span className="text-xl font-bold text-[var(--blueHex)] font-roboto">
+        <span className="text-xl font-bold text-[var(--blueHex)] font-urbanist">
           Fidelity Lifestyle
         </span>
       </div>

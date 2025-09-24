@@ -1,34 +1,71 @@
 @import "tailwindcss";
 
 @theme {
-  --font-family-roboto: var(--fontRoboto);
+  --font-family-urbanist: var(--fontUrbanist);
 }
 
 :root {
-  /* Official Fidelity Colors from Logo */
+  /* Primary Brand Colors from Design Palette */
   --whiteHex: #ffffff;
-  --blueHex: #1B3B7A; /* Fidelity official blue */
-  --greenHex: #7CB342; /* Fidelity official green */
+  --blueHex: #012168; /* Primary dark blue from palette */
+  --greenHex: #6CC04A; /* Primary green from palette */
   --greyHex: #535353;
   --inputHex: #F9FAFB;
   --inputPlaceholderHex: #3333334D;
   --borderHex: #CED4DA;
 
-  /* Updated gradients with official colors */
-  --signInGradientHex: linear-gradient(180deg, #F8FAFB 0%, #E8F1FF 50%, #F0F8E8 100%);
-  --validationHex: linear-gradient(180deg, #F8FBFF 0%, #FFFFFF 100%);
+  /* Color Palette Implementation */
+  /* Green Variants */
+  --green-10: #1B2B0F; /* Darkest green */
+  --green-09: #244018; /* Dark green */
+  --green-08: #366024; /* Medium dark green */
+  --green-07: #488031; /* Medium green */
+  --green-06: #5AA03D; /* Light green */
+  --green-05: #84CA67; /* Lighter green */
+  --green-04: #9DD58B; /* Light green variant */
+  --green-03: #B5DFA4; /* Very light green */
+  --green-02: #CEEA6C; /* Pale green */
+  --green-01: #E2F2D9; /* Lightest green */
 
-  /* Additional Fidelity brand colors */
-  --fidelityBlue: #1B3B7A;
-  --fidelityGreen: #7CB342;
-  --fidelityLightBlue: #E8F1FF;
-  --fidelityLightGreen: #F0F8E8;
-  --fidelityDarkBlue: #142A5C;
+  /* Blue Variants */
+  --blue-10: #000715; /* Darkest blue */
+  --blue-09: #000E23; /* Very dark blue */
+  --blue-08: #001034; /* Dark blue */
+  --blue-07: #001845; /* Medium dark blue */
+  --blue-06: #011B57; /* Medium blue */
+  --blue-05: #284881; /* Light blue */
+  --blue-04: #56689A; /* Lighter blue */
+  --blue-03: #809083; /* Light blue variant */
+  --blue-02: #AAB5CD; /* Very light blue */
+  --blue-01: #CCD3E1; /* Lightest blue */
+
+  /* Greyscale Variants */
+  --grey-10: #212121; /* Black/darkest grey */
+  --grey-09: #424242; /* Very dark grey */
+  --grey-08: #616161; /* Dark grey */
+  --grey-07: #757575; /* Medium grey */
+  --grey-06: #9E9E9E; /* Light grey */
+  --grey-05: #BDBDBD; /* Lighter grey */
+  --grey-04: #E0E0E0; /* Very light grey */
+  --grey-03: #EEEEEE; /* Pale grey */
+  --grey-02: #F5F5F5; /* Almost white */
+  --grey-01: #FAFAFA; /* Lightest grey */
+
+  /* Updated gradients with new colors */
+  --signInGradientHex: linear-gradient(180deg, #F8FAFB 0%, var(--blue-01) 50%, var(--green-01) 100%);
+  --validationHex: linear-gradient(180deg, var(--blue-01) 0%, #FFFFFF 100%);
+
+  /* Legacy support - mapping to new colors */
+  --fidelityBlue: var(--blueHex);
+  --fidelityGreen: var(--greenHex);
+  --fidelityLightBlue: var(--blue-01);
+  --fidelityLightGreen: var(--green-01);
+  --fidelityDarkBlue: var(--blue-08);
 }
 body, html {
   background: var(--whiteHex);
   color: var(--foreground);
-  font-family: var(--fontRoboto), Arial, Helvetica, sans-serif;
+  font-family: var(--fontUrbanist), Arial, Helvetica, sans-serif;
 }
 
 /* Zoom out effect for authentication screens only */
@@ -54,4 +91,27 @@ body, html {
 
 .text-shadow {
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+/* Custom scrollbar styles */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(209 213 219) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgb(209 213 219);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgb(156 163 175);
 }

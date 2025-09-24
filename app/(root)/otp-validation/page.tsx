@@ -7,6 +7,7 @@ import { OTPInput } from '@/components/ui/OTPInput';
 import { Button } from '@/components/ui/Button';
 import { generateOTP, validateCustomerOTP, validateVendorOTP } from '@/services/authService';
 import { ValidateOTPPayload, OTPPurpose } from '@/types/api';
+import { ArrowRight } from 'iconsax-react';
 
 const OTPValidation = () => {
   const router = useRouter();
@@ -156,9 +157,7 @@ const OTPValidation = () => {
             className="w-full bg-[var(--blueHex)] hover:bg-blue-600 text-white py-3 rounded-full font-medium disabled:opacity-50"
           >
             Verify
-            <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
+            <ArrowRight size={16} className="ml-2" />
           </Button>
         </div>
 

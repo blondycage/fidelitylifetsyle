@@ -2,14 +2,32 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FidelityLogo } from '@/components/ui/FidelityLogo';
+import {
+  Home,
+  Shop,
+  Box,
+  MoneyRecive,
+  Truck,
+  Verify,
+  Profile,
+  Logout,
+  SearchNormal1,
+  Notification,
+  ArrowLeft,
+  CloseCircle,
+  Building4,
+  UserAdd,
+  ArrowRight2
+} from 'iconsax-react';
+import { BusinessVerificationModal } from '@/components/vendor/BusinessVerificationModal';
 
 const BusinessVerification = () => {
   const router = useRouter();
   const [activeMenuItem, setActiveMenuItem] = useState('Business Verification');
   const [showExistingAccountModal, setShowExistingAccountModal] = useState(false);
   const [showNewAccountModal, setShowNewAccountModal] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
   const [formData, setFormData] = useState({
-    name: 'John Doe',
     accountNumber: '',
     bvn: ''
   });
@@ -25,12 +43,12 @@ const BusinessVerification = () => {
   const [newAccountErrors, setNewAccountErrors] = useState<{[key: string]: string}>({});
 
   const menuItems = [
-    { name: 'Dashboard', icon: '🏠', active: false },
-    { name: 'Manage Store', icon: '🏪', active: false },
-    { name: 'Manage Orders', icon: '📦', active: false },
-    { name: 'Earnings', icon: '💰', active: false },
-    { name: 'Logistics Setup', icon: '🚚', active: false },
-    { name: 'Business Verification', icon: '✅', active: true },
+    { name: 'Dashboard', icon: Home, active: false },
+    { name: 'Manage Store', icon: Shop, active: false },
+    { name: 'Manage Orders', icon: Box, active: false },
+    { name: 'Earnings', icon: MoneyRecive, active: false },
+    { name: 'Logistics Setup', icon: Truck, active: false },
+    { name: 'Business Verification', icon: Verify, active: true },
   ];
 
   const handleLogout = () => {
@@ -52,9 +70,7 @@ const BusinessVerification = () => {
   const validateExistingAccountForm = () => {
     const newErrors: {[key: string]: string} = {};
 
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
-    }
+   
 
     if (!formData.accountNumber.trim()) {
       newErrors.accountNumber = 'Account number is required';
@@ -135,41 +151,58 @@ const BusinessVerification = () => {
 
           {/* Navigation */}
           <nav className="flex-1 px-4 py-4 space-y-2">
-            {menuItems.map((item) => (
-              <button
-                key={item.name}
-                onClick={() => {
-                  setActiveMenuItem(item.name);
-                  if (item.name === 'Dashboard') {
-                    router.push('/vendor/dashboard');
-                  }
-                }}
-                className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                  activeMenuItem === item.name
-                    ? 'bg-[var(--blueHex)] text-white'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                <span className="mr-3">{item.icon}</span>
-                {item.name}
-              </button>
-            ))}
+            {menuItems.map((item) => {
+              const IconComponent = item.icon;
+              return (
+                <button
+                  key={item.name}
+                  onClick={() => {
+                    setActiveMenuItem(item.name);
+                    if (item.name === 'Dashboard') {
+                      router.push('/vendor/dashboard');
+                    }
+                  }}
+                  className={`w-full flex items-center px-3 py-3 text-sm font-semibold rounded-xl transition-all duration-200 group ${
+                    activeMenuItem === item.name
+                      ? 'bg-[var(--blueHex)] text-white shadow-md'
+                      : 'text-[var(--greyHex)] hover:bg-blue-50 hover:text-[var(--blueHex)]'
+                  }`}
+                >
+                  <div className={`flex items-center justify-center w-8 h-8 rounded-lg mr-3 transition-all duration-200 ${
+                    activeMenuItem === item.name
+                      ? 'bg-white/20'
+                      : 'bg-transparent group-hover:bg-blue-100'
+                  }`}>
+                    <IconComponent
+                      size={18}
+                      color={activeMenuItem === item.name ? 'white' : 'currentColor'}
+                      variant={activeMenuItem === item.name ? 'Bold' : 'Outline'}
+                    />
+                  </div>
+                  {item.name}
+                </button>
+              );
+            })}
           </nav>
 
           {/* Bottom section */}
           <div className="px-4 py-4 border-t border-gray-200 space-y-2">
             <button
               onClick={() => router.push('/vendor/profile')}
-              className="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+              className="w-full flex items-center px-3 py-3 text-sm font-semibold text-[var(--greyHex)] rounded-xl hover:bg-blue-50 hover:text-[var(--blueHex)] transition-all duration-200 group"
             >
-              <span className="mr-3">👤</span>
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg mr-3 bg-transparent group-hover:bg-blue-100 transition-all duration-200">
+                <Profile size={18} color="currentColor" variant="Outline" />
+              </div>
               Profile
             </button>
             <button
               onClick={handleLogout}
-              className="w-full flex items-center px-3 py-2 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+              className="w-full flex items-center px-3 py-3 text-sm font-semibold text-red-600 rounded-xl hover:bg-red-50 transition-all duration-200 group"
             >
-              <span className="mr-3">🚪</span>
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg mr-3 bg-transparent group-hover:bg-red-100 transition-all duration-200">
+                <Logout size={18} color="currentColor" variant="Outline" />
+              </div>
               Log out
             </button>
           </div>
@@ -182,9 +215,9 @@ const BusinessVerification = () => {
         <header className="bg-white shadow-sm border-b border-gray-200">
           <div className="flex justify-between items-center px-4 sm:px-6 lg:px-8 h-16">
             {/* Mobile menu button */}
-            <button className="lg:hidden p-2 rounded-md text-gray-500">
+            <button className="lg:hidden p-2 rounded-md text-[var(--blueHex)] hover:text-blue-700 transition-colors">
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" />
               </svg>
             </button>
 
@@ -194,25 +227,19 @@ const BusinessVerification = () => {
                 <input
                   type="text"
                   placeholder="Search..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--blueHex)] focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--blueHex)] focus:border-[var(--blueHex)] transition-colors"
                 />
-                <svg className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+                <SearchNormal1 size={20} className="absolute left-3 top-2.5 text-gray-400" />
               </div>
             </div>
 
             {/* Notifications and profile */}
             <div className="flex items-center space-x-4">
-              <button className="p-2 text-gray-500 hover:text-gray-700">
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5z" />
-                </svg>
+              <button className="p-2 text-[var(--greyHex)] hover:text-[var(--blueHex)] transition-colors rounded-lg hover:bg-blue-50">
+                <Notification size={24} variant="Outline" />
               </button>
-              <button className="p-2 text-gray-500 hover:text-gray-700">
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
+              <button className="p-2 text-[var(--greyHex)] hover:text-[var(--blueHex)] transition-colors rounded-lg hover:bg-blue-50">
+                <Profile size={24} variant="Outline" />
               </button>
             </div>
           </div>
@@ -222,47 +249,55 @@ const BusinessVerification = () => {
         <main className="flex-1 p-4 sm:p-6 lg:p-8">
           {/* Page Header */}
           <div className="mb-8">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 font-roboto">Business Verification</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 font-urbanist">Business Verification</h1>
             <p className="mt-2 text-gray-600">Let's get your business ready for customers.</p>
           </div>
 
           {/* Verification Options */}
           <div className="max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Existing Fidelity Account */}
-            <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-8 h-8 text-[var(--blueHex)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
+            <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-8 text-center hover:shadow-xl transition-all duration-200">
+              <div className="w-16 h-16 bg-[var(--blueHex)] rounded-full flex items-center justify-center mx-auto mb-6">
+                <Building4 size={32} color="white" variant="Bold" />
               </div>
-              <h2 className="text-xl font-bold text-gray-900 mb-3 font-roboto">Existing Fidelity Account</h2>
-              <p className="text-gray-600 mb-6">Lorem ipsum</p>
-              <button
-                onClick={() => setShowExistingAccountModal(true)}
-                className="w-full bg-[var(--blueHex)] text-white py-3 px-6 rounded-full font-medium hover:bg-blue-700 transition-colors flex items-center justify-center"
-              >
-                <svg className="mr-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </button>
+              <h2 className="text-xl font-bold text-gray-900 mb-3 font-urbanist">Existing Fidelity Account</h2>
+              <p className="text-[var(--greyHex)] mb-6">{isVerified ? 'Verification completed successfully!' : 'Connect Your Existing Fidelity Bank Account'}</p>
+              <div className="flex justify-end">
+                <button
+                  onClick={() => !isVerified && setShowExistingAccountModal(true)}
+                  disabled={isVerified}
+                  className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 shadow-md hover:shadow-lg ${
+                    isVerified
+                      ? 'bg-green-500 cursor-default'
+                      : 'bg-[var(--blueHex)] hover:bg-blue-700'
+                  }`}
+                >
+                  {isVerified ? (
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    <ArrowRight2 size={20} color="white" />
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* New Fidelity Account */}
-            <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-8 h-8 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
+            <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-8 text-center hover:shadow-xl transition-all duration-200">
+              <div className="w-16 h-16 bg-[var(--blueHex)] rounded-full flex items-center justify-center mx-auto mb-6">
+                <UserAdd size={32} color="white" variant="Bold" />
               </div>
-              <h2 className="text-xl font-bold text-gray-900 mb-3 font-roboto">New Fidelity Account</h2>
-              <p className="text-gray-600 mb-6">Lorem ipsum</p>
-              <button
-                onClick={() => setShowNewAccountModal(true)}
-                className="w-full bg-[var(--blueHex)] text-white py-3 px-6 rounded-full font-medium hover:bg-blue-700 transition-colors flex items-center justify-center">
-                <svg className="mr-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </button>
+              <h2 className="text-xl font-bold text-gray-900 mb-3 font-urbanist">New Fidelity Account</h2>
+              <p className="text-[var(--greyHex)] mb-6">Create a New Fidelity Bank Account</p>
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setShowNewAccountModal(true)}
+                  className="w-12 h-12 bg-[var(--blueHex)] rounded-full flex items-center justify-center transition-all duration-200 shadow-md hover:shadow-lg hover:bg-blue-700"
+                >
+                  <ArrowRight2 size={20} color="white" />
+                </button>
+              </div>
             </div>
           </div>
         </main>
@@ -278,11 +313,9 @@ const BusinessVerification = () => {
             <div className="flex items-center justify-between">
               <button
                 onClick={() => router.back()}
-                className="p-2 text-gray-500"
+                className="p-2 text-[var(--blueHex)] hover:text-blue-700 transition-colors rounded-lg hover:bg-blue-50"
               >
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
+                <ArrowLeft size={24} color="currentColor" />
               </button>
               <h1 className="text-lg font-semibold text-gray-900">Business Verification</h1>
               <div className="w-8"></div>
@@ -293,81 +326,83 @@ const BusinessVerification = () => {
           {/* Mobile Content */}
           <main className="p-4 space-y-6">
             {/* Existing Fidelity Account */}
-            <div className="bg-white border border-gray-200 rounded-lg p-6 text-center">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-6 h-6 text-[var(--blueHex)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
+            <div className="bg-white border border-gray-200 rounded-xl p-6 text-center shadow-md hover:shadow-lg transition-all duration-200">
+              <div className="w-12 h-12 bg-[var(--blueHex)] rounded-full flex items-center justify-center mx-auto mb-4">
+                <Building4 size={24} color="white" variant="Bold" />
               </div>
-              <h2 className="text-lg font-bold text-gray-900 mb-2 font-roboto">Existing Fidelity Account</h2>
-              <p className="text-sm text-gray-600 mb-4">Lorem ipsum</p>
-              <button
-                onClick={() => setShowExistingAccountModal(true)}
-                className="w-full bg-[var(--blueHex)] text-white py-3 px-6 rounded-full font-medium hover:bg-blue-700 transition-colors flex items-center justify-center"
-              >
-                <svg className="mr-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </button>
+              <h2 className="text-lg font-bold text-gray-900 mb-2 font-urbanist">Existing Fidelity Account</h2>
+              <p className="text-sm text-[var(--greyHex)] mb-4">{isVerified ? 'Verification completed!' : 'Connect Your Existing Fidelity Bank Account'}</p>
+              <div className="flex justify-end">
+                <button
+                  onClick={() => !isVerified && setShowExistingAccountModal(true)}
+                  disabled={isVerified}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 shadow-md ${
+                    isVerified
+                      ? 'bg-green-500 cursor-default'
+                      : 'bg-[var(--blueHex)] hover:bg-blue-700'
+                  }`}
+                >
+                  {isVerified ? (
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    <ArrowRight2 size={16} color="white" />
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* New Fidelity Account */}
-            <div className="bg-white border border-gray-200 rounded-lg p-6 text-center">
-              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
+            <div className="bg-white border border-gray-200 rounded-xl p-6 text-center shadow-md hover:shadow-lg transition-all duration-200">
+              <div className="w-12 h-12 bg-[var(--blueHex)] rounded-full flex items-center justify-center mx-auto mb-4">
+                <UserAdd size={24} color="white" variant="Bold" />
               </div>
-              <h2 className="text-lg font-bold text-gray-900 mb-2 font-roboto">New Fidelity Account</h2>
-              <p className="text-sm text-gray-600 mb-4">Lorem ipsum</p>
-              <button
-                onClick={() => setShowNewAccountModal(true)}
-                className="w-full bg-[var(--blueHex)] text-white py-3 px-6 rounded-full font-medium hover:bg-blue-700 transition-colors flex items-center justify-center">
-                <svg className="mr-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </button>
+              <h2 className="text-lg font-bold text-gray-900 mb-2 font-urbanist">New Fidelity Account</h2>
+              <p className="text-sm text-[var(--greyHex)] mb-4">Create a New Fidelity Bank Account</p>
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setShowNewAccountModal(true)}
+                  className="w-10 h-10 bg-[var(--blueHex)] rounded-full flex items-center justify-center transition-all duration-200 shadow-md hover:bg-blue-700"
+                >
+                  <ArrowRight2 size={16} color="white" />
+                </button>
+              </div>
             </div>
 
-            {/* Mobile Bottom Navigation */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2">
-              <div className="flex justify-around">
-                <button className="flex flex-col items-center py-2 text-gray-400">
-                  <span className="text-lg">🏠</span>
-                  <span className="text-xs">Products</span>
-                </button>
-                <button className="flex flex-col items-center py-2 text-gray-400">
-                  <span className="text-lg">📦</span>
-                  <span className="text-xs">Orders</span>
-                </button>
-                <button className="flex flex-col items-center py-2 text-gray-400">
-                  <span className="text-lg">💰</span>
-                  <span className="text-xs">Earnings</span>
-                </button>
-                <button className="flex flex-col items-center py-2 text-[var(--blueHex)]">
-                  <span className="text-lg">👤</span>
-                  <span className="text-xs">Profile</span>
-                </button>
-              </div>
-            </div>
           </main>
         </div>
       </div>
 
       {/* Existing Account Modal */}
       {showExistingAccountModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
-          <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-auto">
+        <BusinessVerificationModal
+          isOpen={showExistingAccountModal}
+          onClose={() => setShowExistingAccountModal(false)}
+          onComplete={() => {
+            console.log('Verification completed');
+            setIsVerified(true);
+            setShowExistingAccountModal(false);
+            // Redirect to dashboard after short delay
+            setTimeout(() => {
+              router.push('/vendor/dashboard');
+            }, 1500);
+          }}
+        />
+      )}
+
+      {/* Existing Account Modal (Fallback) */}
+      {false && (
+        <div className="fixed inset-0 bg-black/50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+          <div className="relative bg-white rounded-2xl shadow-xl max-w-md w-full mx-auto">
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 font-roboto">Business Verification</h3>
+              <h3 className="text-lg font-semibold text-gray-900 font-urbanist">Business Verification</h3>
               <button
                 onClick={() => setShowExistingAccountModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-[var(--blueHex)] hover:text-blue-700 transition-colors"
               >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <CloseCircle size={24} color="currentColor" />
               </button>
             </div>
 
@@ -376,20 +411,6 @@ const BusinessVerification = () => {
               <p className="text-sm text-gray-600 mb-6 text-center">Continue with an existing fidelity account.</p>
 
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Name *</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--blueHex)] focus:border-transparent bg-gray-100 ${
-                      errors.name ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="John Doe"
-                  />
-                  {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name}</p>}
-                </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Account number</label>
@@ -422,7 +443,7 @@ const BusinessVerification = () => {
 
               <button
                 onClick={handleContinue}
-                className="w-full mt-6 bg-[var(--blueHex)] text-white py-3 px-6 rounded-full font-medium hover:bg-blue-700 transition-colors"
+                className="w-full mt-6 bg-[var(--blueHex)] text-white py-3 px-6 rounded-full font-semibold hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg"
               >
                 Continue
               </button>
@@ -433,18 +454,16 @@ const BusinessVerification = () => {
 
       {/* New Account Modal */}
       {showNewAccountModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
-          <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-auto">
+        <div className="fixed inset-0 bg-black/50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+          <div className="relative bg-white rounded-2xl shadow-xl max-w-md w-full mx-auto">
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 font-roboto">Create New Account</h3>
+              <h3 className="text-lg font-semibold text-gray-900 font-urbanist">Create New Account</h3>
               <button
                 onClick={() => setShowNewAccountModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-[var(--blueHex)] hover:text-blue-700 transition-colors"
               >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <CloseCircle size={24} color="currentColor" />
               </button>
             </div>
 
@@ -547,7 +566,7 @@ const BusinessVerification = () => {
 
               <button
                 onClick={handleNewAccountSubmit}
-                className="w-full mt-6 bg-[var(--blueHex)] text-white py-3 px-6 rounded-full font-medium hover:bg-blue-700 transition-colors"
+                className="w-full mt-6 bg-[var(--blueHex)] text-white py-3 px-6 rounded-full font-semibold hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg"
               >
                 Create Account
               </button>

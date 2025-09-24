@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { registerVendor, generateOTP } from '@/services/authService';
 import { VendorPayload } from '@/types/api';
 import { validatePassword } from '@/utils/passwordValidation';
+import { ArrowRight } from 'iconsax-react';
 
 const VendorSignup = () => {
   const router = useRouter();
@@ -351,10 +352,8 @@ const VendorSignup = () => {
             loading={loading}
             className="flex-1 bg-[var(--greenHex)] hover:bg-green-600 text-white py-3 rounded-full font-medium flex items-center justify-center"
           >
-            {step === 1 ? 'Next Step →' : 'Create account'}
-            <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
+            {step === 1 ? 'Next Step ' : 'Create account'}
+            <ArrowRight size={16} className="ml-2" />
           </Button>
         </div>
 

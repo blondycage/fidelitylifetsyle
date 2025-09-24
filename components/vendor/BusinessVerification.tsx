@@ -35,10 +35,10 @@ export const BusinessVerification: React.FC<BusinessVerificationProps> = ({ onPr
         {/* Header */}
         <div className="text-center mb-8">
          
-          <h1 className="text-2xl font-bold text-[var(--blueHex)] font-roboto">
+          <h1 className="text-2xl font-bold text-[var(--blueHex)] font-urbanist">
             Business Verification
           </h1>
-          <p className="text-[var(--greyHex)] mt-2 font-roboto">
+          <p className="text-[var(--greyHex)] mt-2 font-urbanist">
             Getting you set-up with Fidelity services
           </p>
         </div>
@@ -65,10 +65,10 @@ export const BusinessVerification: React.FC<BusinessVerificationProps> = ({ onPr
                 <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-[var(--blueHex)] mb-2 font-roboto">
+            <h3 className="text-lg font-semibold text-[var(--blueHex)] mb-2 font-urbanist">
               Account Verification
             </h3>
-            <p className="text-sm text-[var(--greyHex)] font-roboto">
+            <p className="text-sm text-[var(--greyHex)] font-urbanist">
               Enter your account details for verification
             </p>
           </div>

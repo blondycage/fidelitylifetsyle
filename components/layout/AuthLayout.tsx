@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { FidelityLogo } from '@/components/ui/FidelityLogo';
+import { ArrowLeft, ArrowRight } from 'iconsax-react';
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -53,7 +54,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
   }, []);
 
   return (
-    <div className="auth-zoom min-h-screen bg-gray-100 p-4 lg:p-8 flex items-center justify-center">
+    <div className="auth-zoom min-h-screen  p-4 lg:p-8 flex items-center justify-center">
       <div className="w-full max-w-6xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col lg:flex-row min-h-[600px]">
         {/* Image Section - Slider with overlay and border radius */}
         <div className="hidden lg:block lg:w-1/2 relative m-6 mr-3 rounded-2xl overflow-hidden">
@@ -93,10 +94,10 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
               {/* Content overlay */}
               <div className="absolute inset-0 flex items-end">
                 <div className="p-8 text-white z-10">
-                  <h3 className="text-3xl font-bold mb-3 font-roboto drop-shadow-lg">
+                  <h3 className="text-3xl font-bold mb-3 font-urbanist drop-shadow-lg">
                     {slide.title}
                   </h3>
-                  <p className="text-lg opacity-90 font-roboto max-w-md drop-shadow">
+                  <p className="text-lg opacity-90 font-urbanist max-w-md drop-shadow">
                     {slide.description}
                   </p>
                 </div>
@@ -124,17 +125,13 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
             onClick={() => setCurrentSlide((prev) => (prev - 1 + slideImages.length) % slideImages.length)}
             className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-2 rounded-full transition-all duration-200 z-20"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+            <ArrowLeft size={20} color="white" />
           </button>
           <button
             onClick={() => setCurrentSlide((prev) => (prev + 1) % slideImages.length)}
             className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-2 rounded-full transition-all duration-200 z-20"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
+            <ArrowRight size={20} color="white" />
           </button>
         </div>
 
@@ -159,11 +156,11 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
               <div className="mx-auto mb-6">
                 <FidelityLogo showText={false} size="xl" />
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-[var(--blueHex)] font-roboto">
+              <h2 className="text-2xl sm:text-3xl font-bold text-[var(--blueHex)] font-urbanist">
                 {title}
               </h2>
               {subtitle && (
-                <p className="mt-2 text-sm text-[var(--greyHex)] font-roboto">
+                <p className="mt-2 text-sm text-[var(--greyHex)] font-urbanist">
                   {subtitle}
                 </p>
               )}
