@@ -93,7 +93,7 @@ const Signin = () => {
       title="Log in"
       subtitle="Enter your details to log in."
     >
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6 p-6">
         {/* User Type Toggle */}
         <div className="flex bg-[var(--inputHex)] rounded-lg p-1">
           <button

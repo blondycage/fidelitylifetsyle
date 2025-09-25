@@ -54,10 +54,10 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
   }, []);
 
   return (
-    <div className="auth-zoom min-h-screen  p-4 lg:p-8 flex items-center justify-center">
-      <div className="w-full max-w-6xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col lg:flex-row min-h-[600px]">
+    <div className="h-screen w-full flex overflow-hidden">
+      <div className="w-full bg-white flex flex-col lg:flex-row h-full">
         {/* Image Section - Slider with overlay and border radius */}
-        <div className="hidden lg:block lg:w-1/2 relative m-6 mr-3 rounded-2xl overflow-hidden">
+        <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
           {slideImages.map((slide, index) => (
             <div
               key={index}
@@ -136,9 +136,9 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
         </div>
 
         {/* Form Section */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center p-6 lg:p-8 lg:pl-3 relative">
+        <div className="w-full lg:w-1/2 flex flex-col items-center justify-start lg:justify-center p-4 sm:p-8 lg:p-12 relative overflow-y-auto min-h-screen">
           {/* Mobile curved overlay */}
-          <div className="lg:hidden absolute top-0 left-0 w-full h-24 bg-gradient-to-br from-blue-50 to-green-50 opacity-30 rounded-t-2xl">
+          <div className="lg:hidden absolute top-0 left-0 w-full h-24 bg-gradient-to-br from-blue-50 to-green-50 opacity-30">
             <svg
               className="absolute top-0 left-0 w-full h-full"
               viewBox="0 0 100 20"
@@ -151,7 +151,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
             </svg>
           </div>
 
-          <div className="max-w-md w-full space-y-8 relative z-10">
+          <div className="max-w-lg w-full space-y-6 sm:space-y-8 relative z-10 auth-form py-4 sm:py-0">
             <div className="text-center">
               <div className="mx-auto mb-6">
                 <FidelityLogo showText={false} size="xl" />

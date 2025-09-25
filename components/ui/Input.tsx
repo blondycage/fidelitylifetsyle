@@ -28,7 +28,7 @@ export const Input: React.FC<InputProps> = ({
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-sm font-medium text-[var(--greyHex)] mb-2">
+        <label className="block text-sm font-bold text-[var(--greyHex)] mb-2">
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>

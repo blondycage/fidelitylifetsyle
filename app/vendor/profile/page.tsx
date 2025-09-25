@@ -91,8 +91,8 @@ const VendorProfilePage = () => {
                   }}
                   className={`w-full flex items-center px-3 py-3 text-sm font-semibold rounded-xl transition-all duration-200 group ${
                     activeMenuItem === item.name
-                      ? 'bg-[var(--blueHex)] text-white shadow-md'
-                      : 'text-[var(--greyHex)] hover:bg-blue-50 hover:text-[var(--blueHex)]'
+                      ? 'bg-[var(--greenHex)] text-white shadow-md'
+                      : 'text-[var(--greyHex)] hover:bg-blue-50 hover:text-[var(--greenHex)]'
                   }`}
                 >
                   <div className={`flex items-center justify-center w-8 h-8 rounded-lg mr-3 transition-all duration-200 ${
@@ -118,8 +118,8 @@ const VendorProfilePage = () => {
               onClick={() => setActiveMenuItem('Profile')}
               className={`w-full flex items-center px-3 py-3 text-sm font-semibold rounded-xl transition-all duration-200 group ${
                 activeMenuItem === 'Profile'
-                  ? 'bg-[var(--blueHex)] text-white shadow-md'
-                  : 'text-[var(--greyHex)] hover:bg-blue-50 hover:text-[var(--blueHex)]'
+                  ? 'bg-[var(--greenHex)] text-white shadow-md'
+                  : 'text-[var(--greyHex)] hover:bg-blue-50 hover:text-[var(--greenHex)]'
               }`}
             >
               <div className={`flex items-center justify-center w-8 h-8 rounded-lg mr-3 transition-all duration-200 ${
@@ -154,7 +154,7 @@ const VendorProfilePage = () => {
         <header className="bg-white shadow-sm border-b border-gray-200">
           <div className="flex justify-between items-center px-4 sm:px-6 lg:px-8 h-16">
             {/* Mobile menu button */}
-            <button className="lg:hidden p-2 rounded-md text-[var(--blueHex)] hover:text-blue-700 transition-colors">
+            <button className="lg:hidden p-2 rounded-md text-[var(--greenHex)] hover:text-blue-700 transition-colors">
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" />
               </svg>
@@ -174,10 +174,10 @@ const VendorProfilePage = () => {
 
             {/* Notifications and profile */}
             <div className="flex items-center space-x-4">
-              <button className="p-2 text-[var(--greyHex)] hover:text-[var(--blueHex)] transition-colors rounded-lg hover:bg-blue-50">
+              <button className="p-2 text-[var(--greyHex)] hover:text-[var(--greenHex)] transition-colors rounded-lg hover:bg-blue-50">
                 <Notification size={24} variant="Outline" />
               </button>
-              <button className="p-2 text-[var(--greyHex)] hover:text-[var(--blueHex)] transition-colors rounded-lg hover:bg-blue-50">
+              <button className="p-2 text-[var(--greyHex)] hover:text-[var(--greenHex)] transition-colors rounded-lg hover:bg-blue-50">
                 <Profile size={24} variant="Outline" />
               </button>
             </div>
@@ -192,7 +192,7 @@ const VendorProfilePage = () => {
               <div className="flex items-center mb-4">
                 <button
                   onClick={() => router.back()}
-                  className="mr-4 p-2 text-[var(--greyHex)] hover:text-[var(--blueHex)] transition-colors rounded-lg hover:bg-blue-50"
+                  className="mr-4 p-2 text-[var(--greyHex)] hover:text-[var(--greenHex)] transition-colors rounded-lg hover:bg-blue-50"
                 >
                   <ArrowLeft size={24} color="currentColor" />
                 </button>
@@ -205,7 +205,7 @@ const VendorProfilePage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Personal Info */}
                 <div>
-                  <h2 className="text-lg font-semibold text-[var(--blueHex)] mb-6 font-urbanist">
+                  <h2 className="text-lg font-semibold text-[var(--greenHex)] mb-6 font-urbanist">
                     Personal Info
                   </h2>
                   <div className="space-y-4">
@@ -250,7 +250,7 @@ const VendorProfilePage = () => {
 
                 {/* Business Info */}
                 <div>
-                  <h2 className="text-lg font-semibold text-[var(--blueHex)] mb-6 font-urbanist">
+                  <h2 className="text-lg font-semibold text-[var(--greenHex)] mb-6 font-urbanist">
                     Business Info
                   </h2>
                   <div className="space-y-4">
@@ -333,7 +333,7 @@ const VendorProfilePage = () => {
                 </button>
                 <button
                   onClick={handleNext}
-                  className="px-8 py-3 bg-[var(--blueHex)] text-white rounded-full font-semibold hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                  className="px-8 py-3 bg-[var(--greenHex)] text-white rounded-full font-semibold hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg"
                 >
                   Next
                 </button>
@@ -352,7 +352,7 @@ const VendorProfilePage = () => {
             <div className="flex items-center justify-between">
               <button
                 onClick={() => router.back()}
-                className="p-2 text-[var(--blueHex)] hover:text-blue-700 transition-colors rounded-lg hover:bg-blue-50"
+                className="p-2 text-[var(--greenHex)] hover:text-blue-700 transition-colors rounded-lg hover:bg-blue-50"
               >
                 <ArrowLeft size={24} />
               </button>
@@ -366,7 +366,7 @@ const VendorProfilePage = () => {
             <div className="space-y-6">
               {/* Personal Info Section */}
               <div className="bg-white border border-gray-200 rounded-xl p-6">
-                <h2 className="text-lg font-semibold text-[var(--blueHex)] mb-4 font-urbanist">
+                <h2 className="text-lg font-semibold text-[var(--greenHex)] mb-4 font-urbanist">
                   Personal Info
                 </h2>
                 <div className="space-y-4">
@@ -411,7 +411,7 @@ const VendorProfilePage = () => {
 
               {/* Business Info Section */}
               <div className="bg-white border border-gray-200 rounded-xl p-6">
-                <h2 className="text-lg font-semibold text-[var(--blueHex)] mb-4 font-urbanist">
+                <h2 className="text-lg font-semibold text-[var(--greenHex)] mb-4 font-urbanist">
                   Business Info
                 </h2>
                 <div className="space-y-4">
@@ -487,7 +487,7 @@ const VendorProfilePage = () => {
               <div className="flex flex-col space-y-3 pb-8">
                 <button
                   onClick={handleNext}
-                  className="w-full px-8 py-3 bg-[var(--blueHex)] text-white rounded-full font-semibold hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                  className="w-full px-8 py-3 bg-[var(--greenHex)] text-white rounded-full font-semibold hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg"
                 >
                   Next
                 </button>

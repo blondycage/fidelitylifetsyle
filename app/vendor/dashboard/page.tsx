@@ -106,13 +106,13 @@ const VendorDashboard = () => {
                   }}
                   className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
                     activeMenuItem === item.name
-                      ? 'bg-blue-50 text-[var(--blueHex)]'
+                      ? 'bg-blue-50 text-[var(--greenHex)]'
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}
                 >
                   <div className={`flex items-center justify-center w-10 h-10 rounded-xl mr-4 transition-all duration-200 ${
                     activeMenuItem === item.name
-                      ? 'bg-[var(--blueHex)] shadow-lg'
+                      ? 'bg-[var(--greenHex)] shadow-lg'
                       : 'bg-gray-100'
                   }`}>
                     <IconComponent
@@ -158,7 +158,7 @@ const VendorDashboard = () => {
             {/* Mobile menu button */}
             <button
               onClick={() => setIsMobileSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-md text-[var(--blueHex)] hover:text-blue-700 transition-colors">
+              className="lg:hidden p-2 rounded-md text-[var(--greenHex)] hover:text-green-700 transition-colors">
               <HambergerMenu size={24} color="currentColor" />
             </button>
 
@@ -178,10 +178,10 @@ const VendorDashboard = () => {
 
             {/* Notifications and profile */}
             <div className="flex items-center space-x-4">
-              <button className="p-2 text-[var(--blueHex)] hover:text-blue-700 transition-colors rounded-lg hover:bg-blue-50">
+              <button className="p-2 text-[var(--greenHex)] hover:text-green-700 transition-colors rounded-lg hover:bg-green-50">
                 <Notification size={24} color="currentColor" variant="Outline" />
               </button>
-              <button className="p-2 text-[var(--blueHex)] hover:text-blue-700 transition-colors rounded-lg hover:bg-blue-50">
+              <button className="p-2 text-[var(--greenHex)] hover:text-green-700 transition-colors rounded-lg hover:bg-green-50">
                 <Profile size={24} color="currentColor" variant="Outline" />
               </button>
             </div>
@@ -223,7 +223,7 @@ const VendorDashboard = () => {
 
             <div className="bg-white rounded-lg shadow-sm p-6">
               <div className="flex items-center">
-                <div className="p-3 rounded-full bg-blue-100">
+                <div className="p-3 rounded-full bg-green-100">
                   <svg className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                   </svg>
@@ -312,7 +312,7 @@ const VendorDashboard = () => {
             <div className="flex items-center justify-between">
               <button
                 onClick={() => setIsMobileSidebarOpen(true)}
-                className="p-2 text-[var(--blueHex)] hover:text-blue-700 transition-colors"
+                className="p-2 text-[var(--greenHex)] hover:text-green-700 transition-colors"
               >
                 <HambergerMenu size={24} color="currentColor" />
               </button>
@@ -358,7 +358,7 @@ const VendorDashboard = () => {
 
               <div className="bg-white border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center">
-                  <div className="p-2 rounded-full bg-blue-100">
+                  <div className="p-2 rounded-full bg-green-100">
                     <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                     </svg>
@@ -468,13 +468,13 @@ const VendorDashboard = () => {
                       }}
                       className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
                         activeMenuItem === item.name
-                          ? 'bg-blue-50 text-[var(--blueHex)]'
+                          ? 'bg-blue-50 text-[var(--greenHex)]'
                           : 'text-gray-600 hover:bg-gray-50'
                       }`}
                     >
                       <div className={`flex items-center justify-center w-10 h-10 rounded-xl mr-4 transition-all duration-200 ${
                         activeMenuItem === item.name
-                          ? 'bg-[var(--blueHex)] shadow-lg'
+                          ? 'bg-[var(--greenHex)] shadow-lg'
                           : 'bg-gray-100'
                       }`}>
                         <IconComponent

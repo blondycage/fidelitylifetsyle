@@ -132,7 +132,7 @@ export const BusinessVerificationModal: React.FC<BusinessVerificationModalProps>
             </div>
             <button
               onClick={onClose}
-              className="text-[var(--blueHex)] hover:text-blue-700 ml-2 sm:ml-4 p-1 transition-colors"
+              className="text-[var(--greenHex)] hover:text-green-700 ml-2 sm:ml-4 p-1 transition-colors"
             >
               <CloseCircle size={24} color="currentColor" />
             </button>
@@ -157,7 +157,7 @@ export const BusinessVerificationModal: React.FC<BusinessVerificationModalProps>
                   type="text"
                   value={formData.accountNumber}
                   onChange={(e) => handleInputChange('accountNumber', e.target.value)}
-                  className={`w-full px-3 py-2 sm:py-3 border border-dashed border-blue-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--blueHex)] text-sm sm:text-base ${
+                  className={`w-full px-3 py-2 sm:py-3 border border-dashed border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--greenHex)] text-sm sm:text-base ${
                     errors.accountNumber ? 'ring-2 ring-red-500' : ''
                   }`}
                   placeholder="Enter your account number"
@@ -178,7 +178,7 @@ export const BusinessVerificationModal: React.FC<BusinessVerificationModalProps>
                 type="text"
                 value={formData.idNumber}
                 onChange={(e) => handleInputChange('idNumber', e.target.value)}
-                className={`w-full px-3 py-2 sm:py-3 border border-[var(--borderHex)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--blueHex)] text-sm sm:text-base ${
+                className={`w-full px-3 py-2 sm:py-3 border border-[var(--borderHex)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--greenHex)] text-sm sm:text-base ${
                   errors.idNumber ? 'ring-2 ring-red-500' : ''
                 }`}
                 placeholder="Enter your 11-digit BVN"
@@ -200,7 +200,7 @@ export const BusinessVerificationModal: React.FC<BusinessVerificationModalProps>
             className={`w-full py-2.5 sm:py-3 rounded-full font-semibold transition-all duration-200 flex items-center justify-center text-sm sm:text-base shadow-md hover:shadow-lg ${
               isLoading
                 ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                : 'bg-[var(--blueHex)] text-white hover:bg-blue-700'
+                : 'bg-[var(--greenHex)] text-white hover:bg-gradient-to-r hover:from-[var(--greenHex)] hover:to-[var(--blueHex)]'
             }`}
           >
             {isLoading ? (

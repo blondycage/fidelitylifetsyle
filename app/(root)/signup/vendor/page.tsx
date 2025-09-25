@@ -154,9 +154,9 @@ const VendorSignup = () => {
       title={step === 1 ? "Vendor account" : "Business Details"}
       subtitle={step === 1 ? "Select a category to get started." : "Tell us about your business"}
     >
-      <form onSubmit={step === 1 ? (e) => { e.preventDefault(); handleNext(); } : handleSubmit} className="space-y-6">
+      <form onSubmit={step === 1 ? (e) => { e.preventDefault(); handleNext(); } : handleSubmit} className="space-y-4 p-4 sm:p-6 mt-2 sm:mt-5">
         {/* Progress indicator */}
-        <div className="flex justify-center space-x-2 mb-6">
+        <div className="flex justify-center space-x-2 mb-4">
           <div className={`w-3 h-3 rounded-full ${step >= 1 ? 'bg-[var(--blueHex)]' : 'bg-gray-300'}`} />
           <div className={`w-3 h-3 rounded-full ${step >= 2 ? 'bg-[var(--blueHex)]' : 'bg-gray-300'}`} />
         </div>
