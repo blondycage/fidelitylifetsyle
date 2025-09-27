@@ -187,13 +187,13 @@ export const ProfileCompletion: React.FC<ProfileCompletionProps> = ({ onNext }) 
           <div className="flex justify-between mt-8">
             <button
               onClick={handleSaveForLater}
-              className="px-6 py-2 text-[var(--greyHex)] border border-[var(--borderHex)] rounded-lg font-medium hover:bg-gray-50 transition-colors"
+              className="px-6 py-2 text-[var(--greyHex)] border border-[var(--borderHex)] rounded-lg font-medium hover:bg-gray-50 transition-all duration-200"
             >
               Save for later
             </button>
             <button
               onClick={handleNext}
-              className="px-8 py-2 bg-[var(--blueHex)] text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              className="px-8 py-2 bg-[var(--blueHex)] text-white rounded-lg font-medium hover:bg-gradient-to-r hover:from-[var(--greenHex)] hover:to-[var(--blueHex)] transition-all duration-200"
             >
               Next
             </button>

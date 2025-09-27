@@ -1,6 +1,7 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 import { FidelityLogo } from '@/components/ui/FidelityLogo';
 import {
   Home,
@@ -15,10 +16,14 @@ import {
   Notification,
   ArrowLeft,
 } from 'iconsax-react';
+import { fetchVendorByEmail } from '@/services/authService';
+import { VendorData } from '@/types/api';
 
 const VendorProfilePage = () => {
   const router = useRouter();
   const [activeMenuItem, setActiveMenuItem] = useState('Profile');
+  const [loading, setLoading] = useState(true);
+  const [vendorData, setVendorData] = useState<VendorData | null>(null);
   const [formData, setFormData] = useState({
     // Personal Info
     name: '',
@@ -41,8 +46,53 @@ const VendorProfilePage = () => {
     { name: 'Business Verification', icon: Verify, active: false },
   ];
 
+  // Fetch vendor data on component mount
+  useEffect(() => {
+    const loadVendorData = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const userEmail = localStorage.getItem('userEmail');
+
+        if (!token || !userEmail) {
+          toast.error('Authentication required. Please sign in again.');
+          router.push('/signin');
+          return;
+        }
+
+        const response = await fetchVendorByEmail(userEmail, token);
+
+        if (response.responseCode === 200 && response.data) {
+          const vendor = response.data;
+          setVendorData(vendor);
+
+          // Populate form with vendor data
+          setFormData({
+            name: `${vendor.firstName} ${vendor.lastName}`,
+            email: vendor.email,
+            phoneNumber: vendor.phoneNumber,
+            businessName: vendor.businessProfile.name,
+            businessPhone: vendor.phoneNumber, // Using personal phone as business phone if not separate
+            category: vendor.businessType.toLowerCase(),
+            address: vendor.businessProfile.address,
+            description: vendor.businessProfile.description
+          });
+        } else {
+          toast.error('Failed to load profile data');
+        }
+      } catch (error) {
+        console.error('Error loading vendor data:', error);
+        toast.error('Error loading profile data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadVendorData();
+  }, [router]);
+
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('userEmail');
     localStorage.removeItem('userType');
     router.push('/signin');
   };
@@ -61,6 +111,17 @@ const VendorProfilePage = () => {
   const handleNext = () => {
     console.log('Form submitted:', formData);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-[var(--blueHex)] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-[var(--greyHex)]">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -154,7 +215,7 @@ const VendorProfilePage = () => {
         <header className="bg-white shadow-sm border-b border-gray-200">
           <div className="flex justify-between items-center px-4 sm:px-6 lg:px-8 h-16">
             {/* Mobile menu button */}
-            <button className="lg:hidden p-2 rounded-md text-[var(--greenHex)] hover:text-blue-700 transition-colors">
+            <button className="lg:hidden p-2 rounded-md text-[var(--greenHex)] hover:text-blue-700 transition-all duration-200">
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" />
               </svg>
@@ -166,7 +227,7 @@ const VendorProfilePage = () => {
                 <input
                   type="text"
                   placeholder="Search..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--blueHex)] focus:border-[var(--blueHex)] transition-colors"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--blueHex)] focus:border-[var(--blueHex)] transition-all duration-200"
                 />
                 <SearchNormal1 size={20} className="absolute left-3 top-2.5 text-gray-400" />
               </div>
@@ -174,10 +235,10 @@ const VendorProfilePage = () => {
 
             {/* Notifications and profile */}
             <div className="flex items-center space-x-4">
-              <button className="p-2 text-[var(--greyHex)] hover:text-[var(--greenHex)] transition-colors rounded-lg hover:bg-blue-50">
+              <button className="p-2 text-[var(--greyHex)] hover:text-[var(--greenHex)] transition-all duration-200 rounded-lg hover:bg-blue-50">
                 <Notification size={24} variant="Outline" />
               </button>
-              <button className="p-2 text-[var(--greyHex)] hover:text-[var(--greenHex)] transition-colors rounded-lg hover:bg-blue-50">
+              <button className="p-2 text-[var(--greyHex)] hover:text-[var(--greenHex)] transition-all duration-200 rounded-lg hover:bg-blue-50">
                 <Profile size={24} variant="Outline" />
               </button>
             </div>
@@ -192,7 +253,7 @@ const VendorProfilePage = () => {
               <div className="flex items-center mb-4">
                 <button
                   onClick={() => router.back()}
-                  className="mr-4 p-2 text-[var(--greyHex)] hover:text-[var(--greenHex)] transition-colors rounded-lg hover:bg-blue-50"
+                  className="mr-4 p-2 text-[var(--greyHex)] hover:text-[var(--greenHex)] transition-all duration-200 rounded-lg hover:bg-blue-50"
                 >
                   <ArrowLeft size={24} color="currentColor" />
                 </button>
@@ -288,11 +349,17 @@ const VendorProfilePage = () => {
                         className="w-full px-4 py-3 bg-gray-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--blueHex)] text-[var(--greyHex)] transition-all"
                       >
                         <option value="">Select category</option>
-                        <option value="retail">Retail</option>
-                        <option value="services">Services</option>
-                        <option value="technology">Technology</option>
-                        <option value="food">Food & Beverage</option>
-                        <option value="other">Other</option>
+                        <option value="hotel">Hotel</option>
+                        <option value="influencer">Influencer</option>
+                        <option value="restaurant">Restaurant</option>
+                        <option value="club">Club</option>
+                        <option value="supermarket">Supermarket</option>
+                        <option value="pharmacy">Pharmacy</option>
+                        <option value="fashion">Fashion</option>
+                        <option value="tour_guide">Tour Guide</option>
+                        <option value="experiences">Experiences</option>
+                        <option value="events">Events</option>
+                        <option value="others">Others</option>
                       </select>
                     </div>
                     <div>
@@ -333,7 +400,7 @@ const VendorProfilePage = () => {
                 </button>
                 <button
                   onClick={handleNext}
-                  className="px-8 py-3 bg-[var(--greenHex)] text-white rounded-full font-semibold hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                  className="px-8 py-3 bg-[var(--greenHex)] text-white rounded-full font-semibold hover:bg-gradient-to-r hover:from-[var(--greenHex)] hover:to-[var(--blueHex)] transition-all duration-200 shadow-md hover:shadow-lg"
                 >
                   Next
                 </button>
@@ -352,7 +419,7 @@ const VendorProfilePage = () => {
             <div className="flex items-center justify-between">
               <button
                 onClick={() => router.back()}
-                className="p-2 text-[var(--greenHex)] hover:text-blue-700 transition-colors rounded-lg hover:bg-blue-50"
+                className="p-2 text-[var(--greenHex)] hover:text-blue-700 transition-all duration-200 rounded-lg hover:bg-blue-50"
               >
                 <ArrowLeft size={24} />
               </button>
@@ -487,7 +554,7 @@ const VendorProfilePage = () => {
               <div className="flex flex-col space-y-3 pb-8">
                 <button
                   onClick={handleNext}
-                  className="w-full px-8 py-3 bg-[var(--greenHex)] text-white rounded-full font-semibold hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                  className="w-full px-8 py-3 bg-[var(--greenHex)] text-white rounded-full font-semibold hover:bg-gradient-to-r hover:from-[var(--greenHex)] hover:to-[var(--blueHex)] transition-all duration-200 shadow-md hover:shadow-lg"
                 >
                   Next
                 </button>

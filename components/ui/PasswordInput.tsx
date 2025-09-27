@@ -63,7 +63,7 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
           type="button"
           onClick={handleTogglePassword}
           disabled={disabled}
-          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[var(--greyHex)] hover:text-[var(--blueHex)] transition-colors disabled:opacity-50"
+          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[var(--greyHex)] hover:text-[var(--blueHex)] transition-all duration-200 disabled:opacity-50"
         >
           {showPassword ? (
             <EyeSlash size={20} />

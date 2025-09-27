@@ -136,7 +136,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
         </div>
 
         {/* Form Section */}
-        <div className="w-full lg:w-1/2 flex flex-col items-center justify-start lg:justify-center p-4 sm:p-8 lg:p-12 relative overflow-y-auto min-h-screen">
+        <div className="w-full lg:w-1/2 flex flex-col items-center justify-start lg:justify-center p-4 sm:p-8 lg:p-12 relative overflow-y-auto min-h-screen h-screen">
           {/* Mobile curved overlay */}
           <div className="lg:hidden absolute top-0 left-0 w-full h-24 bg-gradient-to-br from-blue-50 to-green-50 opacity-30">
             <svg
@@ -153,7 +153,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
 
           <div className="max-w-lg w-full space-y-6 sm:space-y-8 relative z-10 auth-form py-4 sm:py-0">
             <div className="text-center">
-              <div className="mx-auto mb-6">
+              <div className="flex justify-center mx-auto mb-6">
                 <FidelityLogo showText={false} size="xl" />
               </div>
               <h2 className="text-2xl sm:text-3xl font-bold text-[var(--blueHex)] font-urbanist">

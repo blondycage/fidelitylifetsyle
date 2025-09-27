@@ -134,16 +134,16 @@ export const AccountSelection: React.FC<AccountSelectionProps> = ({ onNext, onPr
           <div className="flex justify-between mt-8">
             <button
               onClick={handlePrev}
-              className="px-6 py-2 text-[var(--greyHex)] border border-[var(--borderHex)] rounded-lg font-medium hover:bg-gray-50 transition-colors"
+              className="px-6 py-2 text-[var(--greyHex)] border border-[var(--borderHex)] rounded-lg font-medium hover:bg-gray-50 transition-all duration-200"
             >
               Previous
             </button>
             <button
               onClick={handleNext}
               disabled={!selectedAccount}
-              className={`px-8 py-2 rounded-lg font-medium transition-colors ${
+              className={`px-8 py-2 rounded-lg font-medium transition-all duration-200 ${
                 selectedAccount
-                  ? 'bg-[var(--blueHex)] text-white hover:bg-blue-700'
+                  ? 'bg-[var(--blueHex)] text-white hover:bg-gradient-to-r hover:from-[var(--greenHex)] hover:to-[var(--blueHex)]'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             >

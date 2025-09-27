@@ -85,7 +85,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
       <div className="bg-white rounded-2xl p-6 w-full max-w-md relative">
         <button
           onClick={handleClose}
-          className="absolute right-4 top-4 text-[var(--blueHex)] hover:text-blue-700 transition-colors"
+          className="absolute right-4 top-4 text-[var(--blueHex)] hover:text-blue-700 transition-all duration-200"
         >
           <CloseCircle size={24} color="currentColor" />
         </button>

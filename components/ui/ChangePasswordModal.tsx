@@ -106,7 +106,7 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
       <div className="bg-white rounded-2xl p-6 w-full max-w-md relative max-h-[90vh] overflow-y-auto">
         <button
           onClick={handleClose}
-          className="absolute right-4 top-4 text-[var(--blueHex)] hover:text-blue-700 transition-colors"
+          className="absolute right-4 top-4 text-[var(--blueHex)] hover:text-blue-700 transition-all duration-200"
         >
           <CloseCircle size={24} color="currentColor" />
         </button>

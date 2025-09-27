@@ -91,10 +91,16 @@ export const BusinessVerificationModal: React.FC<BusinessVerificationModalProps>
       const data = await response.json();
       console.log('API response data:', data);
 
-      if (response.ok) {
+      if (response.ok && data.data !== false) {
         toast.success(data.responseMessage || 'Verification successful!');
         onComplete();
         onClose();
+      } else if (response.ok && data.data === false) {
+        // Handle case where API returns 200 but data is false
+        toast.error('Verification failed. Check credentials or try again later.');
+        setErrors({
+          general: 'Verification failed. Please check your BVN and account number or try again later.'
+        });
       } else {
         toast.error(data.responseMessage || 'Verification failed');
         if (data.responseCode === 400) {
@@ -132,7 +138,7 @@ export const BusinessVerificationModal: React.FC<BusinessVerificationModalProps>
             </div>
             <button
               onClick={onClose}
-              className="text-[var(--greenHex)] hover:text-green-700 ml-2 sm:ml-4 p-1 transition-colors"
+              className="text-[var(--greenHex)] hover:text-green-700 ml-2 sm:ml-4 p-1 transition-all duration-200"
             >
               <CloseCircle size={24} color="currentColor" />
             </button>

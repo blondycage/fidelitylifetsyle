@@ -63,7 +63,7 @@ export const OTPInput: React.FC<OTPInputProps> = ({ length = 6, onComplete, erro
             onChange={(e) => handleChange(index, e.target.value)}
             onClick={() => handleClick(index)}
             onKeyDown={(e) => handleKeyDown(index, e)}
-            className={`w-12 h-12 text-center text-xl font-bold border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--blueHex)] transition-colors ${
+            className={`w-12 h-12 text-center text-xl font-bold border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--blueHex)] transition-all duration-200 ${
               error
                 ? 'border-red-500 bg-red-50'
                 : value

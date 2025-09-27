@@ -12,7 +12,8 @@ export interface UserLoginPayloadProps {
 }
 
 export interface UserLoginData {
-  token: string
+  token: string;
+  email: string;
 }
 
 export interface CustomerPayload {
@@ -65,8 +66,11 @@ export interface VendorPayload {
   username: string,
   businessType: string,
   businessProfileDTO: {
+    id?: number,
     name: string,
     address: string,
+    latitude: number,
+    longitude: number,
     description: string
   }
 }
@@ -93,11 +97,14 @@ export interface VendorData {
     id: number,
     name: string,
     address: string,
+    latitude: number | null,
+    longitude: number | null,
     description: string
   },
   active: boolean,
   emailValidated: boolean,
-  firstLogon: boolean
+  firstLogon: boolean,
+  bizValidated: boolean
 }
 
 export interface OTPpayload {

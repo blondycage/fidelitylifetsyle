@@ -4,9 +4,10 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { AuthLayout } from '@/components/layout/AuthLayout';
 import { Input } from '@/components/ui/Input';
+import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { Button } from '@/components/ui/Button';
-import { registerVendor, generateOTP } from '@/services/authService';
+import { registerVendor } from '@/services/authService';
 import { VendorPayload } from '@/types/api';
 import { validatePassword } from '@/utils/passwordValidation';
 import { ArrowRight } from 'iconsax-react';
@@ -25,6 +26,8 @@ const VendorSignup = () => {
     businessType: '',
     businessName: '',
     businessAddress: '',
+    businessLatitude: 0,
+    businessLongitude: 0,
     businessDescription: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -35,6 +38,18 @@ const VendorSignup = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const handleAddressChange = (addressDetails: { address: string; latitude: number; longitude: number }) => {
+    setFormData(prev => ({
+      ...prev,
+      businessAddress: addressDetails.address,
+      businessLatitude: addressDetails.latitude,
+      businessLongitude: addressDetails.longitude
+    }));
+    if (errors.businessAddress) {
+      setErrors(prev => ({ ...prev, businessAddress: '' }));
     }
   };
 
@@ -109,6 +124,8 @@ const VendorSignup = () => {
         businessProfileDTO: {
           name: formData.businessName,
           address: formData.businessAddress,
+          latitude: formData.businessLatitude,
+          longitude: formData.businessLongitude,
           description: formData.businessDescription,
         },
       };
@@ -287,13 +304,12 @@ const VendorSignup = () => {
               required
             />
 
-            <Input
-              type="text"
+            <AddressAutocomplete
               name="businessAddress"
               placeholder="Enter your business address"
               label="Business Address"
               value={formData.businessAddress}
-              onChange={handleInputChange}
+              onChange={handleAddressChange}
               error={errors.businessAddress}
               required
             />
@@ -350,7 +366,7 @@ const VendorSignup = () => {
           <Button
             type="submit"
             loading={loading}
-            className="flex-1 bg-[var(--greenHex)] hover:bg-green-600 text-white py-3 rounded-full font-medium flex items-center justify-center"
+            className="flex-1 bg-[var(--greenHex)] hover:bg-gradient-to-r hover:from-[var(--greenHex)] hover:to-[var(--blueHex)] text-white py-3 rounded-full font-medium flex items-center justify-center"
           >
             {step === 1 ? 'Next Step ' : 'Create account'}
             <ArrowRight size={16} className="ml-2" />

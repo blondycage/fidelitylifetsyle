@@ -20,6 +20,7 @@ import {
   ArrowRight2
 } from 'iconsax-react';
 import { BusinessVerificationModal } from '@/components/vendor/BusinessVerificationModal';
+import { FidelityAccountForm } from '@/components/vendor/FidelityAccountForm';
 
 const BusinessVerification = () => {
   const router = useRouter();
@@ -31,16 +32,7 @@ const BusinessVerification = () => {
     accountNumber: '',
     bvn: ''
   });
-  const [newAccountFormData, setNewAccountFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phoneNumber: '',
-    bvn: '',
-    businessName: ''
-  });
   const [errors, setErrors] = useState<{[key: string]: string}>({});
-  const [newAccountErrors, setNewAccountErrors] = useState<{[key: string]: string}>({});
 
   const menuItems = [
     { name: 'Dashboard', icon: Home, active: false },
@@ -62,10 +54,6 @@ const BusinessVerification = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleNewAccountInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setNewAccountFormData(prev => ({ ...prev, [name]: value }));
-  };
 
   const validateExistingAccountForm = () => {
     const newErrors: {[key: string]: string} = {};
@@ -88,40 +76,6 @@ const BusinessVerification = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const validateNewAccountForm = () => {
-    const newErrors: {[key: string]: string} = {};
-
-    if (!newAccountFormData.firstName.trim()) {
-      newErrors.firstName = 'First name is required';
-    }
-
-    if (!newAccountFormData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required';
-    }
-
-    if (!newAccountFormData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(newAccountFormData.email)) {
-      newErrors.email = 'Email is invalid';
-    }
-
-    if (!newAccountFormData.phoneNumber.trim()) {
-      newErrors.phoneNumber = 'Phone number is required';
-    }
-
-    if (!newAccountFormData.businessName.trim()) {
-      newErrors.businessName = 'Business name is required';
-    }
-
-    if (!newAccountFormData.bvn.trim()) {
-      newErrors.bvn = 'BVN is required';
-    } else if (newAccountFormData.bvn.length !== 11) {
-      newErrors.bvn = 'BVN must be exactly 11 digits';
-    }
-
-    setNewAccountErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
 
   const handleContinue = () => {
     if (validateExistingAccountForm()) {
@@ -130,12 +84,6 @@ const BusinessVerification = () => {
     }
   };
 
-  const handleNewAccountSubmit = () => {
-    if (validateNewAccountForm()) {
-      console.log('New account form submitted:', newAccountFormData);
-      setShowNewAccountModal(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -215,7 +163,7 @@ const BusinessVerification = () => {
         <header className="bg-white shadow-sm border-b border-gray-200">
           <div className="flex justify-between items-center px-4 sm:px-6 lg:px-8 h-16">
             {/* Mobile menu button */}
-            <button className="lg:hidden p-2 rounded-md text-[var(--greenHex)] hover:text-blue-700 transition-colors">
+            <button className="lg:hidden p-2 rounded-md text-[var(--greenHex)] hover:text-blue-700 transition-all duration-200">
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" />
               </svg>
@@ -227,7 +175,7 @@ const BusinessVerification = () => {
                 <input
                   type="text"
                   placeholder="Search..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--blueHex)] focus:border-[var(--blueHex)] transition-colors"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--blueHex)] focus:border-[var(--blueHex)] transition-all duration-200"
                 />
                 <SearchNormal1 size={20} className="absolute left-3 top-2.5 text-gray-400" />
               </div>
@@ -235,10 +183,10 @@ const BusinessVerification = () => {
 
             {/* Notifications and profile */}
             <div className="flex items-center space-x-4">
-              <button className="p-2 text-[var(--greyHex)] hover:text-[var(--greenHex)] transition-colors rounded-lg hover:bg-blue-50">
+              <button className="p-2 text-[var(--greyHex)] hover:text-[var(--greenHex)] transition-all duration-200 rounded-lg hover:bg-blue-50">
                 <Notification size={24} variant="Outline" />
               </button>
-              <button className="p-2 text-[var(--greyHex)] hover:text-[var(--greenHex)] transition-colors rounded-lg hover:bg-blue-50">
+              <button className="p-2 text-[var(--greyHex)] hover:text-[var(--greenHex)] transition-all duration-200 rounded-lg hover:bg-blue-50">
                 <Profile size={24} variant="Outline" />
               </button>
             </div>
@@ -315,7 +263,7 @@ const BusinessVerification = () => {
             <div className="flex items-center justify-between">
               <button
                 onClick={() => router.back()}
-                className="p-2 text-[var(--greenHex)] hover:text-blue-700 transition-colors rounded-lg hover:bg-blue-50"
+                className="p-2 text-[var(--greenHex)] hover:text-blue-700 transition-all duration-200 rounded-lg hover:bg-blue-50"
               >
                 <ArrowLeft size={24} color="currentColor" />
               </button>
@@ -402,7 +350,7 @@ const BusinessVerification = () => {
               <h3 className="text-lg font-semibold text-gray-900 font-urbanist">Business Verification</h3>
               <button
                 onClick={() => setShowExistingAccountModal(false)}
-                className="text-[var(--greenHex)] hover:text-blue-700 transition-colors"
+                className="text-[var(--greenHex)] hover:text-blue-700 transition-all duration-200"
               >
                 <CloseCircle size={24} color="currentColor" />
               </button>
@@ -445,7 +393,7 @@ const BusinessVerification = () => {
 
               <button
                 onClick={handleContinue}
-                className="w-full mt-6 bg-[var(--greenHex)] text-white py-3 px-6 rounded-full font-semibold hover:bg-green-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                className="w-full mt-6 bg-[var(--greenHex)] text-white py-3 px-6 rounded-full font-semibold hover:bg-gradient-to-r hover:from-green-600 hover:to-green-800 transition-all duration-200 shadow-md hover:shadow-lg"
               >
                 Continue
               </button>
@@ -454,127 +402,20 @@ const BusinessVerification = () => {
         </div>
       )}
 
-      {/* New Account Modal */}
+      {/* New Account Form */}
       {showNewAccountModal && (
-        <div className="fixed inset-0 bg-black/50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
-          <div className="relative bg-white rounded-2xl shadow-xl max-w-md w-full mx-auto">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 font-urbanist">Create New Account</h3>
-              <button
-                onClick={() => setShowNewAccountModal(false)}
-                className="text-[var(--greenHex)] hover:text-blue-700 transition-colors"
-              >
-                <CloseCircle size={24} color="currentColor" />
-              </button>
-            </div>
-
-            {/* Modal Content */}
-            <div className="p-6">
-              <p className="text-sm text-gray-600 mb-6 text-center">Create a new Fidelity account for your business.</p>
-
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
-                    <input
-                      type="text"
-                      name="firstName"
-                      value={newAccountFormData.firstName}
-                      onChange={handleNewAccountInputChange}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--blueHex)] focus:border-transparent ${
-                        newAccountErrors.firstName ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      placeholder="John"
-                    />
-                    {newAccountErrors.firstName && <p className="mt-1 text-xs text-red-600">{newAccountErrors.firstName}</p>}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
-                    <input
-                      type="text"
-                      name="lastName"
-                      value={newAccountFormData.lastName}
-                      onChange={handleNewAccountInputChange}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--blueHex)] focus:border-transparent ${
-                        newAccountErrors.lastName ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      placeholder="Doe"
-                    />
-                    {newAccountErrors.lastName && <p className="mt-1 text-xs text-red-600">{newAccountErrors.lastName}</p>}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={newAccountFormData.email}
-                    onChange={handleNewAccountInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--blueHex)] focus:border-transparent ${
-                      newAccountErrors.email ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="john@example.com"
-                  />
-                  {newAccountErrors.email && <p className="mt-1 text-xs text-red-600">{newAccountErrors.email}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
-                  <input
-                    type="tel"
-                    name="phoneNumber"
-                    value={newAccountFormData.phoneNumber}
-                    onChange={handleNewAccountInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--blueHex)] focus:border-transparent ${
-                      newAccountErrors.phoneNumber ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="+234 800 000 0000"
-                  />
-                  {newAccountErrors.phoneNumber && <p className="mt-1 text-xs text-red-600">{newAccountErrors.phoneNumber}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Business Name *</label>
-                  <input
-                    type="text"
-                    name="businessName"
-                    value={newAccountFormData.businessName}
-                    onChange={handleNewAccountInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--blueHex)] focus:border-transparent ${
-                      newAccountErrors.businessName ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="Your Business Name"
-                  />
-                  {newAccountErrors.businessName && <p className="mt-1 text-xs text-red-600">{newAccountErrors.businessName}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">BVN *</label>
-                  <input
-                    type="text"
-                    name="bvn"
-                    value={newAccountFormData.bvn}
-                    onChange={handleNewAccountInputChange}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[var(--blueHex)] focus:border-transparent ${
-                      newAccountErrors.bvn ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="Bank Verification Number"
-                  />
-                  {newAccountErrors.bvn && <p className="mt-1 text-xs text-red-600">{newAccountErrors.bvn}</p>}
-                </div>
-              </div>
-
-              <button
-                onClick={handleNewAccountSubmit}
-                className="w-full mt-6 bg-[var(--greenHex)] text-white py-3 px-6 rounded-full font-semibold hover:bg-green-700 transition-all duration-200 shadow-md hover:shadow-lg"
-              >
-                Create Account
-              </button>
-            </div>
-          </div>
-        </div>
+        <FidelityAccountForm
+          isOpen={showNewAccountModal}
+          onClose={() => setShowNewAccountModal(false)}
+          onComplete={() => {
+            console.log('Account created successfully');
+            setShowNewAccountModal(false);
+            // Redirect to dashboard after short delay
+            setTimeout(() => {
+              router.push('/vendor/dashboard');
+            }, 1500);
+          }}
+        />
       )}
     </div>
   );

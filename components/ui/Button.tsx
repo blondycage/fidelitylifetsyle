@@ -22,8 +22,8 @@ export const Button: React.FC<ButtonProps> = ({
   const baseClasses = 'w-full px-6 py-3 rounded-full font-medium text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
 
   const variantClasses = {
-    primary: 'bg-[var(--blueHex)] text-white hover:bg-blue-700 focus:ring-blue-500 disabled:bg-gray-400',
-    secondary: 'bg-[var(--greenHex)] text-white hover:bg-green-600 focus:ring-green-500 disabled:bg-gray-400',
+    primary: 'bg-[var(--blueHex)] text-white hover:bg-gradient-to-r hover:from-[var(--greenHex)] hover:to-[var(--blueHex)] focus:ring-blue-500 disabled:bg-gray-400',
+    secondary: 'bg-[var(--greenHex)] text-white hover:bg-gradient-to-r hover:from-[var(--greenHex)] hover:to-[var(--blueHex)] focus:ring-green-500 disabled:bg-gray-400',
   };
 
   return (

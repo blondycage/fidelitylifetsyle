@@ -180,7 +180,7 @@ const CustomerSignup = () => {
           <Button
             type="submit"
             loading={loading}
-            className="w-full bg-[var(--greenHex)] hover:bg-green-600 text-white py-3 rounded-full font-medium flex items-center justify-center"
+            className="w-full bg-[var(--greenHex)] hover:bg-gradient-to-r hover:from-[var(--greenHex)] hover:to-[var(--blueHex)] text-white py-3 rounded-full font-medium flex items-center justify-center"
           >
             Create account
             <ArrowRight size={16} className="ml-2" />

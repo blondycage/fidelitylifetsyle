@@ -136,7 +136,7 @@ const CustomerDashboard = () => {
                 <p className="text-[var(--greyHex)] text-sm mb-4 font-urbanist">
                   Discover our restaurant of the month with exclusive offers for Fidelity customers.
                 </p>
-                <button className="bg-[var(--blueHex)] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+                <button className="bg-[var(--blueHex)] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gradient-to-r hover:from-[var(--greenHex)] hover:to-[var(--blueHex)] transition-all duration-200">
                   View Details
                 </button>
               </div>
@@ -155,7 +155,7 @@ const CustomerDashboard = () => {
                 <p className="text-[var(--greyHex)] text-sm mb-4 font-urbanist">
                   Don't miss out on the hottest events happening this month.
                 </p>
-                <button className="bg-[var(--greenHex)] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-600 transition-colors">
+                <button className="bg-[var(--greenHex)] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gradient-to-r hover:from-[var(--greenHex)] hover:to-[var(--blueHex)] transition-all duration-200">
                   Explore Events
                 </button>
               </div>

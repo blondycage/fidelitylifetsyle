@@ -9,6 +9,13 @@ const nextConfig = {
     // ✅ Allow production builds to complete even if there are TS errors
     ignoreBuildErrors: true,
   },
+  experimental: {
+    turbo: {
+      resolveAlias: {
+        '@vercel/turbopack-next/internal/font/google/font': false,
+      },
+    },
+  },
 };
 
 module.exports = nextConfig;

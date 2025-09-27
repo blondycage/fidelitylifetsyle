@@ -158,7 +158,7 @@ const VendorDashboard = () => {
             {/* Mobile menu button */}
             <button
               onClick={() => setIsMobileSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-md text-[var(--greenHex)] hover:text-green-700 transition-colors">
+              className="lg:hidden p-2 rounded-md text-[var(--greenHex)] hover:text-green-700 transition-all duration-200">
               <HambergerMenu size={24} color="currentColor" />
             </button>
 
@@ -178,10 +178,10 @@ const VendorDashboard = () => {
 
             {/* Notifications and profile */}
             <div className="flex items-center space-x-4">
-              <button className="p-2 text-[var(--greenHex)] hover:text-green-700 transition-colors rounded-lg hover:bg-green-50">
+              <button className="p-2 text-[var(--greenHex)] hover:text-green-700 transition-all duration-200 rounded-lg hover:bg-green-50">
                 <Notification size={24} color="currentColor" variant="Outline" />
               </button>
-              <button className="p-2 text-[var(--greenHex)] hover:text-green-700 transition-colors rounded-lg hover:bg-green-50">
+              <button className="p-2 text-[var(--greenHex)] hover:text-green-700 transition-all duration-200 rounded-lg hover:bg-green-50">
                 <Profile size={24} color="currentColor" variant="Outline" />
               </button>
             </div>
@@ -282,13 +282,13 @@ const VendorDashboard = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
                         <button
                           onClick={() => handleRejectOrder(order.id)}
-                          className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-full text-white bg-red-400 hover:bg-red-500 transition-colors"
+                          className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-full text-white bg-red-400 hover:bg-gradient-to-r hover:from-red-400 hover:to-red-600 transition-all duration-200"
                         >
                           Reject
                         </button>
                         <button
                           onClick={() => handleAcceptOrder(order.id)}
-                          className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-full text-white bg-green-500 hover:bg-green-600 transition-colors"
+                          className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-full text-white bg-green-500 hover:bg-gradient-to-r hover:from-[var(--greenHex)] hover:to-[var(--blueHex)] transition-all duration-200"
                         >
                           Accept
                         </button>
@@ -312,7 +312,7 @@ const VendorDashboard = () => {
             <div className="flex items-center justify-between">
               <button
                 onClick={() => setIsMobileSidebarOpen(true)}
-                className="p-2 text-[var(--greenHex)] hover:text-green-700 transition-colors"
+                className="p-2 text-[var(--greenHex)] hover:text-green-700 transition-all duration-200"
               >
                 <HambergerMenu size={24} color="currentColor" />
               </button>
@@ -409,13 +409,13 @@ const VendorDashboard = () => {
                     <div className="flex space-x-2">
                       <button
                         onClick={() => handleRejectOrder(order.id)}
-                        className="flex-1 px-3 py-2 border border-transparent text-xs font-medium rounded-full text-white bg-red-400 hover:bg-red-500 transition-colors text-center"
+                        className="flex-1 px-3 py-2 border border-transparent text-xs font-medium rounded-full text-white bg-red-400 hover:bg-gradient-to-r hover:from-red-400 hover:to-red-600 transition-all duration-200 text-center"
                       >
                         Reject
                       </button>
                       <button
                         onClick={() => handleAcceptOrder(order.id)}
-                        className="flex-1 px-3 py-2 border border-transparent text-xs font-medium rounded-full text-white bg-green-500 hover:bg-green-600 transition-colors text-center"
+                        className="flex-1 px-3 py-2 border border-transparent text-xs font-medium rounded-full text-white bg-green-500 hover:bg-gradient-to-r hover:from-[var(--greenHex)] hover:to-[var(--blueHex)] transition-all duration-200 text-center"
                       >
                         Accept
                       </button>

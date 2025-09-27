@@ -61,6 +61,7 @@ const Signin = () => {
 
       if (response.responseCode === 200) {
         localStorage.setItem('token', response.data.token);
+        localStorage.setItem('userEmail', response.data.email);
         localStorage.setItem('userType', userType);
 
         toast.success(`Welcome back! Signed in as ${userType.toLowerCase()}`);
@@ -99,7 +100,7 @@ const Signin = () => {
           <button
             type="button"
             onClick={() => setUserType('CUSTOMER')}
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 ${
               userType === 'CUSTOMER'
                 ? 'bg-white text-[var(--blueHex)] shadow-sm'
                 : 'text-[var(--greyHex)]'
@@ -110,7 +111,7 @@ const Signin = () => {
           <button
             type="button"
             onClick={() => setUserType('VENDOR')}
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 ${
               userType === 'VENDOR'
                 ? 'bg-white text-[var(--blueHex)] shadow-sm'
                 : 'text-[var(--greyHex)]'
@@ -158,7 +159,7 @@ const Signin = () => {
         </div>
 
         <div className="pt-4">
-          <Button type="submit" loading={loading} className="w-full bg-[var(--greenHex)] hover:bg-green-600 text-white py-3 rounded-full font-medium flex items-center justify-center">
+          <Button type="submit" loading={loading} className="w-full bg-[var(--greenHex)] hover:bg-gradient-to-r hover:from-[var(--greenHex)] hover:to-[var(--blueHex)] text-white py-3 rounded-full font-medium flex items-center justify-center">
             Log in
             <ArrowRight size={16} className="ml-2" />
           </Button>
@@ -189,7 +190,7 @@ const Signin = () => {
         <Button
           type="button"
         
-          className="w-full border-2 border-[var(--blueHex)] bg-[var(--blueHex)] text-white hover:bg-blue-600 hover:border-blue-600 py-3 rounded-full font-medium flex items-center justify-center transition-all duration-200"
+          className="w-full border-2 border-[var(--blueHex)] bg-[var(--blueHex)] text-white hover:bg-gradient-to-r hover:from-blue-500 hover:to-blue-700 hover:border-blue-600 py-3 rounded-full font-medium flex items-center justify-center transition-all duration-200"
        
         >
           <svg className="mr-2 w-5 h-5" viewBox="0 0 24 24">
