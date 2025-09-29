@@ -1,16 +1,16 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { AuthLayout } from '@/components/layout/AuthLayout';
 import { Input } from '@/components/ui/Input';
-import { AddressAutocomplete } from '@/components/ui/AddressAutocomplete';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { Button } from '@/components/ui/Button';
 import { registerVendor } from '@/services/authService';
 import { VendorPayload } from '@/types/api';
 import { validatePassword } from '@/utils/passwordValidation';
 import { ArrowRight } from 'iconsax-react';
+import { Loader } from '@googlemaps/js-api-loader';
 
 const VendorSignup = () => {
   const router = useRouter();
@@ -33,6 +33,107 @@ const VendorSignup = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
+  // Google Maps Autocomplete state
+  const addressInputRef = useRef<HTMLInputElement>(null);
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false);
+  const [addressInputValue, setAddressInputValue] = useState('');
+  const [isAddressSelected, setIsAddressSelected] = useState(false);
+  const isSelectingFromAutocomplete = useRef(false);
+
+  // Load Google Maps
+  useEffect(() => {
+    const loadGoogleMaps = async () => {
+      if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
+        console.error('Google Maps API key not found');
+        return;
+      }
+
+      try {
+        const loader = new Loader({
+          apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+          version: 'weekly',
+          libraries: ['places'],
+        });
+
+        await loader.load();
+        console.log('Google Maps loaded successfully');
+        setIsGoogleMapsLoaded(true);
+      } catch (error) {
+        console.error('Error loading Google Maps:', error);
+      }
+    };
+
+    loadGoogleMaps();
+  }, []);
+
+  // Initialize autocomplete when Google Maps is loaded and we're on step 2
+  useEffect(() => {
+    if (isGoogleMapsLoaded && step === 2 && addressInputRef.current && !autocompleteRef.current) {
+      console.log('Initializing Google Places Autocomplete');
+
+      // Small delay to ensure the input is fully rendered
+      setTimeout(() => {
+        if (addressInputRef.current) {
+          autocompleteRef.current = new google.maps.places.Autocomplete(
+            addressInputRef.current,
+            {
+              types: ['establishment', 'geocode'],
+              fields: ['formatted_address', 'geometry.location', 'name'],
+            }
+          );
+          console.log('Autocomplete initialized:', autocompleteRef.current);
+
+          // Add event listener after autocomplete is initialized
+          autocompleteRef.current.addListener('place_changed', () => {
+        const place = autocompleteRef.current?.getPlace();
+
+        if (place && place.geometry && place.geometry.location) {
+          isSelectingFromAutocomplete.current = true;
+
+          const selectedAddress = place.formatted_address || place.name || '';
+
+          // Update form data directly
+          setFormData(prev => ({
+            ...prev,
+            businessAddress: selectedAddress,
+            businessLatitude: place.geometry!.location!.lat(),
+            businessLongitude: place.geometry!.location!.lng(),
+          }));
+
+          // Update local address state
+          setAddressInputValue(selectedAddress);
+          setIsAddressSelected(true);
+
+          // Clear any address errors
+          if (errors.businessAddress) {
+            setErrors(prev => ({ ...prev, businessAddress: '' }));
+          }
+
+          // Reset the flag
+          setTimeout(() => {
+            isSelectingFromAutocomplete.current = false;
+          }, 100);
+        }
+          });
+        }
+      }, 100);
+    }
+
+    return () => {
+      if (autocompleteRef.current) {
+        google.maps.event.clearInstanceListeners(autocompleteRef.current);
+      }
+    };
+  }, [isGoogleMapsLoaded, step, errors.businessAddress]);
+
+  // Sync address input value with form data when address is selected
+  useEffect(() => {
+    if (isAddressSelected && formData.businessAddress) {
+      setAddressInputValue(formData.businessAddress);
+    }
+  }, [isAddressSelected, formData.businessAddress]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -41,16 +142,27 @@ const VendorSignup = () => {
     }
   };
 
-  const handleAddressChange = (addressDetails: { address: string; latitude: number; longitude: number }) => {
+  const handleAddressInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setAddressInputValue(newValue);
+
+    // If user starts typing after having a selected address, clear the selection
+    if (isAddressSelected && !isSelectingFromAutocomplete.current) {
+      setIsAddressSelected(false);
+    }
+
+    // Don't update formData for manual typing - only for autocomplete selections
+  };
+
+  const handleClearAddress = () => {
+    setAddressInputValue('');
+    setIsAddressSelected(false);
     setFormData(prev => ({
       ...prev,
-      businessAddress: addressDetails.address,
-      businessLatitude: addressDetails.latitude,
-      businessLongitude: addressDetails.longitude
+      businessAddress: '',
+      businessLatitude: 0,
+      businessLongitude: 0,
     }));
-    if (errors.businessAddress) {
-      setErrors(prev => ({ ...prev, businessAddress: '' }));
-    }
   };
 
   const validateStep1 = () => {
@@ -90,7 +202,6 @@ const VendorSignup = () => {
     if (!formData.businessName.trim()) newErrors.businessName = 'Business name is required';
     if (!formData.businessAddress.trim()) newErrors.businessAddress = 'Business address is required';
     if (!formData.businessDescription.trim()) newErrors.businessDescription = 'Business description is required';
-    if (formData.businessDescription.length < 20) newErrors.businessDescription = 'Description must be at least 20 characters';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -304,15 +415,49 @@ const VendorSignup = () => {
               required
             />
 
-            <AddressAutocomplete
-              name="businessAddress"
-              placeholder="Enter your business address"
-              label="Business Address"
-              value={formData.businessAddress}
-              onChange={handleAddressChange}
-              error={errors.businessAddress}
-              required
-            />
+            <div>
+              <label className="block text-sm font-medium text-[var(--greyHex)] mb-2">
+                Business Address <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  ref={addressInputRef}
+                  type="text"
+                  name="businessAddress"
+                  placeholder="Enter your business address"
+                  value={isAddressSelected ? formData.businessAddress : addressInputValue}
+                  onChange={handleAddressInputChange}
+                  className={`w-full px-4 py-3 bg-[var(--inputHex)] border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--blueHex)] focus:border-transparent placeholder-[var(--inputPlaceholderHex)] ${
+                    isAddressSelected
+                      ? 'border-green-500 bg-green-50 pr-10'
+                      : 'border-[var(--borderHex)]'
+                  }`}
+                  required
+                />
+                {isAddressSelected && (
+                  <button
+                    type="button"
+                    onClick={handleClearAddress}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+              {isAddressSelected && (
+                <p className="mt-1 text-sm text-green-600 flex items-center">
+                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Address selected from Google Maps
+                </p>
+              )}
+              {errors.businessAddress && (
+                <p className="mt-1 text-sm text-red-500">{errors.businessAddress}</p>
+              )}
+            </div>
 
             <div>
               <label className="block text-sm font-medium text-[var(--greyHex)] mb-2">

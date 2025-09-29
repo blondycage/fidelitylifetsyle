@@ -75,6 +75,23 @@ export interface VendorPayload {
   }
 }
 
+export interface VendorUpdatePayload {
+  firstName: string,
+  lastName: string,
+  email: string,
+  phoneNumber: string,
+  username: string,
+  businessType: string,
+  businessProfileDTO: {
+    id: number,
+    name: string,
+    address: string,
+    latitude: number,
+    longitude: number,
+    description: string
+  }
+}
+
 export interface VendorData {
   id: number,
   lastName: string,

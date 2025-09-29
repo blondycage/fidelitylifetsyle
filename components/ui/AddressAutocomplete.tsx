@@ -33,13 +33,18 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [inputValue, setInputValue] = useState(value);
+  const [inputValue, setInputValue] = useState('');
+  const [selectedFromAutocomplete, setSelectedFromAutocomplete] = useState(false);
   const isSelectingFromAutocomplete = useRef(false);
 
-  // Update input value when external value changes
+  // Sync input value with external value only when it's a selected address
   useEffect(() => {
-    if (!isSelectingFromAutocomplete.current) {
+    if (value && !isSelectingFromAutocomplete.current) {
       setInputValue(value);
+      setSelectedFromAutocomplete(true);
+    } else if (!value) {
+      setInputValue('');
+      setSelectedFromAutocomplete(false);
     }
   }, [value]);
 
@@ -90,10 +95,14 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
             longitude: place.geometry.location.lng(),
           };
 
+          // Update local state and mark as selected from autocomplete
           setInputValue(selectedAddress);
+          setSelectedFromAutocomplete(true);
+
+          // Notify parent component with the selected address details
           onChange(addressDetails);
 
-          // Reset the flag after a short delay to allow the state to update
+          // Reset the flag after a short delay
           setTimeout(() => {
             isSelectingFromAutocomplete.current = false;
           }, 100);
@@ -110,16 +119,28 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
+
+    // Allow typing for autocomplete to work, but don't notify parent of changes
+    // unless it's a selection from autocomplete
     setInputValue(newValue);
 
-    // Only call onChange if not selecting from autocomplete
-    if (!isSelectingFromAutocomplete.current) {
-      onChange({
-        address: newValue,
-        latitude: 0,
-        longitude: 0,
-      });
+    // If user starts typing after having a selected address, clear the selection
+    if (selectedFromAutocomplete && !isSelectingFromAutocomplete.current) {
+      setSelectedFromAutocomplete(false);
     }
+
+    // Don't call onChange for manual typing - only for autocomplete selections
+    // This ensures the parent only gets notified when a valid address is selected
+  };
+
+  const handleClearAddress = () => {
+    setInputValue('');
+    setSelectedFromAutocomplete(false);
+    onChange({
+      address: '',
+      latitude: 0,
+      longitude: 0,
+    });
   };
 
   return (
@@ -127,16 +148,41 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
       <label className="block text-sm font-medium text-[var(--greyHex)] mb-2">
         {label} {required && <span className="text-red-500">*</span>}
       </label>
-      <input
-        ref={inputRef}
-        type="text"
-        name={name}
-        placeholder={placeholder}
-        value={inputValue}
-        onChange={handleInputChange}
-        className="w-full px-4 py-3 bg-[var(--inputHex)] border border-[var(--borderHex)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--blueHex)] focus:border-transparent placeholder-[var(--inputPlaceholderHex)]"
-        required={required}
-      />
+      <div className="relative">
+        <input
+          ref={inputRef}
+          type="text"
+          name={name}
+          placeholder={placeholder}
+          value={inputValue}
+          onChange={handleInputChange}
+          className={`w-full px-4 py-3 bg-[var(--inputHex)] border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--blueHex)] focus:border-transparent placeholder-[var(--inputPlaceholderHex)] ${
+            selectedFromAutocomplete
+              ? 'border-green-500 bg-green-50 pr-10'
+              : 'border-[var(--borderHex)]'
+          }`}
+          required={required}
+        />
+        {selectedFromAutocomplete && (
+          <button
+            type="button"
+            onClick={handleClearAddress}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+      </div>
+      {selectedFromAutocomplete && (
+        <p className="mt-1 text-sm text-green-600 flex items-center">
+          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          Address selected from Google Maps
+        </p>
+      )}
       {error && (
         <p className="mt-1 text-sm text-red-500">{error}</p>
       )}

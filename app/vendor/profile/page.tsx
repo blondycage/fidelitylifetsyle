@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { FidelityLogo } from '@/components/ui/FidelityLogo';
@@ -16,8 +16,9 @@ import {
   Notification,
   ArrowLeft,
 } from 'iconsax-react';
-import { fetchVendorByEmail } from '@/services/authService';
-import { VendorData } from '@/types/api';
+import { fetchVendorByEmail, updateVendor } from '@/services/authService';
+import { VendorData, VendorUpdatePayload } from '@/types/api';
+import { Loader } from '@googlemaps/js-api-loader';
 
 const VendorProfilePage = () => {
   const router = useRouter();
@@ -29,13 +30,27 @@ const VendorProfilePage = () => {
     name: '',
     email: '',
     phoneNumber: '',
+    username: '',
     // Business Info
     businessName: '',
     businessPhone: '',
     category: '',
     address: '',
-    description: ''
+    description: '',
+    latitude: 0,
+    longitude: 0
   });
+
+  // Google Maps Autocomplete state
+  const addressInputDesktopRef = useRef<HTMLInputElement>(null);
+  const addressInputMobileRef = useRef<HTMLInputElement>(null);
+  const autocompleteDesktopRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const autocompleteMobileRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false);
+  const [addressInputValue, setAddressInputValue] = useState('');
+  const [isAddressSelected, setIsAddressSelected] = useState(false);
+  const isSelectingFromAutocomplete = useRef(false);
+  const [updateLoading, setUpdateLoading] = useState(false);
 
   const menuItems = [
     { name: 'Dashboard', icon: Home, active: false },
@@ -70,12 +85,21 @@ const VendorProfilePage = () => {
             name: `${vendor.firstName} ${vendor.lastName}`,
             email: vendor.email,
             phoneNumber: vendor.phoneNumber,
+            username: vendor.email, // We'll use email as username for now
             businessName: vendor.businessProfile.name,
             businessPhone: vendor.phoneNumber, // Using personal phone as business phone if not separate
             category: vendor.businessType.toLowerCase(),
             address: vendor.businessProfile.address,
-            description: vendor.businessProfile.description
+            description: vendor.businessProfile.description,
+            latitude: vendor.businessProfile.latitude || 0,
+            longitude: vendor.businessProfile.longitude || 0
           });
+
+          // Set address input values for autocomplete
+          setAddressInputValue(vendor.businessProfile.address);
+          if (vendor.businessProfile.address && (vendor.businessProfile.latitude || vendor.businessProfile.longitude)) {
+            setIsAddressSelected(true);
+          }
         } else {
           toast.error('Failed to load profile data');
         }
@@ -90,6 +114,148 @@ const VendorProfilePage = () => {
     loadVendorData();
   }, [router]);
 
+  // Load Google Maps
+  useEffect(() => {
+    const loadGoogleMaps = async () => {
+      if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
+        console.error('Google Maps API key not found');
+        return;
+      }
+
+      try {
+        const loader = new Loader({
+          apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+          version: 'weekly',
+          libraries: ['places'],
+        });
+
+        await loader.load();
+        setIsGoogleMapsLoaded(true);
+      } catch (error) {
+        console.error('Error loading Google Maps:', error);
+      }
+    };
+
+    loadGoogleMaps();
+  }, []);
+
+  // Initialize autocomplete when Google Maps is loaded and inputs are available
+  useEffect(() => {
+    if (isGoogleMapsLoaded && !loading) {
+      console.log('Google Maps loaded, checking for address inputs...');
+
+      // Initialize desktop autocomplete
+      if (addressInputDesktopRef.current && !autocompleteDesktopRef.current) {
+        console.log('Initializing Google Places Autocomplete for Desktop');
+
+        // Small delay to ensure the input is fully rendered
+        setTimeout(() => {
+          if (addressInputDesktopRef.current) {
+            autocompleteDesktopRef.current = new google.maps.places.Autocomplete(
+              addressInputDesktopRef.current,
+              {
+                types: ['establishment', 'geocode'],
+                fields: ['formatted_address', 'geometry.location', 'name'],
+              }
+            );
+            console.log('Desktop Autocomplete initialized:', autocompleteDesktopRef.current);
+
+            // Add event listener after autocomplete is initialized
+            autocompleteDesktopRef.current.addListener('place_changed', () => {
+              const place = autocompleteDesktopRef.current?.getPlace();
+
+              if (place && place.geometry && place.geometry.location) {
+                isSelectingFromAutocomplete.current = true;
+
+                const selectedAddress = place.formatted_address || place.name || '';
+
+                // Update form data directly
+                setFormData(prev => ({
+                  ...prev,
+                  address: selectedAddress,
+                  latitude: place.geometry!.location!.lat(),
+                  longitude: place.geometry!.location!.lng(),
+                }));
+
+                // Update local address state
+                setAddressInputValue(selectedAddress);
+                setIsAddressSelected(true);
+
+                // Reset the flag
+                setTimeout(() => {
+                  isSelectingFromAutocomplete.current = false;
+                }, 100);
+              }
+            });
+          }
+        }, 100);
+      }
+
+      // Initialize mobile autocomplete
+      if (addressInputMobileRef.current && !autocompleteMobileRef.current) {
+        console.log('Initializing Google Places Autocomplete for Mobile');
+
+        // Small delay to ensure the input is fully rendered
+        setTimeout(() => {
+          if (addressInputMobileRef.current) {
+            autocompleteMobileRef.current = new google.maps.places.Autocomplete(
+              addressInputMobileRef.current,
+              {
+                types: ['establishment', 'geocode'],
+                fields: ['formatted_address', 'geometry.location', 'name'],
+              }
+            );
+            console.log('Mobile Autocomplete initialized:', autocompleteMobileRef.current);
+
+            // Add event listener after autocomplete is initialized
+            autocompleteMobileRef.current.addListener('place_changed', () => {
+              const place = autocompleteMobileRef.current?.getPlace();
+
+              if (place && place.geometry && place.geometry.location) {
+                isSelectingFromAutocomplete.current = true;
+
+                const selectedAddress = place.formatted_address || place.name || '';
+
+                // Update form data directly
+                setFormData(prev => ({
+                  ...prev,
+                  address: selectedAddress,
+                  latitude: place.geometry!.location!.lat(),
+                  longitude: place.geometry!.location!.lng(),
+                }));
+
+                // Update local address state
+                setAddressInputValue(selectedAddress);
+                setIsAddressSelected(true);
+
+                // Reset the flag
+                setTimeout(() => {
+                  isSelectingFromAutocomplete.current = false;
+                }, 100);
+              }
+            });
+          }
+        }, 100);
+      }
+    }
+
+    return () => {
+      if (autocompleteDesktopRef.current) {
+        google.maps.event.clearInstanceListeners(autocompleteDesktopRef.current);
+      }
+      if (autocompleteMobileRef.current) {
+        google.maps.event.clearInstanceListeners(autocompleteMobileRef.current);
+      }
+    };
+  }, [isGoogleMapsLoaded, loading]);
+
+  // Sync address input value with form data when address is selected
+  useEffect(() => {
+    if (isAddressSelected && formData.address) {
+      setAddressInputValue(formData.address);
+    }
+  }, [isAddressSelected, formData.address]);
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('userEmail');
@@ -98,9 +264,41 @@ const VendorProfilePage = () => {
   };
 
   const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => {
+      const newData = {
+        ...prev,
+        [field]: value
+      };
+
+      // Keep username in sync with email
+      if (field === 'email') {
+        newData.username = value;
+      }
+
+      return newData;
+    });
+  };
+
+  const handleAddressInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setAddressInputValue(newValue);
+
+    // If user starts typing after having a selected address, clear the selection
+    if (isAddressSelected && !isSelectingFromAutocomplete.current) {
+      setIsAddressSelected(false);
+    }
+
+    // Don't update formData for manual typing - only for autocomplete selections
+  };
+
+  const handleClearAddress = () => {
+    setAddressInputValue('');
+    setIsAddressSelected(false);
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      address: '',
+      latitude: 0,
+      longitude: 0,
     }));
   };
 
@@ -108,8 +306,74 @@ const VendorProfilePage = () => {
     console.log('Saving for later...');
   };
 
-  const handleNext = () => {
-    console.log('Form submitted:', formData);
+  const handleNext = async () => {
+    if (!vendorData) {
+      toast.error('Vendor data not loaded');
+      return;
+    }
+
+    // Basic validation
+    if (!formData.name.trim() || !formData.email.trim() || !formData.businessName.trim() || !formData.address.trim()) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    setUpdateLoading(true);
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Authentication required. Please sign in again.');
+        router.push('/signin');
+        return;
+      }
+
+      // Split name into first and last name
+      const nameParts = formData.name.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      // Prepare the update payload
+      const updatePayload: VendorUpdatePayload = {
+        firstName,
+        lastName,
+        email: formData.email,
+        phoneNumber: formData.phoneNumber,
+        username: formData.username,
+        businessType: formData.category.toUpperCase(),
+        businessProfileDTO: {
+          id: vendorData.businessProfile.id,
+          name: formData.businessName,
+          address: formData.address,
+          latitude: formData.latitude,
+          longitude: formData.longitude,
+          description: formData.description
+        }
+      };
+
+      console.log('Updating vendor with payload:', updatePayload);
+
+      const response = await updateVendor(updatePayload, token);
+
+      if (response.responseCode === 200) {
+        toast.success('Profile updated successfully!');
+        // Optionally refresh the vendor data
+        const userEmail = localStorage.getItem('userEmail');
+        if (userEmail) {
+          const updatedVendor = await fetchVendorByEmail(userEmail, token);
+          if (updatedVendor.responseCode === 200) {
+            setVendorData(updatedVendor.data);
+          }
+        }
+      } else {
+        toast.error(response.responseMessage || 'Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Error updating vendor profile:', error);
+      toast.error('An error occurred while updating profile');
+    } finally {
+      setUpdateLoading(false);
+    }
   };
 
   if (loading) {
@@ -124,7 +388,28 @@ const VendorProfilePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <>
+      <style jsx global>{`
+        .pac-container {
+          z-index: 9999 !important;
+          border-radius: 8px !important;
+          border: 1px solid #e5e7eb !important;
+          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+        }
+        .pac-item {
+          padding: 12px 16px !important;
+          font-size: 14px !important;
+          border-bottom: 1px solid #f3f4f6 !important;
+          cursor: pointer !important;
+        }
+        .pac-item:hover {
+          background-color: #f9fafb !important;
+        }
+        .pac-item-selected {
+          background-color: #dbeafe !important;
+        }
+      `}</style>
+      <div className="min-h-screen bg-gray-100">
       {/* Desktop Layout */}
       <div className="hidden lg:flex">
         {/* Sidebar */}
@@ -366,13 +651,37 @@ const VendorProfilePage = () => {
                       <label className="block text-sm font-medium text-[var(--greyHex)] mb-2">
                         Address
                       </label>
-                      <input
-                        type="text"
-                        value={formData.address}
-                        onChange={(e) => handleInputChange('address', e.target.value)}
-                        className="w-full px-4 py-3 bg-gray-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--blueHex)] text-[var(--greyHex)] transition-all"
-                        placeholder="Enter address"
-                      />
+                      <div className="relative">
+                        <input
+                          ref={addressInputDesktopRef}
+                          type="text"
+                          value={isAddressSelected ? formData.address : addressInputValue}
+                          onChange={handleAddressInputChange}
+                          className={`w-full px-4 py-3 bg-gray-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--blueHex)] text-[var(--greyHex)] transition-all ${
+                            isAddressSelected ? 'border-green-500 bg-green-50 pr-10' : ''
+                          }`}
+                          placeholder="Enter address"
+                        />
+                        {isAddressSelected && (
+                          <button
+                            type="button"
+                            onClick={handleClearAddress}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                      {isAddressSelected && (
+                        <p className="mt-1 text-sm text-green-600 flex items-center">
+                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          Address selected from Google Maps
+                        </p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-[var(--greyHex)] mb-2">
@@ -400,9 +709,17 @@ const VendorProfilePage = () => {
                 </button>
                 <button
                   onClick={handleNext}
-                  className="px-8 py-3 bg-[var(--greenHex)] text-white rounded-full font-semibold hover:bg-gradient-to-r hover:from-[var(--greenHex)] hover:to-[var(--blueHex)] transition-all duration-200 shadow-md hover:shadow-lg"
+                  disabled={updateLoading}
+                  className="px-8 py-3 bg-[var(--greenHex)] text-white rounded-full font-semibold hover:bg-gradient-to-r hover:from-[var(--greenHex)] hover:to-[var(--blueHex)] transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Next
+                  {updateLoading ? (
+                    <div className="flex items-center justify-center">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                      Updating...
+                    </div>
+                  ) : (
+                    'Update Profile'
+                  )}
                 </button>
               </div>
             </div>
@@ -527,13 +844,37 @@ const VendorProfilePage = () => {
                     <label className="block text-sm font-medium text-[var(--greyHex)] mb-2">
                       Address
                     </label>
-                    <input
-                      type="text"
-                      value={formData.address}
-                      onChange={(e) => handleInputChange('address', e.target.value)}
-                      className="w-full px-4 py-3 bg-gray-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--blueHex)] text-[var(--greyHex)] transition-all"
-                      placeholder="Enter address"
-                    />
+                    <div className="relative">
+                      <input
+                        ref={addressInputMobileRef}
+                        type="text"
+                        value={isAddressSelected ? formData.address : addressInputValue}
+                        onChange={handleAddressInputChange}
+                        className={`w-full px-4 py-3 bg-gray-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--blueHex)] text-[var(--greyHex)] transition-all ${
+                          isAddressSelected ? 'border-green-500 bg-green-50 pr-10' : ''
+                        }`}
+                        placeholder="Enter address"
+                      />
+                      {isAddressSelected && (
+                        <button
+                          type="button"
+                          onClick={handleClearAddress}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                    {isAddressSelected && (
+                      <p className="mt-1 text-sm text-green-600 flex items-center">
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Address selected from Google Maps
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--greyHex)] mb-2">
@@ -554,9 +895,17 @@ const VendorProfilePage = () => {
               <div className="flex flex-col space-y-3 pb-8">
                 <button
                   onClick={handleNext}
-                  className="w-full px-8 py-3 bg-[var(--greenHex)] text-white rounded-full font-semibold hover:bg-gradient-to-r hover:from-[var(--greenHex)] hover:to-[var(--blueHex)] transition-all duration-200 shadow-md hover:shadow-lg"
+                  disabled={updateLoading}
+                  className="w-full px-8 py-3 bg-[var(--greenHex)] text-white rounded-full font-semibold hover:bg-gradient-to-r hover:from-[var(--greenHex)] hover:to-[var(--blueHex)] transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Next
+                  {updateLoading ? (
+                    <div className="flex items-center justify-center">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                      Updating...
+                    </div>
+                  ) : (
+                    'Update Profile'
+                  )}
                 </button>
                 <button
                   onClick={handleSaveForLater}
@@ -569,7 +918,8 @@ const VendorProfilePage = () => {
           </main>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

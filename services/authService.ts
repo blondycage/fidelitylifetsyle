@@ -8,6 +8,7 @@ import {
     ValidateOTPPayload,
     VendorPayload,
     VendorData,
+    VendorUpdatePayload,
     OTPpayload,
     ChangeVendorPasswordPayload,
     ResetPasswordFinalQuery,
@@ -135,7 +136,7 @@ export const resetPasswordFinal = async (query: ResetPasswordFinalQuery): Promis
 
 export const validateVendorRegistration = async (payload: ValidateOTPPayload): Promise<ApiResponse<String>> => {
     try {
-        const response = await fetch('http://45.33.68.176:8077/api/v1/vendor/validate-reg', {
+        const response = await fetch('/api/v1/vendor/validate-reg', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -157,7 +158,7 @@ export const validateVendorRegistration = async (payload: ValidateOTPPayload): P
 
 export const validateCustomerRegistration = async (payload: ValidateOTPPayload): Promise<ApiResponse<String>> => {
     try {
-        const response = await fetch('http://45.33.68.176:9090/api/v1/customer/validate-reg', {
+        const response = await fetch('/api/v1/customer/validate-reg', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -285,6 +286,63 @@ export const fetchVendorByEmail = async (email: string, token: string): Promise<
     } catch (error) {
         const duration = Date.now() - startTime;
         console.error(`[${requestId}] 💥 FRONTEND FETCH_VENDOR_BY_EMAIL ERROR:`, {
+            timestamp: new Date().toISOString(),
+            duration: `${duration}ms`,
+            error: error instanceof Error ? error.message : 'Unknown error'
+        });
+
+        return {
+            responseCode: 500,
+            responseMessage: 'Network error occurred',
+            data: null as VendorData,
+        };
+    }
+};
+
+export const updateVendor = async (payload: VendorUpdatePayload, token: string): Promise<ApiResponse<VendorData>> => {
+    const startTime = Date.now();
+    const requestId = Math.random().toString(36).substring(7);
+
+    try {
+        const endpoint = `/api/v1/vendor/update`;
+
+        console.log(`[${requestId}] 🚀 FRONTEND UPDATE_VENDOR REQUEST:`, {
+            timestamp: new Date().toISOString(),
+            method: 'PUT',
+            endpoint,
+            hasToken: !!token,
+            payload: {
+                ...payload,
+                businessProfileDTO: {
+                    ...payload.businessProfileDTO,
+                    // Don't log sensitive data
+                }
+            }
+        });
+
+        const response = await fetch(endpoint, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify(payload),
+        });
+
+        const data = await response.json();
+        const duration = Date.now() - startTime;
+
+        console.log(`[${requestId}] ${response.ok ? '✅' : '❌'} FRONTEND UPDATE_VENDOR RESPONSE:`, {
+            timestamp: new Date().toISOString(),
+            status: response.status,
+            duration: `${duration}ms`,
+            hasData: !!data.data
+        });
+
+        return data;
+    } catch (error) {
+        const duration = Date.now() - startTime;
+        console.error(`[${requestId}] 💥 FRONTEND UPDATE_VENDOR ERROR:`, {
             timestamp: new Date().toISOString(),
             duration: `${duration}ms`,
             error: error instanceof Error ? error.message : 'Unknown error'
