@@ -6,7 +6,7 @@ import { AuthLayout } from '@/components/layout/AuthLayout';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { forgotVendorPassword, customerResetPasswordFinal } from '@/services/authService';
+import { forgotVendorPassword, customerResetPasswordFinal, generateOTP, customerResetPassword } from '@/services/authService';
 import { validatePassword } from '@/utils/passwordValidation';
 import { InputHTMLAttributes } from "react"
 import { Suspense } from "react";
@@ -24,6 +24,8 @@ const ResetPasswordForm = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [userType, setUserType] = useState<'CUSTOMER' | 'VENDOR'>('VENDOR');
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
     label?: string;
@@ -40,6 +42,13 @@ const ResetPasswordForm = () => {
       setUserType(type);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -117,6 +126,51 @@ const ResetPasswordForm = () => {
     }
   };
 
+  const handleResendOTP = async () => {
+    if (!formData.email.trim()) {
+      setErrors({ email: 'Email is required for resending OTP' });
+      return;
+    }
+
+    setResendLoading(true);
+    setErrors(prev => ({ ...prev, otp: '' }));
+
+    try {
+      let response;
+
+      if (userType === 'CUSTOMER') {
+        response = await customerResetPassword(formData.email);
+      } else {
+        response = await generateOTP({
+          recipient: formData.email,
+          purpose: 'VENDOR_FORGOT_PASSWORD',
+          channel: 'EMAIL',
+        });
+      }
+
+      if (response.responseCode === 200) {
+        setResendCooldown(300); // 5 minutes = 300 seconds
+        toast.success('New verification code sent to your email!');
+      } else {
+        const errorMessage = 'Failed to resend OTP. Please try again.';
+        setErrors({ otp: errorMessage });
+        toast.error(errorMessage);
+      }
+    } catch (error) {
+      const errorMessage = 'An error occurred while resending OTP.';
+      setErrors({ otp: errorMessage });
+      toast.error(errorMessage);
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   return (
     <AuthLayout
       title="Reset Password"
@@ -141,16 +195,33 @@ const ResetPasswordForm = () => {
           required
         />
 
-        <Input
-          type="text"
-          name="otp"
-          placeholder="Enter 6-digit code"
-          label="Verification Code"
-          value={formData.otp}
-          onChange={handleInputChange}
-          error={errors.otp}
-          required
-        />
+        <div>
+          <Input
+            type="text"
+            name="otp"
+            placeholder="Enter 6-digit code"
+            label="Verification Code"
+            value={formData.otp}
+            onChange={handleInputChange}
+            error={errors.otp}
+            required
+          />
+          <div className="mt-2 text-center">
+            <Button
+              type="button"
+              onClick={handleResendOTP}
+              disabled={resendCooldown > 0}
+              loading={resendLoading}
+              variant="secondary"
+              className="text-[var(--greenHex)] -[var(--greenHex)] hover:bg-green-50 text-sm"
+            >
+              {resendCooldown > 0
+                ? `Resend code in ${formatTime(resendCooldown)}`
+                : 'Resend verification code'
+              }
+            </Button>
+          </div>
+        </div>
 
         <PasswordInput
           name="password"
@@ -174,7 +245,7 @@ const ResetPasswordForm = () => {
           showStrengthIndicator={false}
         />
 
-        <Button type="submit" loading={loading}>
+        <Button type="submit" loading={loading} variant="secondary">
           Reset Password
         </Button>
 

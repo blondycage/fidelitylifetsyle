@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { AuthLayout } from '@/components/layout/AuthLayout';
 import { Input } from '@/components/ui/Input';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 import { Button } from '@/components/ui/Button';
 import { ForgotPasswordModal } from '@/components/ui/ForgotPasswordModal';
 import { userLogin } from '@/services/authService';
@@ -24,8 +25,18 @@ const Signin = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+
+    // Clear existing error
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+
+    // Real-time email validation
+    if (name === 'username' && value.trim()) {
+      const emailRegex = /\S+@\S+\.\S+/;
+      if (!emailRegex.test(value)) {
+        setErrors(prev => ({ ...prev, [name]: 'Please enter a valid email address' }));
+      }
     }
   };
 
@@ -33,7 +44,9 @@ const Signin = () => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.username.trim()) {
-      newErrors.username = 'Username is required';
+      newErrors.username = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.username)) {
+      newErrors.username = 'Please enter a valid email address';
     }
 
     if (!formData.password) {
@@ -94,13 +107,13 @@ const Signin = () => {
       title="Log in"
       subtitle="Enter your details to log in."
     >
-      <form onSubmit={handleSubmit} className="space-y-6 p-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
         {/* User Type Toggle */}
         <div className="flex bg-[var(--inputHex)] rounded-lg p-1">
           <button
             type="button"
             onClick={() => setUserType('CUSTOMER')}
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 ${
+            className={`flex-1 py-3 px-4 rounded-md text-lg font-medium transition-all duration-200 ${
               userType === 'CUSTOMER'
                 ? 'bg-white text-[var(--blueHex)] shadow-sm'
                 : 'text-[var(--greyHex)]'
@@ -111,7 +124,7 @@ const Signin = () => {
           <button
             type="button"
             onClick={() => setUserType('VENDOR')}
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 ${
+            className={`flex-1 py-3 px-4 rounded-md text-lg font-medium transition-all duration-200 ${
               userType === 'VENDOR'
                 ? 'bg-white text-[var(--blueHex)] shadow-sm'
                 : 'text-[var(--greyHex)]'
@@ -139,8 +152,7 @@ const Signin = () => {
         />
 
         <div className="relative">
-          <Input
-            type="password"
+          <PasswordInput
             name="password"
             placeholder="Password"
             label="Password"
@@ -148,6 +160,7 @@ const Signin = () => {
             onChange={handleInputChange}
             error={errors.password}
             required
+            showStrengthIndicator={false}
           />
           <button
             type="button"

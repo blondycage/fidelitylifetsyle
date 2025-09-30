@@ -135,3 +135,42 @@ export interface ChangeVendorPasswordPayload {
   password: string,
   otp: string
 }
+
+export interface BVNVerificationPayload {
+  bvn_id: string,
+  account_nr: string
+}
+
+export interface BVNVerificationResponse {
+  responseCode: number,
+  responseMessage: string,
+  nibBvnResponse: {
+    responseCode: string,
+    bvn: string,
+    firstName: string,
+    middleName: string,
+    lastName: string,
+    dateOfBirth: string,
+    registrationDate: string,
+    enrollmentBank: string,
+    email: string,
+    gender: string,
+    levelOfAccount: string,
+    lgaOfOrigin: string,
+    lgaOfResidence: string,
+    maritalStatus: string,
+    nin: string,
+    nameOnCard: string,
+    nationality: string,
+    phoneNumber1: string,
+    phoneNumber2: string,
+    residentialAddress: string,
+    stateOfOrigin: string,
+    stateOfResidence: string,
+    title: string,
+    enrollmentBranch: string,
+    watchListed: string,
+    dateOfCache: string,
+    base64Image: string | null
+  }
+}

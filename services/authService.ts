@@ -12,6 +12,8 @@ import {
     OTPpayload,
     ChangeVendorPasswordPayload,
     ResetPasswordFinalQuery,
+    BVNVerificationPayload,
+    BVNVerificationResponse,
 } from "@/types/api";
 
 // API request helper function
@@ -352,6 +354,61 @@ export const updateVendor = async (payload: VendorUpdatePayload, token: string):
             responseCode: 500,
             responseMessage: 'Network error occurred',
             data: null as VendorData,
+        };
+    }
+};
+
+// BVN Verification function
+export const verifyBVN = async (payload: BVNVerificationPayload): Promise<ApiResponse<BVNVerificationResponse>> => {
+    const startTime = Date.now();
+    const requestId = Math.random().toString(36).substring(7);
+
+    console.log(`[${requestId}] 🚀 FRONTEND BVN_VERIFICATION REQUEST:`, {
+        timestamp: new Date().toISOString(),
+        endpoint: '/api/v1/bank/verify-bvn',
+        payload: {
+            bvn_id: payload.bvn_id ? `${payload.bvn_id.slice(0, 3)}***${payload.bvn_id.slice(-3)}` : 'undefined',
+            account_nr: payload.account_nr ? `${payload.account_nr.slice(0, 3)}***${payload.account_nr.slice(-3)}` : 'undefined'
+        }
+    });
+
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/v1/bank/verify-bvn', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(payload),
+        });
+
+        const data = await response.json();
+        const duration = Date.now() - startTime;
+
+        console.log(`[${requestId}] ✅ FRONTEND BVN_VERIFICATION RESPONSE:`, {
+            timestamp: new Date().toISOString(),
+            status: response.status,
+            responseCode: data.responseCode,
+            responseMessage: data.responseMessage,
+            duration: `${duration}ms`,
+            hasData: !!data.data,
+            bvnResponseCode: data.data?.nibBvnResponse?.responseCode
+        });
+
+        return data;
+    } catch (error) {
+        const duration = Date.now() - startTime;
+        console.error(`[${requestId}] 💥 FRONTEND BVN_VERIFICATION ERROR:`, {
+            timestamp: new Date().toISOString(),
+            duration: `${duration}ms`,
+            error: error instanceof Error ? error.message : 'Unknown error'
+        });
+
+        return {
+            responseCode: 500,
+            responseMessage: 'Network error occurred',
+            data: null as BVNVerificationResponse,
         };
     }
 };

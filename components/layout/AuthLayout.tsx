@@ -57,7 +57,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
     <div className="h-screen w-full flex overflow-hidden">
       <div className="w-full bg-white flex flex-col lg:flex-row h-full">
         {/* Image Section - Slider with overlay and border radius */}
-        <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
+        <div className="hidden lg:block lg:w-1/2 relative overflow-hidden h-full">
           {slideImages.map((slide, index) => (
             <div
               key={index}
@@ -94,10 +94,10 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
               {/* Content overlay */}
               <div className="absolute inset-0 flex items-end">
                 <div className="p-8 text-white z-10">
-                  <h3 className="text-3xl font-bold mb-3 font-urbanist drop-shadow-lg">
+                  <h3 className="text-4xl font-bold mb-3 font-urbanist drop-shadow-lg">
                     {slide.title}
                   </h3>
-                  <p className="text-lg opacity-90 font-urbanist max-w-md drop-shadow">
+                  <p className="text-xl opacity-90 font-urbanist max-w-md drop-shadow">
                     {slide.description}
                   </p>
                 </div>
@@ -136,7 +136,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
         </div>
 
         {/* Form Section */}
-        <div className="w-full lg:w-1/2 flex flex-col items-center justify-start lg:justify-center p-4 sm:p-8 lg:p-12 relative overflow-y-auto min-h-screen h-screen">
+        <div className="w-full lg:w-1/2 flex flex-col items-center justify-start relative h-full overflow-y-auto">
           {/* Mobile curved overlay */}
           <div className="lg:hidden absolute top-0 left-0 w-full h-24 bg-gradient-to-br from-blue-50 to-green-50 opacity-30">
             <svg
@@ -151,16 +151,16 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
             </svg>
           </div>
 
-          <div className="max-w-lg w-full space-y-6 sm:space-y-8 relative z-10 auth-form py-4 sm:py-0">
+          <div className="max-w-lg w-full space-y-4 sm:space-y-6 relative z-10 auth-form p-4 sm:p-6 lg:p-8 my-4 sm:my-6">
             <div className="text-center">
               <div className="flex justify-center mx-auto mb-6">
                 <FidelityLogo showText={false} size="xl" />
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-[var(--blueHex)] font-urbanist">
+              <h2 className="text-3xl sm:text-4xl font-bold text-[var(--blueHex)] font-urbanist">
                 {title}
               </h2>
               {subtitle && (
-                <p className="mt-2 text-sm text-[var(--greyHex)] font-urbanist">
+                <p className="mt-2 text-lg text-[var(--greyHex)] font-urbanist">
                   {subtitle}
                 </p>
               )}

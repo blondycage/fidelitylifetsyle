@@ -137,8 +137,18 @@ const VendorSignup = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+
+    // Clear existing error
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+
+    // Real-time email validation
+    if (name === 'email' && value.trim()) {
+      const emailRegex = /\S+@\S+\.\S+/;
+      if (!emailRegex.test(value)) {
+        setErrors(prev => ({ ...prev, [name]: 'Please enter a valid email address' }));
+      }
     }
   };
 
@@ -282,7 +292,7 @@ const VendorSignup = () => {
       title={step === 1 ? "Vendor account" : "Business Details"}
       subtitle={step === 1 ? "Select a category to get started." : "Tell us about your business"}
     >
-      <form onSubmit={step === 1 ? (e) => { e.preventDefault(); handleNext(); } : handleSubmit} className="space-y-4 p-4 sm:p-6 mt-2 sm:mt-5">
+      <form onSubmit={step === 1 ? (e) => { e.preventDefault(); handleNext(); } : handleSubmit} className="space-y-4">
         {/* Progress indicator */}
         <div className="flex justify-center space-x-2 mb-4">
           <div className={`w-3 h-3 rounded-full ${step >= 1 ? 'bg-[var(--blueHex)]' : 'bg-gray-300'}`} />

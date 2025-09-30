@@ -27,8 +27,18 @@ const CustomerSignup = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+
+    // Clear existing error
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+
+    // Real-time email validation
+    if (name === 'email' && value.trim()) {
+      const emailRegex = /\S+@\S+\.\S+/;
+      if (!emailRegex.test(value)) {
+        setErrors(prev => ({ ...prev, [name]: 'Please enter a valid email address' }));
+      }
     }
   };
 
@@ -102,7 +112,7 @@ const CustomerSignup = () => {
       title="Create Account"
       subtitle="Enter your details to get started."
     >
-      <form onSubmit={handleSubmit} className="space-y-6 p-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
         {errors.general && (
           <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
             {errors.general}

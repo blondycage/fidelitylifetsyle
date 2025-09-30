@@ -167,7 +167,7 @@ const OTPValidation = () => {
             disabled={resendCooldown > 0}
             loading={resendLoading}
             variant="secondary"
-            className="text-[var(--blueHex)] bg-transparent hover:bg-blue-50"
+            className="text-[var(--greenHex)] bg-transparent hover:bg-green-50"
           >
             {resendCooldown > 0
               ? `Resend code in ${formatTime(resendCooldown)}`

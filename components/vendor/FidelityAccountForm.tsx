@@ -1,7 +1,10 @@
 'use client';
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
-import { CloseCircle, ArrowLeft, ArrowRight } from 'iconsax-react';
+import { CloseCircle, ArrowLeft, ArrowRight, TickCircle } from 'iconsax-react';
+import { BVNVerificationForm } from '@/components/ui/BVNVerificationForm';
+import { BVNVerificationResponse } from '@/types/api';
+import { mapBVNToFormData, getBVNPopulatedFields } from '@/utils/bvnMapping';
 
 interface FidelityAccountFormProps {
   isOpen: boolean;
@@ -73,14 +76,18 @@ export const FidelityAccountForm: React.FC<FidelityAccountFormProps> = ({
   onClose,
   onComplete
 }) => {
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [bvnVerified, setBvnVerified] = useState(false);
+  const [bvnData, setBvnData] = useState<BVNVerificationResponse | null>(null);
+  const [populatedFields, setPopulatedFields] = useState<string[]>([]);
 
-  const totalSteps = 4;
+  const totalSteps = 5; // Updated to include BVN verification
 
   const stepTitles = [
+    'BVN Verification',
     'Personal Information',
     'Business Information',
     'Address & Location',
@@ -101,10 +108,39 @@ export const FidelityAccountForm: React.FC<FidelityAccountFormProps> = ({
     }
   };
 
+  // Handle BVN verification success
+  const handleBVNSuccess = (bvnResponse: BVNVerificationResponse) => {
+    setBvnData(bvnResponse);
+    setBvnVerified(true);
+
+    // Map BVN data to form
+    const mappedData = mapBVNToFormData(bvnResponse);
+    setFormData(mappedData);
+
+    // Track populated fields
+    const populated = getBVNPopulatedFields(bvnResponse);
+    setPopulatedFields(populated);
+
+    // Move to next step
+    setCurrentStep(1);
+
+    toast.success(`BVN verified! ${populated.length} fields auto-populated.`);
+  };
+
+  // Handle BVN skip
+  const handleBVNSkip = () => {
+    setBvnVerified(false);
+    setCurrentStep(1);
+    toast.info('BVN verification skipped. You can fill the form manually.');
+  };
+
   const validateStep = (step: number): boolean => {
     const newErrors: {[key: string]: string} = {};
 
     switch (step) {
+      case 0: // BVN Verification
+        // BVN step doesn't need validation - it's handled by the component
+        return true;
       case 1: // Personal Information
         if (!formData.corporateName.trim()) newErrors.corporateName = 'Name is required';
         if (!formData.gender) newErrors.gender = 'Gender is required';
@@ -159,7 +195,7 @@ export const FidelityAccountForm: React.FC<FidelityAccountFormProps> = ({
   };
 
   const handlePrev = () => {
-    if (currentStep > 1) {
+    if (currentStep > 0) {
       setCurrentStep(prev => prev - 1);
     }
   };
@@ -186,6 +222,21 @@ export const FidelityAccountForm: React.FC<FidelityAccountFormProps> = ({
 
   const renderStep1 = () => (
     <div className="space-y-4">
+      {bvnVerified && populatedFields.length > 0 && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+          <div className="flex items-center space-x-2">
+            <TickCircle size={20} color="var(--greenHex)" />
+            <div>
+              <p className="text-sm font-medium text-green-800">
+                BVN Verified Successfully!
+              </p>
+              <p className="text-xs text-green-600 mt-1">
+                Auto-populated: {populatedFields.join(', ')}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
         <input
@@ -549,11 +600,24 @@ export const FidelityAccountForm: React.FC<FidelityAccountFormProps> = ({
 
   const renderStepContent = () => {
     switch (currentStep) {
+      case 0: return (
+        <BVNVerificationForm
+          onSuccess={handleBVNSuccess}
+          onSkip={handleBVNSkip}
+          embedded={true}
+        />
+      );
       case 1: return renderStep1();
       case 2: return renderStep2();
       case 3: return renderStep3();
       case 4: return renderStep4();
-      default: return renderStep1();
+      default: return (
+        <BVNVerificationForm
+          onSuccess={handleBVNSuccess}
+          onSkip={handleBVNSkip}
+          embedded={true}
+        />
+      );
     }
   };
 
@@ -570,7 +634,7 @@ export const FidelityAccountForm: React.FC<FidelityAccountFormProps> = ({
                 Create New Fidelity Account
               </h2>
               <p className="text-[var(--greyHex)] mt-1 text-xs sm:text-sm font-urbanist">
-                Step {currentStep} of {totalSteps}: {stepTitles[currentStep - 1]}
+                Step {currentStep + 1} of {totalSteps}: {stepTitles[currentStep]}
               </p>
             </div>
             <button
@@ -586,12 +650,12 @@ export const FidelityAccountForm: React.FC<FidelityAccountFormProps> = ({
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
                 className="bg-[var(--greenHex)] h-2 rounded-full transition-all duration-300"
-                style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+                style={{ width: `${((currentStep + 1) / totalSteps) * 100}%` }}
               />
             </div>
             <div className="flex justify-between mt-2 text-xs text-gray-500">
               {stepTitles.map((title, index) => (
-                <span key={index} className={`${index + 1 <= currentStep ? 'text-[var(--greenHex)]' : ''}`}>
+                <span key={index} className={`${index <= currentStep ? 'text-[var(--greenHex)]' : ''}`}>
                   {index + 1}
                 </span>
               ))}
@@ -611,13 +675,14 @@ export const FidelityAccountForm: React.FC<FidelityAccountFormProps> = ({
         </div>
 
         {/* Modal Footer */}
+        {currentStep > 0 && (
         <div className="sticky bottom-0 bg-white p-4 sm:p-6 border-t border-gray-200">
           <div className="flex justify-between">
             <button
               onClick={handlePrev}
-              disabled={currentStep === 1}
+              disabled={currentStep === 0}
               className={`flex items-center px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                currentStep === 1
+                currentStep === 0
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
@@ -651,6 +716,7 @@ export const FidelityAccountForm: React.FC<FidelityAccountFormProps> = ({
             </button>
           </div>
         </div>
+        )}
       </div>
     </div>
   );

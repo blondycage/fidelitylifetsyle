@@ -66,12 +66,130 @@ body, html {
   background: var(--whiteHex);
   color: var(--foreground);
   font-family: var(--fontUrbanist), Arial, Helvetica, sans-serif;
+  font-size: 18px; /* Increased base font size from 16px to 18px */
 }
 
-/* Auth form zoom out effect for big screens */
+/* Increase font sizes significantly for better readability */
+.text-xs { font-size: 1rem !important; } /* was 0.75rem, now 1rem */
+.text-sm { font-size: 1.125rem !important; } /* was 0.875rem, now 1.125rem */
+.text-base { font-size: 1.25rem !important; } /* was 1rem, now 1.25rem */
+.text-lg { font-size: 1.375rem !important; } /* was 1.125rem, now 1.375rem */
+.text-xl { font-size: 1.625rem !important; } /* was 1.25rem, now 1.625rem */
+.text-2xl { font-size: 1.875rem !important; } /* was 1.5rem, now 1.875rem */
+
+/* Increase input and button font sizes */
+input, textarea, select, button {
+  font-size: 1.125rem !important; /* 18px */
+}
+
+/* Increase form label font sizes */
+label {
+  font-size: 1.125rem !important; /* 18px */
+}
+
+/* Ensure larger fonts for specific components */
+.auth-layout h1, .auth-layout h2 {
+  font-size: 2rem !important; /* 32px for titles */
+}
+
+.auth-layout h3 {
+  font-size: 1.5rem !important; /* 24px for subtitles */
+}
+
+/* Button text larger */
+.btn, [role="button"] {
+  font-size: 1.125rem !important; /* 18px */
+  padding: 0.875rem 1.5rem !important; /* Increase padding to accommodate larger text */
+}
+
+/* Placeholder text larger */
+::placeholder {
+  font-size: 1.125rem !important; /* 18px */
+}
+
+/* Error text larger */
+.error-text, .text-red-500, .text-red-600 {
+  font-size: 1.125rem !important; /* 18px */
+}
+
+/* Success text larger */
+.text-green-500, .text-green-600 {
+  font-size: 1.125rem !important; /* 18px */
+}
+
+/* Navigation and menu text larger */
+nav, .menu, .navigation {
+  font-size: 1.125rem !important; /* 18px */
+}
+
+/* Force larger fonts everywhere - rebuild trigger */
+* {
+  line-height: 1.6 !important;
+}
+
+/* Ensure all text elements are larger */
+p, span, div, a, li {
+  font-size: inherit !important;
+  min-font-size: 1.125rem !important;
+}
+
+/* Ensure proper scrolling and visibility */
+.auth-layout {
+  overflow: visible;
+}
+
+/* Make sure content is never clipped */
+* {
+  -webkit-backface-visibility: visible;
+  backface-visibility: visible;
+}
+
+/* Fix any potential masking issues */
+.auth-layout * {
+  overflow: visible;
+  clip: none;
+  clip-path: none;
+}
+
+/* Ensure right side content is scrollable and fits properly */
+.auth-form {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  overflow: visible;
+  min-height: auto;
+  max-height: none;
+}
+
+/* Ensure form containers don't crop content */
+.auth-form > * {
+  position: relative;
+  z-index: 1;
+  overflow: visible;
+}
+
+/* Viewport height constraints */
+html, body {
+  max-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Auth layout responsive adjustments */
 @media (min-width: 1024px) {
   .auth-form {
-    zoom: 0.9;
+    width: 100%;
+    max-width: 28rem;
+    margin: 0 auto;
+  }
+}
+
+/* Mobile adjustments */
+@media (max-width: 1023px) {
+  .auth-form {
+    width: 100%;
+    max-width: none;
+    margin: 0 auto;
   }
 }
 
@@ -105,4 +223,40 @@ body, html {
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
   background: rgb(156 163 175);
+}
+
+/* Ensure iconsax icons are properly displayed */
+svg[data-name="Iconsax"] {
+  display: inline-block !important;
+  vertical-align: middle !important;
+}
+
+/* Fix for password toggle icons visibility */
+.password-toggle-icon {
+  fill: currentColor !important;
+  stroke: currentColor !important;
+  opacity: 1 !important;
+}
+
+/* Ensure modals appear above everything */
+.modal-overlay {
+  z-index: 9999 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+}
+
+/* Prevent body scroll when modal is open */
+body.modal-open {
+  overflow: hidden !important;
+}
+
+/* Modal content positioning */
+.modal-content {
+  position: relative;
+  z-index: 10000 !important;
+  max-height: 90vh;
+  overflow-y: auto;
 }
