@@ -54,7 +54,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
   }, []);
 
   return (
-    <div className="h-screen w-full flex overflow-hidden auth-container">
+    <div className="h-screen w-full flex overflow-hidden">
       <div className="w-full bg-white flex flex-col lg:flex-row h-full">
         {/* Image Section - Slider with overlay and border radius */}
         <div className="hidden lg:block lg:w-1/2 relative overflow-hidden h-full">

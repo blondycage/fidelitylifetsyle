@@ -67,6 +67,9 @@ body, html {
   color: var(--foreground);
   font-family: var(--fontUrbanist), Arial, Helvetica, sans-serif;
   font-size: 18px; /* Increased base font size from 16px to 18px */
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 /* Increase font sizes significantly for better readability */
@@ -133,11 +136,6 @@ p, span, div, a, li {
   min-font-size: 1.125rem !important;
 }
 
-/* Scale all auth screens to 80% */
-.auth-container, .auth-modal {
-  transform: scale(0.8);
-  transform-origin: center;
-}
 
 /* Ensure proper scrolling and visibility */
 .auth-layout {
@@ -176,7 +174,6 @@ p, span, div, a, li {
 
 /* Viewport height constraints */
 html, body {
-  max-height: 100vh;
   overflow-x: hidden;
   position: relative;
 }

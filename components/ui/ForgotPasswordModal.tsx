@@ -95,7 +95,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay bg-black/50 flex items-center justify-center p-4 auth-modal">
+    <div className="modal-overlay bg-black/50 flex items-center justify-center p-4">
       <div className="modal-content bg-white rounded-2xl p-6 w-full max-w-md relative shadow-2xl">
         <button
           onClick={handleClose}
