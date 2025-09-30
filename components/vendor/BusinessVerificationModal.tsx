@@ -123,7 +123,7 @@ export const BusinessVerificationModal: React.FC<BusinessVerificationModalProps>
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 sm:p-6">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 sm:p-6 auth-modal">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md sm:max-w-lg max-h-[95vh] sm:max-h-[90vh] overflow-y-auto border border-gray-200">
         {/* Modal Header */}
         <div className="p-4 sm:p-6 border-b border-gray-200">

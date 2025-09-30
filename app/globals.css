@@ -133,6 +133,12 @@ p, span, div, a, li {
   min-font-size: 1.125rem !important;
 }
 
+/* Scale all auth screens to 80% */
+.auth-container, .auth-modal {
+  transform: scale(0.8);
+  transform-origin: center;
+}
+
 /* Ensure proper scrolling and visibility */
 .auth-layout {
   overflow: visible;
