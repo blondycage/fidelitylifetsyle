@@ -66,74 +66,73 @@ body, html {
   background: var(--whiteHex);
   color: var(--foreground);
   font-family: var(--fontUrbanist), Arial, Helvetica, sans-serif;
-  font-size: 18px; /* Increased base font size from 16px to 18px */
+  font-size: 14px; /* Base font size */
   height: 100%;
   margin: 0;
   padding: 0;
 }
 
-/* Increase font sizes significantly for better readability */
-.text-xs { font-size: 1rem !important; } /* was 0.75rem, now 1rem */
-.text-sm { font-size: 1.125rem !important; } /* was 0.875rem, now 1.125rem */
-.text-base { font-size: 1.25rem !important; } /* was 1rem, now 1.25rem */
-.text-lg { font-size: 1.375rem !important; } /* was 1.125rem, now 1.375rem */
-.text-xl { font-size: 1.625rem !important; } /* was 1.25rem, now 1.625rem */
-.text-2xl { font-size: 1.875rem !important; } /* was 1.5rem, now 1.875rem */
+/* Standard Tailwind font sizes */
+.text-xs { font-size: 0.75rem !important; }
+.text-sm { font-size: 0.875rem !important; }
+.text-base { font-size: 1rem !important; }
+.text-lg { font-size: 1.125rem !important; }
+.text-xl { font-size: 1.25rem !important; }
+.text-2xl { font-size: 1.5rem !important; }
 
-/* Increase input and button font sizes */
+/* Standard input and button font sizes */
 input, textarea, select, button {
-  font-size: 1.125rem !important; /* 18px */
+  font-size: 0.875rem !important; /* 14px */
 }
 
-/* Increase form label font sizes */
+/* Standard form label font sizes */
 label {
-  font-size: 1.125rem !important; /* 18px */
+  font-size: 0.875rem !important; /* 14px */
 }
 
-/* Ensure larger fonts for specific components */
+/* Standard fonts for specific components */
 .auth-layout h1, .auth-layout h2 {
-  font-size: 2rem !important; /* 32px for titles */
+  font-size: 1.5rem !important; /* 24px for titles */
 }
 
 .auth-layout h3 {
-  font-size: 1.5rem !important; /* 24px for subtitles */
+  font-size: 1.125rem !important; /* 18px for subtitles */
 }
 
-/* Button text larger */
+/* Button text */
 .btn, [role="button"] {
-  font-size: 1.125rem !important; /* 18px */
-  padding: 0.875rem 1.5rem !important; /* Increase padding to accommodate larger text */
+  font-size: 0.875rem !important; /* 14px */
+  padding: 0.5rem 1rem !important; /* Adjust padding */
 }
 
-/* Placeholder text larger */
+/* Placeholder text */
 ::placeholder {
-  font-size: 1.125rem !important; /* 18px */
+  font-size: 0.875rem !important; /* 14px */
 }
 
-/* Error text larger */
+/* Error text */
 .error-text, .text-red-500, .text-red-600 {
-  font-size: 1.125rem !important; /* 18px */
+  font-size: 0.875rem !important; /* 14px */
 }
 
-/* Success text larger */
+/* Success text */
 .text-green-500, .text-green-600 {
-  font-size: 1.125rem !important; /* 18px */
+  font-size: 0.875rem !important; /* 14px */
 }
 
-/* Navigation and menu text larger */
+/* Navigation and menu text */
 nav, .menu, .navigation {
-  font-size: 1.125rem !important; /* 18px */
+  font-size: 0.875rem !important; /* 14px */
 }
 
-/* Force larger fonts everywhere - rebuild trigger */
+/* Standard line height */
 * {
-  line-height: 1.6 !important;
+  line-height: 1.5 !important;
 }
 
-/* Ensure all text elements are larger */
+/* Ensure all text elements are appropriately sized */
 p, span, div, a, li {
   font-size: inherit !important;
-  min-font-size: 1.125rem !important;
 }
 
 

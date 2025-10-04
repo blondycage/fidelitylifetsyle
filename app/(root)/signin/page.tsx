@@ -84,6 +84,12 @@ const Signin = () => {
         } else {
           router.push('/customer/dashboard');
         }
+      } else if (response.responseCode === 400 && (response.responseMessage === 'Vendor is not active' || response.responseMessage === 'Customer is not active')) {
+        // Redirect to OTP validation for inactive user
+        localStorage.setItem('registrationEmail', formData.username);
+        localStorage.setItem('userType', userType);
+        toast.error('Please verify your account to continue');
+        router.push('/otp-validation');
       } else {
         const errorMessage = response.responseMessage || 'Login failed';
         setErrors({ general: errorMessage });

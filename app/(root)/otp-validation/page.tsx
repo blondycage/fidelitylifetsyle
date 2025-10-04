@@ -154,7 +154,7 @@ const OTPValidation = () => {
           <Button
             onClick={() => otp && handleOTPComplete(otp)}
             disabled={!otp || otp.length !== 6}
-            className="w-full bg-[var(--blueHex)] hover:bg-gradient-to-r hover:from-blue-500 hover:to-blue-700 text-white py-3 rounded-full font-medium disabled:opacity-50"
+            className="w-full bg-[var(--blueHex)] hover:bg-gradient-to-r hover:from-blue-500 hover:to-blue-700 text-white py-3 rounded-full font-medium disabled:opacity-100"
           >
             Verify
             <ArrowRight size={16} className="ml-2" />
@@ -167,7 +167,7 @@ const OTPValidation = () => {
             disabled={resendCooldown > 0}
             loading={resendLoading}
             variant="secondary"
-            className="text-[var(--greenHex)] bg-transparent hover:bg-green-50"
+            className="text-[var(--greenHex)]  hover:bg-green-50"
           >
             {resendCooldown > 0
               ? `Resend code in ${formatTime(resendCooldown)}`
