@@ -119,6 +119,7 @@ export const BusinessVerification: React.FC<BusinessVerificationProps> = ({ onPr
 
           {/* Verification Steps */}
         
+        
 
           {/* Form Actions */}
           <div className="flex justify-between mt-8">

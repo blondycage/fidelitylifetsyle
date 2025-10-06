@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Product+Sans:wght@400&display=swap');
 
 @theme {
   --font-family-urbanist: var(--fontUrbanist);
@@ -261,4 +263,99 @@ body.modal-open {
   z-index: 10000 !important;
   max-height: 90vh;
   overflow-y: auto;
+}
+
+/* Landing page animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Hero animations */
+@keyframes fadeUp {
+  0% { opacity: 0; transform: translateY(24px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeDown {
+  0% { opacity: 0; transform: translateY(-24px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Orbit animation for avatar globe */
+/* Pop-in scale animation for avatars */
+@keyframes popIn {
+  0% { opacity: 0; transform: scale(0.6); }
+  70% { opacity: 1; transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Radial pop from center to orbit radius (uses --radius) */
+@keyframes radialPop {
+  0% { opacity: 0; transform: translateX(0) scale(0.6); }
+  70% { opacity: 1; transform: translateX(calc(var(--radius, 140px) * 1.05)) scale(1.08); }
+  100% { opacity: 1; transform: translateX(var(--radius, 140px)) scale(1); }
+}
+
+/* Custom gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, var(--blueHex), var(--greenHex));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Hover effects */
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* Custom button styles */
+.btn-primary {
+  background: linear-gradient(135deg, var(--blueHex), var(--blue-08));
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--blue-08), var(--blue-06));
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(1, 33, 104, 0.3);
+}
+
+.btn-secondary {
+  border: 2px solid var(--blueHex);
+  color: var(--blueHex);
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: var(--blueHex);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(1, 33, 104, 0.2);
+}
+.subt{
+  font-size: 32px !important;
 }

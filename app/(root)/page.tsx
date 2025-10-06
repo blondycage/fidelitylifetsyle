@@ -1,18 +1,24 @@
 
-'use client';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import Header from '@/components/layout/Header';
+import HeroSection from '@/components/sections/HeroSection';
+import FeaturesSection from '@/components/sections/FeaturesSection';
+import ServicesSection from '@/components/sections/ServicesSection';
+import VendorSection from '@/components/sections/VendorSection';
+import FAQSection from '@/components/sections/FAQSection';
+import Footer from '@/components/layout/Footer';
 
 export default function Home() {
-  const router = useRouter();
-
-  useEffect(() => {
-    router.push('/signin');
-  }, [router]);
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F8FAFB] via-[#E6F7FF] to-[#E8FFF1] flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-[var(--blueHex)] border-t-transparent rounded-full animate-spin"></div>
+    <div className="min-h-screen bg-white">
+      <Header />
+      <main>
+        <HeroSection />
+        <FeaturesSection />
+        <ServicesSection />
+        <VendorSection />
+        <FAQSection />
+      </main>
+      <Footer />
     </div>
   );
 }

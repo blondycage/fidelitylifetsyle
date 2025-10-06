@@ -36,6 +36,7 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
   const [inputValue, setInputValue] = useState('');
   const [selectedFromAutocomplete, setSelectedFromAutocomplete] = useState(false);
   const isSelectingFromAutocomplete = useRef(false);
+  const lastConfirmedValueRef = useRef<string>('');
 
   // Sync input value with external value only when it's a selected address
   useEffect(() => {
@@ -83,31 +84,30 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
       );
 
       autocompleteRef.current.addListener('place_changed', () => {
-        const place = autocompleteRef.current?.getPlace();
-
-        if (place && place.geometry && place.geometry.location) {
-          isSelectingFromAutocomplete.current = true;
-
-          const selectedAddress = place.formatted_address || place.name || '';
-          const addressDetails: AddressDetails = {
-            address: selectedAddress,
-            latitude: place.geometry.location.lat(),
-            longitude: place.geometry.location.lng(),
-          };
-
-          // Update local state and mark as selected from autocomplete
-          setInputValue(selectedAddress);
-          setSelectedFromAutocomplete(true);
-
-          // Notify parent component with the selected address details
-          onChange(addressDetails);
-
-          // Reset the flag after a short delay
-          setTimeout(() => {
-            isSelectingFromAutocomplete.current = false;
-          }, 100);
-        }
+        confirmSelection();
       });
+
+      // Fallback: confirm on Enter
+      const onKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Enter') {
+          // Allow Google to update selection first
+          setTimeout(confirmSelection, 0);
+        }
+      };
+      inputRef.current.addEventListener('keydown', onKeyDown);
+
+      // Fallback: confirm on mouse click selection
+      const onDocMouseDown = () => {
+        // Delay to allow Google suggestion click to resolve
+        setTimeout(confirmSelection, 0);
+      };
+      document.addEventListener('mousedown', onDocMouseDown, true);
+
+      // Cleanup listeners
+      return () => {
+        inputRef.current?.removeEventListener('keydown', onKeyDown);
+        document.removeEventListener('mousedown', onDocMouseDown, true);
+      };
     }
 
     return () => {
@@ -116,6 +116,35 @@ export const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
       }
     };
   }, [isLoaded, onChange]);
+
+  const confirmSelection = () => {
+    const place = autocompleteRef.current?.getPlace();
+    if (place && place.geometry && place.geometry.location) {
+      isSelectingFromAutocomplete.current = true;
+
+      const selectedAddress = place.formatted_address || place.name || '';
+      if (!selectedAddress || selectedAddress === lastConfirmedValueRef.current) {
+        isSelectingFromAutocomplete.current = false;
+        return;
+      }
+
+      lastConfirmedValueRef.current = selectedAddress;
+
+      const addressDetails: AddressDetails = {
+        address: selectedAddress,
+        latitude: place.geometry.location.lat(),
+        longitude: place.geometry.location.lng(),
+      };
+
+      setInputValue(selectedAddress);
+      setSelectedFromAutocomplete(true);
+      onChange(addressDetails);
+
+      setTimeout(() => {
+        isSelectingFromAutocomplete.current = false;
+      }, 100);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;

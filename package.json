@@ -7,7 +7,9 @@
     "dev:turbo": "next dev --turbopack",
     "build": "NEXT_DISABLE_ESLINT=true next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "figma:mcp": "node scripts/figma-mcp.js",
+    "figma:start": "figma-developer-mcp --env .env.figma --port 3001"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^1.16.10",
