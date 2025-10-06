@@ -102,6 +102,8 @@ const VendorDashboard = () => {
                     setActiveMenuItem(item.name);
                     if (item.name === 'Business Verification') {
                       router.push('/vendor/business-verification');
+                    } else if (item.name === 'Logistics Setup') {
+                      router.push('/vendor/logistics-setup');
                     }
                   }}
                   className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
@@ -464,6 +466,8 @@ const VendorDashboard = () => {
                         setIsMobileSidebarOpen(false);
                         if (item.name === 'Business Verification') {
                           router.push('/vendor/business-verification');
+                        } else if (item.name === 'Logistics Setup') {
+                          router.push('/vendor/logistics-setup');
                         }
                       }}
                       className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${

@@ -38,12 +38,13 @@ export default function HeroSection() {
           autoPlay
           muted
           playsInline
-          loop={false}
+          loop={true}
           poster="/images/hero-background.png"
-        >
-          <source src="/videos/hero-bg.mp4" type="video/mp4" />
+          controls={false}
+        >           
+          <source src="/images/bg.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-black/25 backdrop-blur-[56px]"></div>
+        <div className="absolute inset-0 bg-black/25 backdrop-blur-[10px]"></div>
       </div>
 
       {/* Content */}
