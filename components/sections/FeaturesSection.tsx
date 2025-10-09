@@ -48,7 +48,7 @@ export default function FeaturesSection() {
 
         {/* Subheader */}
         <div className="px-[60px] mt-6">
-          <p className="max-w-[760px] text-[#616161] font-urbanist text-[22px] md:text-[32px] lg:text-[40px] leading-[1.2]">
+          <p className="max-w-[760px] text-[#616161] font-urbanist text-[22px] md:text-[32px] lg:text-[40px] leading-[1.2] subt">
             We make discovering and connecting with local lifestyle vendors effortless and enjoyable.
           </p>
         </div>

@@ -13,17 +13,17 @@ export const FidelityLogo: React.FC<FidelityLogoProps> = ({
   size = 'sm'
 }) => {
   const sizeClasses = {
-    sm: showText ? 'h-10' : 'w-10 h-10',
-    md: showText ? 'h-16' : 'w-16 h-16',
-    lg: showText ? 'h-20' : 'w-20 h-20',
-    xl: showText ? 'h-24' : 'w-24 h-24'
+    sm: showText ? 'h-12' : 'w-12 h-12',
+    md: showText ? 'h-20' : 'w-20 h-20',
+    lg: showText ? 'h-28' : 'w-28 h-28',
+    xl: showText ? 'h-32' : 'w-32 h-32'
   };
 
   const textSizeClasses = {
-    sm: 'text-base',
-    md: 'text-xl',
-    lg: 'text-2xl',
-    xl: 'text-3xl'
+    sm: 'text-lg',
+    md: 'text-2xl',
+    lg: 'text-3xl',
+    xl: 'text-4xl'
   };
 
   if (!showText) {

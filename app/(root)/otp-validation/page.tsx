@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import { AuthLayout } from '@/components/layout/AuthLayout';
 import { OTPInput } from '@/components/ui/OTPInput';
 import { Button } from '@/components/ui/Button';
-import { generateOTP, validateCustomerOTP, validateVendorOTP } from '@/services/authService';
+import { generateOTP, validateCustomerOTP, validateVendorOTP, fetchVendorByEmail } from '@/services/authService';
 import { ValidateOTPPayload, OTPPurpose } from '@/types/api';
 import { ArrowRight } from 'iconsax-react';
 
@@ -67,6 +67,20 @@ const OTPValidation = () => {
         toast.success('Email verified successfully! Welcome to Fidelity Lifestyle Banking.');
 
         if (userType === 'VENDOR') {
+          // Fetch vendor data before navigation
+          try {
+            const vendorResponse = await fetchVendorByEmail(email, response.data.token);
+            if (vendorResponse.responseCode === 200 && vendorResponse.data) {
+              // Store vendor data in a custom event to trigger context update
+              window.dispatchEvent(new CustomEvent('vendorLogin', { 
+                detail: { vendorData: vendorResponse.data } 
+              }));
+            }
+          } catch (error) {
+            console.error('Error fetching vendor data during OTP validation:', error);
+            // Continue with navigation even if vendor data fetch fails
+          }
+          
           router.push('/vendor/dashboard');
         } else {
           router.push('/customer/dashboard');
@@ -150,16 +164,7 @@ const OTPValidation = () => {
           )}
         </div>
 
-        <div className="pt-4">
-          <Button
-            onClick={() => otp && handleOTPComplete(otp)}
-            disabled={!otp || otp.length !== 6}
-            className="w-full bg-[var(--blueHex)] hover:bg-gradient-to-r hover:from-blue-500 hover:to-blue-700 text-white py-3 rounded-full font-medium disabled:opacity-100"
-          >
-            Verify
-            <ArrowRight size={16} className="ml-2" />
-          </Button>
-        </div>
+        
 
         <div className="text-center">
           <Button

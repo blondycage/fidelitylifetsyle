@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/Input';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { Button } from '@/components/ui/Button';
 import { ForgotPasswordModal } from '@/components/ui/ForgotPasswordModal';
-import { userLogin } from '@/services/authService';
+import { userLogin, fetchVendorByEmail } from '@/services/authService';
 import { UserLoginPayloadProps } from '@/types/api';
 import { ArrowRight } from 'iconsax-react';
 
@@ -80,6 +80,20 @@ const Signin = () => {
         toast.success(`Welcome back! Signed in as ${userType.toLowerCase()}`);
 
         if (userType === 'VENDOR') {
+          // Fetch vendor data before navigation
+          try {
+            const vendorResponse = await fetchVendorByEmail(response.data.email, response.data.token);
+            if (vendorResponse.responseCode === 200 && vendorResponse.data) {
+              // Store vendor data in a custom event to trigger context update
+              window.dispatchEvent(new CustomEvent('vendorLogin', { 
+                detail: { vendorData: vendorResponse.data } 
+              }));
+            }
+          } catch (error) {
+            console.error('Error fetching vendor data during login:', error);
+            // Continue with navigation even if vendor data fetch fails
+          }
+          
           router.push('/vendor/dashboard');
         } else {
           router.push('/customer/dashboard');

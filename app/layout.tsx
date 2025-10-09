@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Open_Sans, Urbanist } from "next/font/google";
 import { Toaster } from 'react-hot-toast';
+import { VendorProvider } from '@/contexts/VendorContext';
 import "./globals.css";
 
 const playfairDisplay = Playfair_Display({
@@ -34,7 +35,9 @@ export default function RootLayout({
       <body
         className={`${playfairDisplay.variable} ${openSans.variable} ${urbanist.variable} font-urbanist antialiased`}
       >
-        {children}
+        <VendorProvider>
+          {children}
+        </VendorProvider>
         <Toaster
           position="top-right"
           toastOptions={{
