@@ -183,7 +183,7 @@ const ManageOrdersPage = () => {
             <div className="flex items-center justify-between">
               <div className="flex flex-col gap-1">
                 <p className="text-[#4B5563] text-sm font-normal font-urbanist">Total Orders</p>
-                <p className="!text-5xl font-black text-[#212121] font-urbanist">{stats.total}</p>
+                <p className="!text-3xl font-black text-[#212121] font-urbanist">{stats.total}</p>
               </div>
               <div className="w-12 h-12 bg-[#CCD3E1] rounded-2xl flex items-center justify-center">
                 <img src="/images/shopping-cart-overview.svg" alt="Shopping Cart" className="w-10 h-10" />
@@ -196,7 +196,7 @@ const ManageOrdersPage = () => {
             <div className="flex items-center justify-between">
               <div className="flex flex-col gap-1">
                 <p className="text-[#4B5563] text-sm font-normal font-urbanist">Pending Orders</p>
-                <p className="!text-5xl font-black text-[#FFBB38] font-urbanist">{stats.pending}</p>
+                <p className="!text-3xl font-black text-[#FFBB38] font-urbanist">{stats.pending}</p>
               </div>
               <div className="w-12 h-12 bg-[#FFF5D9] rounded-2xl flex items-center justify-center">
                 <img src="/images/clock-overview.svg" alt="Clock" className="w-10 h-10" />
@@ -209,7 +209,7 @@ const ManageOrdersPage = () => {
             <div className="flex items-center justify-between">
               <div className="flex flex-col gap-1">
                 <p className="text-[#4B5563] text-sm font-normal font-urbanist">Delivered Today</p>
-                <p className="!text-5xl font-black text-[#6CC049] font-urbanist">{stats.delivered}</p>
+                <p className="!text-3xl font-black text-[#6CC049] font-urbanist">{stats.delivered}</p>
               </div>
               <div className="w-12 h-12 bg-[#6CC049] rounded-2xl flex items-center justify-center">
                 <img src="/images/check-overview.svg" alt="Check" className="w-10 h-10" />
