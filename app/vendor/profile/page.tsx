@@ -492,6 +492,15 @@ const VendorProfilePage = () => {
                     } else if (item.name === 'Business Verification') {
                       router.push('/vendor/business-verification');
                     }
+                    else if (item.name === 'Manage Store') {
+                      router.push('/vendor/manage-store');
+                    }
+                    else if (item.name === 'Manage Orders') {
+                      router.push('/vendor/manage-orders');
+                    }
+                    else if (item.name === 'Earnings') {
+                      router.push('/vendor/earnings');
+                    }
                   }}
                   className={`w-full flex items-center px-3 py-3 text-sm font-semibold rounded-xl transition-all duration-200 group ${
                     activeMenuItem === item.name
