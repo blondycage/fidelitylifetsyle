@@ -18,13 +18,17 @@ import {
 } from 'iconsax-react';
 import { fetchVendorByEmail, updateVendor } from '@/services/authService';
 import { VendorData, VendorUpdatePayload } from '@/types/api';
+import { getCategories, Category } from '@/services/categoryService';
 import { Loader } from '@googlemaps/js-api-loader';
+import { validatePhoneNumber, formatPhoneNumber } from '@/utils/validation';
 
 const VendorProfilePage = () => {
   const router = useRouter();
   const [activeMenuItem, setActiveMenuItem] = useState('Profile');
   const [loading, setLoading] = useState(true);
   const [vendorData, setVendorData] = useState<VendorData | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [formData, setFormData] = useState({
     // Personal Info
     name: '',
@@ -51,6 +55,31 @@ const VendorProfilePage = () => {
   const [isAddressSelected, setIsAddressSelected] = useState(false);
   const isSelectingFromAutocomplete = useRef(false);
   const [updateLoading, setUpdateLoading] = useState(false);
+  const [phoneErrors, setPhoneErrors] = useState<{ personal: string; business: string }>({ personal: '', business: '' });
+
+  // Load categories from backend
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        setCategoriesLoading(true);
+        const fetchedCategories = await getCategories();
+        setCategories(fetchedCategories);
+        console.log('✅ Categories loaded for profile page:', fetchedCategories);
+        console.log('📊 Current formData.category:', formData.category);
+      } catch (error) {
+        console.error('❌ Error loading categories:', error);
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+
+    loadCategories();
+  }, []);
+
+  // Debug formData changes
+  useEffect(() => {
+    console.log('📝 FormData updated:', formData);
+  }, [formData]);
 
   const menuItems = [
     { name: 'Dashboard', icon: Home, active: false },
@@ -88,7 +117,7 @@ const VendorProfilePage = () => {
             username: vendor.email, // We'll use email as username for now
             businessName: vendor.businessProfile.name,
             businessPhone: vendor.phoneNumber, // Using personal phone as business phone if not separate
-            category: vendor.businessType.toLowerCase(),
+            category: vendor.businessType,
             address: vendor.businessProfile.address,
             description: vendor.businessProfile.description,
             latitude: vendor.businessProfile.latitude || 0,
@@ -275,8 +304,28 @@ const VendorProfilePage = () => {
         newData.username = value;
       }
 
+      // Debug category selection
+      if (field === 'category') {
+        console.log('🔄 Category changed to:', value);
+      }
+
       return newData;
     });
+  };
+
+  const handlePhoneChange = (field: 'phoneNumber' | 'businessPhone', value: string) => {
+    const formattedValue = formatPhoneNumber(value);
+    setFormData(prev => ({ ...prev, [field]: formattedValue }));
+    
+    // Clear error when user starts typing
+    setPhoneErrors(prev => ({ ...prev, [field === 'phoneNumber' ? 'personal' : 'business']: '' }));
+  };
+
+  const validatePhone = (field: 'phoneNumber' | 'businessPhone', value: string) => {
+    const validation = validatePhoneNumber(value);
+    const errorKey = field === 'phoneNumber' ? 'personal' : 'business';
+    setPhoneErrors(prev => ({ ...prev, [errorKey]: validation.error }));
+    return validation.isValid;
   };
 
   const handleAddressInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -314,7 +363,16 @@ const VendorProfilePage = () => {
 
     // Basic validation
     if (!formData.name.trim() || !formData.email.trim() || !formData.businessName.trim() || !formData.address.trim()) {
-      toast.error('Please fill in all required fields');
+      toast.error('All required fields must be filled.');
+      return;
+    }
+
+    // Validate phone numbers
+    const isPersonalPhoneValid = validatePhone('phoneNumber', formData.phoneNumber);
+    const isBusinessPhoneValid = validatePhone('businessPhone', formData.businessPhone);
+    
+    if (!isPersonalPhoneValid || !isBusinessPhoneValid) {
+      toast.error('Please fix phone number errors before saving');
       return;
     }
 
@@ -586,10 +644,15 @@ const VendorProfilePage = () => {
                       <input
                         type="tel"
                         value={formData.phoneNumber}
-                        onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
-                        className="w-full px-4 py-3 bg-gray-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--blueHex)] text-[var(--greyHex)] transition-all"
-                        placeholder="Enter your phone number"
+                        onChange={(e) => handlePhoneChange('phoneNumber', e.target.value)}
+                        onBlur={(e) => validatePhone('phoneNumber', e.target.value)}
+                        className={`w-full px-4 py-3 bg-gray-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--blueHex)] text-[var(--greyHex)] transition-all ${phoneErrors.personal ? 'ring-2 ring-red-500' : ''}`}
+                        placeholder="Enter your phone number (11 digits)"
+                        maxLength={11}
                       />
+                      {phoneErrors.personal && (
+                        <p className="text-red-500 text-sm mt-1">{phoneErrors.personal}</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -619,10 +682,15 @@ const VendorProfilePage = () => {
                       <input
                         type="tel"
                         value={formData.businessPhone}
-                        onChange={(e) => handleInputChange('businessPhone', e.target.value)}
-                        className="w-full px-4 py-3 bg-gray-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--blueHex)] text-[var(--greyHex)] transition-all"
-                        placeholder="Enter business phone"
+                        onChange={(e) => handlePhoneChange('businessPhone', e.target.value)}
+                        onBlur={(e) => validatePhone('businessPhone', e.target.value)}
+                        className={`w-full px-4 py-3 bg-gray-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--blueHex)] text-[var(--greyHex)] transition-all ${phoneErrors.business ? 'ring-2 ring-red-500' : ''}`}
+                        placeholder="Enter business phone (11 digits)"
+                        maxLength={11}
                       />
+                      {phoneErrors.business && (
+                        <p className="text-red-500 text-sm mt-1">{phoneErrors.business}</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-[var(--greyHex)] mb-2">
@@ -632,19 +700,16 @@ const VendorProfilePage = () => {
                         value={formData.category}
                         onChange={(e) => handleInputChange('category', e.target.value)}
                         className="w-full px-4 py-3 bg-gray-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--blueHex)] text-[var(--greyHex)] transition-all"
+                        disabled={categoriesLoading}
                       >
-                        <option value="">Select category</option>
-                        <option value="hotel">Hotel</option>
-                        <option value="influencer">Influencer</option>
-                        <option value="restaurant">Restaurant</option>
-                        <option value="club">Club</option>
-                        <option value="supermarket">Supermarket</option>
-                        <option value="pharmacy">Pharmacy</option>
-                        <option value="fashion">Fashion</option>
-                        <option value="tour_guide">Tour Guide</option>
-                        <option value="experiences">Experiences</option>
-                        <option value="events">Events</option>
-                        <option value="others">Others</option>
+                        <option value="">
+                          {categoriesLoading ? 'Loading categories...' : 'Select category'}
+                        </option>
+                        {categories.map((category) => (
+                          <option key={category.id} value={category.name}>
+                            {category.description}
+                          </option>
+                        ))}
                       </select>
                     </div>
                     <div>
@@ -785,10 +850,15 @@ const VendorProfilePage = () => {
                     <input
                       type="tel"
                       value={formData.phoneNumber}
-                      onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
-                      className="w-full px-4 py-3 bg-gray-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--blueHex)] text-[var(--greyHex)] transition-all"
-                      placeholder="Enter your phone number"
+                      onChange={(e) => handlePhoneChange('phoneNumber', e.target.value)}
+                      onBlur={(e) => validatePhone('phoneNumber', e.target.value)}
+                      className={`w-full px-4 py-3 bg-gray-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--blueHex)] text-[var(--greyHex)] transition-all ${phoneErrors.personal ? 'ring-2 ring-red-500' : ''}`}
+                      placeholder="Enter your phone number (11 digits)"
+                      maxLength={11}
                     />
+                    {phoneErrors.personal && (
+                      <p className="text-red-500 text-sm mt-1">{phoneErrors.personal}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -818,10 +888,15 @@ const VendorProfilePage = () => {
                     <input
                       type="tel"
                       value={formData.businessPhone}
-                      onChange={(e) => handleInputChange('businessPhone', e.target.value)}
-                      className="w-full px-4 py-3 bg-gray-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--blueHex)] text-[var(--greyHex)] transition-all"
-                      placeholder="Enter business phone"
+                      onChange={(e) => handlePhoneChange('businessPhone', e.target.value)}
+                      onBlur={(e) => validatePhone('businessPhone', e.target.value)}
+                      className={`w-full px-4 py-3 bg-gray-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--blueHex)] text-[var(--greyHex)] transition-all ${phoneErrors.business ? 'ring-2 ring-red-500' : ''}`}
+                      placeholder="Enter business phone (11 digits)"
+                      maxLength={11}
                     />
+                    {phoneErrors.business && (
+                      <p className="text-red-500 text-sm mt-1">{phoneErrors.business}</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--greyHex)] mb-2">
@@ -831,13 +906,16 @@ const VendorProfilePage = () => {
                       value={formData.category}
                       onChange={(e) => handleInputChange('category', e.target.value)}
                       className="w-full px-4 py-3 bg-gray-100 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--blueHex)] text-[var(--greyHex)] transition-all"
+                      disabled={categoriesLoading}
                     >
-                      <option value="">Select category</option>
-                      <option value="retail">Retail</option>
-                      <option value="services">Services</option>
-                      <option value="technology">Technology</option>
-                      <option value="food">Food & Beverage</option>
-                      <option value="other">Other</option>
+                      <option value="">
+                        {categoriesLoading ? 'Loading categories...' : 'Select category'}
+                      </option>
+                      {categories.map((category) => (
+                        <option key={category.id} value={category.name}>
+                          {category.description}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div>

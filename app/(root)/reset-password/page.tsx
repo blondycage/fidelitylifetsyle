@@ -61,14 +61,14 @@ const ResetPasswordForm = () => {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.email.trim()) newErrors.email = 'Email is required';
+    if (!formData.email.trim()) newErrors.email = 'Email is required.';
     if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email is invalid';
 
-    if (!formData.otp.trim()) newErrors.otp = 'OTP is required';
+    if (!formData.otp.trim()) newErrors.otp = 'OTP is required.';
     if (formData.otp.length !== 6) newErrors.otp = 'OTP must be 6 digits';
 
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = 'Password is required.';
     } else {
       const passwordValidation = validatePassword(formData.password);
       if (!passwordValidation.isValid) {
@@ -128,7 +128,7 @@ const ResetPasswordForm = () => {
 
   const handleResendOTP = async () => {
     if (!formData.email.trim()) {
-      setErrors({ email: 'Email is required for resending OTP' });
+      setErrors({ email: 'Email is required for resending OTP.' });
       return;
     }
 

@@ -2,25 +2,47 @@
 
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
+import { createSubcategory } from '@/services/subcategoryService';
+import toast from 'react-hot-toast';
 
 interface AddSubcategoryModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (subcategoryName: string) => void;
+  vendorId: number;
 }
 
 const AddSubcategoryModal: React.FC<AddSubcategoryModalProps> = ({
   isOpen,
   onClose,
-  onSave
+  onSave,
+  vendorId
 }) => {
   const [subcategoryName, setSubcategoryName] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
 
-  const handleSave = () => {
-    if (subcategoryName.trim()) {
-      onSave(subcategoryName.trim());
-      setSubcategoryName('');
-      onClose();
+  const handleSave = async () => {
+    if (!subcategoryName.trim()) return;
+
+    try {
+      setIsCreating(true);
+      console.log('🚀 Creating subcategory:', { vendorId, subcategoryName: subcategoryName.trim() });
+      
+      const response = await createSubcategory(vendorId, subcategoryName.trim());
+      
+      if (response.responseCode === 200) {
+        toast.success('Subcategory created successfully!');
+        onSave(subcategoryName.trim());
+        setSubcategoryName('');
+        onClose();
+      } else {
+        toast.error(response.responseMessage || 'Failed to create subcategory');
+      }
+    } catch (error) {
+      console.error('❌ Error creating subcategory:', error);
+      toast.error('Failed to create subcategory. Please try again.');
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -87,16 +109,25 @@ const AddSubcategoryModal: React.FC<AddSubcategoryModalProps> = ({
             {/* Save Button */}
             <button
               onClick={handleSave}
-              disabled={!subcategoryName.trim()}
+              disabled={!subcategoryName.trim() || isCreating}
               className={`flex items-center justify-center gap-2 px-8 py-2 h-10 rounded-[60px] transition-colors duration-200 ${
-                subcategoryName.trim()
+                subcategoryName.trim() && !isCreating
                   ? 'bg-[#6CC049] hover:bg-[#5AA83A] text-white'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             >
-              <span className="text-[20px] font-semibold font-urbanist leading-[1.2]">
-                Save
-              </span>
+              {isCreating ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-[20px] font-semibold font-urbanist leading-[1.2]">
+                    Creating...
+                  </span>
+                </>
+              ) : (
+                <span className="text-[20px] font-semibold font-urbanist leading-[1.2]">
+                  Save
+                </span>
+              )}
             </button>
           </div>
         </div>

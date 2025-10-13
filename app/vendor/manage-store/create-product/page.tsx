@@ -6,16 +6,20 @@ import DynamicForm from './components/DynamicForm';
 import { useVendor } from '@/contexts/VendorContext';
 import toast from 'react-hot-toast';
 import AddSubcategoryModal from '@/components/vendor/modals/AddSubcategoryModal';
+import { ProductSuccessModal } from '@/components/vendor/modals/ProductSuccessModal';
+import { getSubcategories, clearSubcategoriesCache } from '@/services/subcategoryService';
 
 const CreateProductPage = () => {
-  const { vendorData, loading: vendorLoading } = useVendor();
+  const { vendorData, loading: vendorLoading, refreshVendorData } = useVendor();
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [categories, setCategories] = useState<Array<{ value: string; label: string; endpoint: string }>>([]);
-  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
-  const [categoriesError, setCategoriesError] = useState<string | null>(null);
   const [isCreatingProduct, setIsCreatingProduct] = useState(false);
+  const [isUploadingImages, setIsUploadingImages] = useState(false);
   const [createdProductId, setCreatedProductId] = useState<number | null>(null);
   const [isSubcategoryModalOpen, setIsSubcategoryModalOpen] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string>('');
+  const [subcategories, setSubcategories] = useState<string[]>([]);
+  const [subcategoriesLoading, setSubcategoriesLoading] = useState(false);
   const [formData, setFormData] = useState({
     // Create Product payload fields
     productName: '',
@@ -33,6 +37,10 @@ const CreateProductPage = () => {
     maxAttendees: '',
     ageRestriction: '',
     dressCode: '',
+    // Additional required fields for events
+    description: '',
+    address: '',
+    subcategoryName: '',
     // Accommodation payload fields
     propertyType: '',
     listingType: '',
@@ -43,26 +51,25 @@ const CreateProductPage = () => {
     bathrooms: '',
     totalArea: '',
     furnishingStatus: '',
-    amenities: 'WIFI',
+    amenities: [] as string[],
     floorNumber: '',
     parkingSpaces: '',
     checkInTime: '',
     checkOutTime: '',
-    houseRules: 'NO_SMOKING',
+    houseRules: [] as string[],
     cancellationPolicy: '',
     // Reservation payload fields
     productType: '',
     serviceType: '',
-    cuisineType: 'CONTINENTAL',
+    cuisineType: [] as string[],
     operatingHours: '',
     tableCapacity: '',
     reservationFee: '',
     reservationDuration: '',
     acceptsWalkIns: true,
     dressCode: '',
-    specialFeatures: 'LIVE_BAND',
+    specialFeatures: [] as string[],
     // Additional fields for other categories (will be used later)
-    description: '',
     subCategory: '',
     location: '',
     images: [] as File[],
@@ -72,54 +79,66 @@ const CreateProductPage = () => {
   });
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
-  // Fetch categories on component mount
+  // Fetch subcategories when vendor data is available
+  const fetchSubcategories = async (vendorId: number) => {
+    try {
+      setSubcategoriesLoading(true);
+      const subcategoriesList = await getSubcategories(vendorId);
+      setSubcategories(subcategoriesList);
+      console.log('✅ Subcategories fetched:', subcategoriesList);
+    } catch (error) {
+      console.error('❌ Error fetching subcategories:', error);
+    } finally {
+      setSubcategoriesLoading(false);
+    }
+  };
+
+  // Refresh vendor data on page load to get latest profile details
   useEffect(() => {
-    const fetchCategories = async () => {
+    const refreshData = async () => {
       try {
-        setIsLoadingCategories(true);
-        setCategoriesError(null);
-        
-        const response = await fetch('/api/v1/product/category/list');
-        const data = await response.json();
-        
-        if (data.responseCode === 200 && data.data) {
-          // Transform the API data to match our expected format
-          const transformedCategories = data.data.map((category: string) => ({
-            value: category.toLowerCase(),
-            label: category.charAt(0).toUpperCase() + category.slice(1).toLowerCase().replace('_', ' '),
-            endpoint: category
-          }));
-          setCategories(transformedCategories);
-        } else {
-          throw new Error(data.responseMessage || 'Failed to fetch categories');
-        }
+        await refreshVendorData();
+        console.log('✅ Vendor data refreshed on create product page load');
       } catch (error) {
-        console.error('Error fetching categories:', error);
-        setCategoriesError(error instanceof Error ? error.message : 'Failed to fetch categories');
-        // Fallback to hardcoded categories if API fails
-        setCategories([
-          { value: 'events', label: 'Events', endpoint: 'EVENTS' },
-          { value: 'experiences', label: 'Experiences', endpoint: 'EVENTS' },
-          { value: 'tour_guide', label: 'Tour Guide', endpoint: 'EVENTS' },
-          { value: 'influencer', label: 'Influencer', endpoint: 'EVENTS' },
-          { value: 'hotels', label: 'Hotels', endpoint: 'HOTELS' },
-          { value: 'apartment', label: 'Apartment', endpoint: 'ACCOMMODATION' },
-          { value: 'club', label: 'Club', endpoint: 'Reservation' },
-          { value: 'food', label: 'Food', endpoint: 'create product' },
-          { value: 'supermarket', label: 'Supermarket', endpoint: 'create product' },
-          { value: 'pharmacy', label: 'Pharmacy', endpoint: 'create product' },
-          { value: 'restaurant', label: 'Restaurant', endpoint: 'create product' },
-          { value: 'others', label: 'Others', endpoint: 'create product' },
-          { value: 'cars', label: 'Cars', endpoint: 'CARS' },
-          { value: 'fashion', label: 'Fashion', endpoint: 'FASHION' }
-        ]);
-      } finally {
-        setIsLoadingCategories(false);
+        console.error('❌ Error refreshing vendor data:', error);
       }
     };
 
-    fetchCategories();
-  }, []);
+    refreshData();
+  }, []); // Empty dependency array - only run once on mount
+
+  // Fetch subcategories when vendor data is loaded
+  useEffect(() => {
+    if (vendorData?.id) {
+      fetchSubcategories(vendorData.id);
+    }
+  }, [vendorData?.id]);
+
+  // Set selected category based on vendor's business type
+  useEffect(() => {
+    if (vendorData?.businessType) {
+      const businessTypeToCategory = {
+        'HOTEL': 'hotel',
+        'HOSPITALITY': 'accommodation',
+        'APARTMENT': 'accommodation',
+        'INFLUENCER': 'influencer',
+        'RESTAURANT': 'restaurant',
+        'CLUB': 'club',
+        'RESERVATIONS': 'reservations',
+        'OTHERS': 'others',
+        'SUPERMARKET': 'supermarket',
+        'PHARMACY': 'pharmacy',
+        'FASHION': 'fashion',
+        'TOUR_GUIDE': 'tour_guide',
+        'EXPERIENCES': 'experiences',
+        'EVENTS': 'events'
+      };
+      
+      const category = businessTypeToCategory[vendorData.businessType] || 'others';
+      setSelectedCategory(category);
+      handleInputChange('categoryName', category);
+    }
+  }, [vendorData?.businessType]);
 
   // Listen for subcategory modal open event
   useEffect(() => {
@@ -141,9 +160,9 @@ const CreateProductPage = () => {
     }));
   };
 
-  const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category);
-    handleInputChange('categoryName', category);
+  // Helper function to format business type for display
+  const formatBusinessType = (businessType: string) => {
+    return businessType.charAt(0).toUpperCase() + businessType.slice(1).toLowerCase().replace('_', ' ');
   };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -171,24 +190,126 @@ const CreateProductPage = () => {
     setImagePreviews(newPreviews);
   };
 
-  const handleSubcategorySave = (subcategoryName: string) => {
+  const handleSubcategorySave = async (subcategoryName: string) => {
     setFormData({ ...formData, subCategory: subcategoryName });
-    toast.success('Sub-category added successfully!');
+    
+    // Refresh subcategories list
+    if (vendorData?.id) {
+      await fetchSubcategories(vendorData.id);
+    }
   };
 
-  const handleUploadImages = async () => {
-    if (!createdProductId) {
-      toast.error('Please create the product first before uploading images');
-      return;
-    }
+  const clearForm = () => {
+    setFormData({
+      // Create Product payload fields
+      productName: '',
+      categoryName: '',
+      quantity: '',
+      price: '',
+      // Events payload fields
+      productType: 'GENERAL_PRODUCT',
+      eventDate: '',
+      eventTime: '',
+      eventEndDate: '',
+      eventEndTime: '',
+      eventType: 'PAID',
+      venue: '',
+      maxAttendees: '',
+      ageRestriction: '',
+      dressCode: '',
+      // Additional required fields for events
+      description: '',
+      address: '',
+      subcategoryName: '',
+      // Accommodation payload fields
+      propertyType: '',
+      listingType: '',
+      propertyName: '',
+      dailyRate: '',
+      maxGuests: '',
+      bedrooms: '',
+      bathrooms: '',
+      totalArea: '',
+      furnishingStatus: '',
+      amenities: [] as string[],
+      floorNumber: '',
+      parkingSpaces: '',
+      checkInTime: '',
+      checkOutTime: '',
+      houseRules: [] as string[],
+      cancellationPolicy: '',
+      // Reservation payload fields
+      productType: '',
+      serviceType: '',
+      cuisineType: [] as string[],
+      operatingHours: '',
+      tableCapacity: '',
+      reservationFee: '',
+      reservationDuration: '',
+      acceptsWalkIns: true,
+      dressCode: '',
+      specialFeatures: [] as string[],
+      // Additional fields for other categories (will be used later)
+      description: '',
+      subCategory: '',
+      location: '',
+      images: [] as File[],
+      tags: [] as string[],
+      availability: '',
+      contactInfo: ''
+    });
+    setImagePreviews([]);
+    setUploadProgress('');
+    setCreatedProductId(null);
+  };
 
+  const handleUploadImages = async (productId: number) => {
     if (formData.images.length === 0) {
-      toast.error('Please select images to upload');
+      console.log('No images to upload');
+      // If no images to upload, still clear form and show success modal
+      clearForm();
+      setIsSuccessModalOpen(true);
       return;
     }
 
-    // TODO: Implement actual image upload to backend
-    toast.success('Images uploaded successfully!');
+    try {
+      setIsUploadingImages(true);
+      setUploadProgress('Uploading images...');
+
+      const formDataToSend = new FormData();
+      
+      // Add all selected files to FormData
+      formData.images.forEach((file) => {
+        formDataToSend.append('files', file);
+      });
+      
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/v1/product/${productId}/upload?isPrimary=true`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formDataToSend,
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.responseCode === 200) {
+        setUploadProgress('Images uploaded successfully!');
+        toast.success('Product and images uploaded successfully!');
+        // Clear form and show success modal
+        clearForm();
+        setIsSuccessModalOpen(true);
+      } else {
+        throw new Error(data.responseMessage || 'Failed to upload images');
+      }
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      setUploadProgress('Failed to upload images');
+      toast.error(error instanceof Error ? error.message : 'Error uploading images');
+    } finally {
+      setIsUploadingImages(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -199,43 +320,63 @@ const CreateProductPage = () => {
       return;
     }
 
-    // Check which endpoint to use based on category
-    const createProductCategories = ['others', 'food', 'supermarket', 'pharmacy', 'restaurant'];
-    const eventsCategories = ['events', 'experiences', 'tour_guide', 'influencer'];
-    const accommodationCategories = ['apartment'];
-    const reservationCategories = ['club'];
+    // Check which endpoint to use based on business type
+    const createProductCategories = ['OTHERS', 'SUPERMARKET', 'PHARMACY', 'RESTAURANT'];
+    const eventsCategories = ['EVENTS', 'EXPERIENCES', 'TOUR_GUIDE', 'INFLUENCER'];
+    const accommodationCategories = ['HOSPITALITY', 'APARTMENT'];
+    const reservationCategories = ['CLUB', 'RESERVATIONS'];
     
-    if (!createProductCategories.includes(selectedCategory) && !eventsCategories.includes(selectedCategory) && !accommodationCategories.includes(selectedCategory) && !reservationCategories.includes(selectedCategory)) {
-      toast.error('This category is not yet supported for product creation.');
+    if (!vendorData?.businessType) {
+      toast.error('Business type not available. Please try again.');
+      return;
+    }
+    
+    if (!createProductCategories.includes(vendorData.businessType) && !eventsCategories.includes(vendorData.businessType) && !accommodationCategories.includes(vendorData.businessType) && !reservationCategories.includes(vendorData.businessType)) {
+      toast.error('This business type is not yet supported for product creation.');
       return;
     }
 
-    // Validate required fields based on category
-    if (eventsCategories.includes(selectedCategory)) {
-      if (!formData.productName || !formData.categoryName || !formData.quantity || !formData.price || 
-          !formData.productType || !formData.eventDate || !formData.eventTime || !formData.eventEndDate || 
-          !formData.eventEndTime || !formData.eventType || !formData.venue || !formData.maxAttendees) {
-        toast.error('Please fill in all required fields for events.');
+    // Validate required fields based on business type
+    if (accommodationCategories.includes(vendorData.businessType)) {
+      // For accommodation, validate propertyName instead of productName
+      if (!formData.propertyName) {
+        toast.error('Property Name is required.');
         return;
       }
-    } else if (accommodationCategories.includes(selectedCategory)) {
-      if (!formData.propertyType || !formData.listingType || !formData.propertyName || !formData.dailyRate || 
-          !formData.maxGuests || !formData.bedrooms || !formData.bathrooms || !formData.totalArea || 
-          !formData.furnishingStatus || !formData.amenities || !formData.checkInTime || !formData.checkOutTime || 
-          !formData.houseRules || !formData.cancellationPolicy) {
-        toast.error('Please fill in all required fields for accommodation.');
+    } else if (!formData.productName) {
+      // For other business types, validate productName
+      toast.error('Product Name is required.');
+      return;
+    }
+
+    // Validate events-specific required fields
+    if (eventsCategories.includes(vendorData.businessType)) {
+      if (!formData.description) {
+        toast.error('Description is required.');
         return;
       }
-    } else if (reservationCategories.includes(selectedCategory)) {
-      if (!formData.productName || !formData.categoryName || !formData.productType || !formData.serviceType || 
-          !formData.cuisineType || !formData.operatingHours || !formData.tableCapacity || !formData.reservationFee || 
-          !formData.reservationDuration || !formData.dressCode || !formData.specialFeatures) {
-        toast.error('Please fill in all required fields for reservation.');
+      if (!formData.address) {
+        toast.error('Address is required.');
         return;
       }
-    } else {
-      if (!formData.productName || !formData.categoryName || !formData.quantity || !formData.price) {
-        toast.error('Please fill in all required fields.');
+      if (!formData.eventDate) {
+        toast.error('Event Date is required.');
+        return;
+      }
+      if (!formData.eventTime) {
+        toast.error('Event Time is required.');
+        return;
+      }
+      if (!formData.eventEndDate) {
+        toast.error('Event End Date is required.');
+        return;
+      }
+    }
+
+    // Only validate price and quantity for business types that have these fields in the UI
+    if (['OTHERS', 'SUPERMARKET', 'PHARMACY', 'RESTAURANT'].includes(vendorData.businessType)) {
+      if (!formData.price || !formData.quantity) {
+        toast.error('Price and Quantity are required.');
         return;
       }
     }
@@ -246,71 +387,80 @@ const CreateProductPage = () => {
       let payload: any;
       let endpoint: string;
 
-      if (eventsCategories.includes(selectedCategory)) {
-        // Events payload
+      if (eventsCategories.includes(vendorData.businessType)) {
+        // Events payload - matching the working format
         payload = {
           productName: formData.productName,
-          categoryName: formData.categoryName.toUpperCase(),
+          categoryName: vendorData.businessType,
+          subcategoryName: formData.subCategory || formData.subcategoryName || '',
+          description: formData.description,
+          address: formData.address,
           vendorId: vendorData.id,
-          quantity: parseInt(formData.quantity),
-          price: parseFloat(formData.price),
-          productType: formData.productType,
+          quantity: formData.quantity ? parseInt(formData.quantity) : 0,
+          price: formData.price ? parseFloat(formData.price) : 0,
+          productType: formData.productType || 'GENERAL_PRODUCT',
           eventDate: formData.eventDate,
-          eventTime: formData.eventTime,
+          eventTime: formData.eventTime ? (formData.eventTime.includes(':') && formData.eventTime.split(':').length === 2 ? `${formData.eventTime}:00` : formData.eventTime) : '', // Ensure HH:MM:SS format
           eventEndDate: formData.eventEndDate,
-          eventEndTime: formData.eventEndTime,
-          eventType: formData.eventType,
-          venue: formData.venue,
-          maxAttendees: parseInt(formData.maxAttendees),
+          eventEndTime: formData.eventEndTime ? (formData.eventEndTime.includes(':') && formData.eventEndTime.split(':').length === 2 ? `${formData.eventEndTime}:00` : formData.eventEndTime) : '', // Ensure HH:MM:SS format
+          eventType: formData.eventType || 'PAID',
+          venue: formData.venue || '',
+          maxAttendees: formData.maxAttendees ? parseInt(formData.maxAttendees) : 0, // int32
           ageRestriction: formData.ageRestriction || '',
           dressCode: formData.dressCode || ''
         };
         endpoint = '/api/v1/product/create/event';
-      } else if (accommodationCategories.includes(selectedCategory)) {
+      } else if (accommodationCategories.includes(vendorData.businessType)) {
         // Accommodation payload
         payload = {
           vendorId: vendorData.id,
-          propertyType: formData.propertyType,
-          listingType: formData.listingType,
-          propertyName: formData.propertyName,
-          dailyRate: parseFloat(formData.dailyRate),
-          maxGuests: parseInt(formData.maxGuests),
-          bedrooms: parseInt(formData.bedrooms),
-          bathrooms: parseInt(formData.bathrooms),
-          totalArea: formData.totalArea,
-          furnishingStatus: formData.furnishingStatus,
-          amenities: formData.amenities,
+          propertyType: formData.propertyType || '',
+          listingType: formData.listingType || '',
+          subcategoryName: formData.subCategory || formData.subcategoryName || '',
+          description: formData.description || '',
+          address: formData.address || '',
+          propertyName: formData.propertyName || '',
+          dailyRate: formData.dailyRate ? parseFloat(formData.dailyRate) : 0,
+          maxGuests: formData.maxGuests ? parseInt(formData.maxGuests) : 0,
+          bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : 0,
+          bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : 0,
+          totalArea: formData.totalArea || '',
+          furnishingStatus: formData.furnishingStatus || '',
+          amenities: Array.isArray(formData.amenities) ? formData.amenities : [],
           floorNumber: formData.floorNumber || '',
-          parkingSpaces: parseInt(formData.parkingSpaces),
-          checkInTime: formData.checkInTime,
-          checkOutTime: formData.checkOutTime,
-          houseRules: formData.houseRules,
-          cancellationPolicy: formData.cancellationPolicy
+          parkingSpaces: formData.parkingSpaces ? parseInt(formData.parkingSpaces) : 0,
+          checkInTime: formData.checkInTime || '',
+          checkOutTime: formData.checkOutTime || '',
+          houseRules: Array.isArray(formData.houseRules) ? formData.houseRules : [],
+          cancellationPolicy: formData.cancellationPolicy || ''
         };
         endpoint = '/api/v1/product/create/accomodation';
-      } else if (reservationCategories.includes(selectedCategory)) {
+      } else if (reservationCategories.includes(vendorData.businessType)) {
         // Reservation payload
         payload = {
           vendorId: vendorData.id,
-          productName: formData.productName,
-          categoryName: formData.categoryName.toUpperCase(),
-          productType: formData.productType,
-          serviceType: formData.serviceType,
-          cuisineType: formData.cuisineType,
-          operatingHours: parseInt(formData.operatingHours),
-          tableCapacity: parseInt(formData.tableCapacity),
-          reservationFee: parseFloat(formData.reservationFee),
-          reservationDuration: parseInt(formData.reservationDuration),
+          productName: formData.productName || '',
+          categoryName: vendorData.businessType,
+          subcategoryName: formData.subCategory || formData.subcategoryName || '',
+          description: formData.description || '',
+          address: formData.address || '',
+          productType: formData.productType || '',
+          serviceType: formData.serviceType || '',
+          cuisineType: Array.isArray(formData.cuisineType) ? formData.cuisineType : [],
+          operatingHours: formData.operatingHours ? parseInt(formData.operatingHours) : 0,
+          tableCapacity: formData.tableCapacity ? parseInt(formData.tableCapacity) : 0,
+          reservationFee: formData.reservationFee ? parseFloat(formData.reservationFee) : 0,
+          reservationDuration: formData.reservationDuration ? parseInt(formData.reservationDuration) : 0,
           acceptsWalkIns: formData.acceptsWalkIns,
-          dressCode: formData.dressCode,
-          specialFeatures: formData.specialFeatures
+          dressCode: formData.dressCode || '',
+          specialFeatures: Array.isArray(formData.specialFeatures) ? formData.specialFeatures : []
         };
         endpoint = '/api/v1/product/create/reservation';
       } else {
         // Create product payload
         payload = {
           productName: formData.productName,
-          categoryName: formData.categoryName.toUpperCase(),
+          categoryName: vendorData.businessType,
           vendorId: vendorData.id,
           quantity: parseInt(formData.quantity),
           price: parseFloat(formData.price)
@@ -319,6 +469,12 @@ const CreateProductPage = () => {
       }
 
       console.log('Creating product with payload:', payload);
+      console.log('Time format verification:', {
+        eventTime: formData.eventTime,
+        convertedEventTime: formData.eventTime ? (formData.eventTime.includes(':') && formData.eventTime.split(':').length === 2 ? `${formData.eventTime}:00` : formData.eventTime) : '',
+        eventEndTime: formData.eventEndTime,
+        convertedEventEndTime: formData.eventEndTime ? (formData.eventEndTime.includes(':') && formData.eventEndTime.split(':').length === 2 ? `${formData.eventEndTime}:00` : formData.eventEndTime) : ''
+      });
 
       const token = localStorage.getItem('token');
       const response = await fetch(endpoint, {
@@ -333,8 +489,16 @@ const CreateProductPage = () => {
       const data = await response.json();
 
       if (response.ok && data.responseCode === 200) {
-        setCreatedProductId(data.data?.id || 1); // Assuming the API returns the product ID
-        toast.success('Product created successfully! You can now upload images.');
+        const productId = data.data?.productId;
+        if (productId) {
+          setCreatedProductId(productId);
+          setUploadProgress('Product created successfully! Uploading images...');
+          
+          // Automatically upload images after product creation
+          await handleUploadImages(productId);
+        } else {
+          throw new Error('Product ID not returned from server');
+        }
       } else {
         throw new Error(data.responseMessage || 'Failed to create product');
       }
@@ -342,6 +506,7 @@ const CreateProductPage = () => {
     } catch (error) {
       console.error('Error creating product:', error);
       toast.error(error instanceof Error ? error.message : 'Error creating product');
+      setUploadProgress('');
     } finally {
       setIsCreatingProduct(false);
     }
@@ -355,13 +520,13 @@ const CreateProductPage = () => {
       <div className="min-h-screen">
         {/* Form Section */}
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="flex flex-col xl:flex-row gap-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+            <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
               {/* Left Column - Product Details */}
               <div className="flex-1">
                 {/* Product Details Card */}
-                <div className="bg-white rounded-[24px] shadow-[0px_1px_4px_0px_rgba(12,12,13,0.05),0px_1px_4px_0px_rgba(12,12,13,0.1)] p-6">
-                  <div className="space-y-8">
+                <div className="bg-white rounded-[16px] sm:rounded-[24px] shadow-[0px_1px_4px_0px_rgba(12,12,13,0.05),0px_1px_4px_0px_rgba(12,12,13,0.1)] p-4 sm:p-6">
+                  <div className="space-y-6 sm:space-y-8">
                     {/* Header */}
                     <div className="h-7">
                       <h2 className="text-[20px] sm:text-[24px] font-bold text-[#212121] font-urbanist leading-[1.17]">
@@ -370,53 +535,30 @@ const CreateProductPage = () => {
                     </div>
 
                     {/* Input Fields */}
-                    <div className="space-y-6">
-                      {/* Category - Moved to top */}
+                    <div className="space-y-4 sm:space-y-6">
+                      {/* Business Type Display */}
                       <div className="w-full max-w-[450px]">
                         <div className="flex items-center gap-2 mb-2">
                           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
-                            Category
+                            Business Type
                           </label>
-                          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
                         </div>
-                        <div className="relative">
-                          <select
-                            value={formData.categoryName}
-                            onChange={(e) => handleCategoryChange(e.target.value)}
-                            disabled={isLoadingCategories}
-                            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] appearance-none disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            <option value="">
-                              {isLoadingCategories ? 'Loading categories...' : 'Select a category'}
-                            </option>
-                            {categories.map((category) => (
-                              <option key={category.value} value={category.value}>
-                                {category.label}
-                              </option>
-                            ))}
-                          </select>
-                          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                            {isLoadingCategories ? (
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#6CC049]"></div>
-                            ) : (
-                              <Image src="/images/icon-arrow-down.svg" alt="Dropdown" width={16} height={16} />
-                            )}
-                          </div>
+                        <div className="w-full h-12 px-4 bg-[#F5F5F5] border border-[#E0E0E0] rounded-[8px] flex items-center">
+                          <span className="text-[14px] sm:text-[16px] font-bold text-[#212121] font-urbanist">
+                            {vendorData?.businessType ? formatBusinessType(vendorData.businessType) : 'Loading...'}
+                          </span>
                         </div>
-                        {categoriesError && (
-                          <p className="text-[12px] text-[#FF383C] font-urbanist mt-1">
-                            {categoriesError}
-                          </p>
-                        )}
                       </div>
 
 
-                      {/* Dynamic Form Fields based on selected category */}
-                      {selectedCategory && (
+                      {/* Dynamic Form Fields based on business type */}
+                      {vendorData?.businessType && (
                         <DynamicForm
-                          category={selectedCategory}
+                          businessType={vendorData.businessType}
                           formData={formData}
                           onInputChange={handleInputChange}
+                          subcategories={subcategories}
+                          subcategoriesLoading={subcategoriesLoading}
                         />
                       )}
                     </div>
@@ -425,11 +567,11 @@ const CreateProductPage = () => {
               </div>
 
               {/* Right Column - Pricing & Inventory and Upload Image */}
-              <div className="flex-1 space-y-6">
-                {/* Pricing & Inventory Card - Only show for create-product categories */}
-                {selectedCategory && ['food', 'supermarket', 'pharmacy', 'restaurant', 'others'].includes(selectedCategory) && (
-                  <div className="bg-white rounded-[24px] shadow-[0px_1px_4px_0px_rgba(12,12,13,0.05),0px_1px_4px_0px_rgba(12,12,13,0.1)] p-6">
-                    <div className="space-y-6">
+              <div className="flex-1 space-y-4 sm:space-y-6">
+                {/* Pricing & Inventory Card - Only show for create-product business types */}
+                {vendorData?.businessType && ['OTHERS', 'SUPERMARKET', 'PHARMACY', 'RESTAURANT'].includes(vendorData.businessType) && (
+                  <div className="bg-white rounded-[16px] sm:rounded-[24px] shadow-[0px_1px_4px_0px_rgba(12,12,13,0.05),0px_1px_4px_0px_rgba(12,12,13,0.1)] p-4 sm:p-6">
+                    <div className="space-y-4 sm:space-y-6">
                       {/* Header */}
                       <div className="h-7">
                         <h2 className="text-[20px] sm:text-[24px] font-bold text-[#212121] font-urbanist leading-[1.17]">
@@ -483,8 +625,8 @@ const CreateProductPage = () => {
                 )}
 
                 {/* Upload Image Card */}
-                <div className="bg-white rounded-[24px] shadow-[0px_1px_4px_0px_rgba(12,12,13,0.05),0px_1px_4px_0px_rgba(12,12,13,0.1)] p-6">
-                  <div className="space-y-6">
+                <div className="bg-white rounded-[16px] sm:rounded-[24px] shadow-[0px_1px_4px_0px_rgba(12,12,13,0.05),0px_1px_4px_0px_rgba(12,12,13,0.1)] p-4 sm:p-6">
+                  <div className="space-y-4 sm:space-y-6">
                     {/* Header */}
                     <div className="h-7 text-center">
                       <h2 className="text-[20px] sm:text-[24px] font-bold text-[#212121] font-urbanist leading-[1.17]">
@@ -530,21 +672,9 @@ const CreateProductPage = () => {
                           <h3 className="text-[16px] font-semibold text-[#212121] font-urbanist">
                             Selected Images ({imagePreviews.length})
                           </h3>
-                          <button
-                            type="button"
-                            onClick={handleUploadImages}
-                            disabled={!createdProductId}
-                            className={`px-4 py-2 text-[14px] font-semibold font-urbanist rounded-[8px] transition-colors ${
-                              createdProductId
-                                ? 'bg-[#6CC049] text-white hover:bg-[#5AA03A]'
-                                : 'bg-[#BDBDBD] text-[#757575] cursor-not-allowed'
-                            }`}
-                          >
-                            {createdProductId ? 'Upload Images' : 'Create Product First'}
-                          </button>
                         </div>
                         
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                           {imagePreviews.map((preview, index) => (
                             <div key={index} className="relative group">
                               <img
@@ -565,11 +695,23 @@ const CreateProductPage = () => {
                       </div>
                     )}
 
-                    {/* Upload Status Message */}
-                    {!createdProductId && imagePreviews.length > 0 && (
-                      <div className="bg-[#FFF3CD] border border-[#FFEAA7] rounded-[8px] p-3">
-                        <p className="text-[12px] text-[#856404] font-urbanist text-center">
-                          Images selected. Create the product first to upload them.
+                    {/* Upload Progress Message */}
+                    {uploadProgress && (
+                      <div className={`rounded-[8px] p-3 ${
+                        uploadProgress.includes('successfully') 
+                          ? 'bg-[#D4EDDA] border border-[#C3E6CB]' 
+                          : uploadProgress.includes('Failed') 
+                          ? 'bg-[#F8D7DA] border border-[#F5C6CB]'
+                          : 'bg-[#D1ECF1] border border-[#BEE5EB]'
+                      }`}>
+                        <p className={`text-[12px] font-urbanist text-center ${
+                          uploadProgress.includes('successfully') 
+                            ? 'text-[#155724]' 
+                            : uploadProgress.includes('Failed') 
+                            ? 'text-[#721C24]'
+                            : 'text-[#0C5460]'
+                        }`}>
+                          {uploadProgress}
                         </p>
                       </div>
                     )}
@@ -578,14 +720,14 @@ const CreateProductPage = () => {
               </div>
             </div>
 
-            {/* Submit Button - Only show for supported categories */}
-            {selectedCategory && (['food', 'supermarket', 'pharmacy', 'restaurant', 'others'].includes(selectedCategory) || ['events', 'experiences', 'tour_guide', 'influencer'].includes(selectedCategory) || ['apartment'].includes(selectedCategory) || ['club'].includes(selectedCategory)) && (
+            {/* Submit Button - Only show for supported business types */}
+            {vendorData?.businessType && (['OTHERS', 'SUPERMARKET', 'PHARMACY', 'RESTAURANT'].includes(vendorData.businessType) || ['EVENTS', 'EXPERIENCES', 'TOUR_GUIDE', 'INFLUENCER'].includes(vendorData.businessType) || ['HOTEL', 'HOSPITALITY', 'APARTMENT'].includes(vendorData.businessType) || ['CLUB', 'RESERVATIONS'].includes(vendorData.businessType)) && (
               <div className="w-full">
                 <button
                   type="submit"
-                  disabled={isCreatingProduct || vendorLoading || !vendorData?.id}
-                  className={`w-full h-[48px] sm:h-[52px] text-white text-[16px] sm:text-[20px] font-semibold font-urbanist rounded-[60px] transition-colors duration-200 flex items-center justify-center ${
-                    isCreatingProduct || vendorLoading || !vendorData?.id
+                  disabled={isCreatingProduct || isUploadingImages || vendorLoading || !vendorData?.id}
+                  className={`w-full h-[44px] sm:h-[48px] lg:h-[52px] text-white text-[14px] sm:text-[16px] lg:text-[20px] font-semibold font-urbanist rounded-[60px] transition-colors duration-200 flex items-center justify-center ${
+                    isCreatingProduct || isUploadingImages || vendorLoading || !vendorData?.id
                       ? 'bg-[#BDBDBD] cursor-not-allowed'
                       : 'bg-[#6CC049] hover:bg-[#5AA03A]'
                   }`}
@@ -594,6 +736,11 @@ const CreateProductPage = () => {
                     <div className="flex items-center gap-2">
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                       Creating Product...
+                    </div>
+                  ) : isUploadingImages ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Uploading Images...
                     </div>
                   ) : vendorLoading ? (
                     'Loading...'
@@ -614,6 +761,13 @@ const CreateProductPage = () => {
         isOpen={isSubcategoryModalOpen}
         onClose={() => setIsSubcategoryModalOpen(false)}
         onSave={handleSubcategorySave}
+        vendorId={vendorData?.id || 0}
+      />
+
+      {/* Product Success Modal */}
+      <ProductSuccessModal
+        isOpen={isSuccessModalOpen}
+        onClose={() => setIsSuccessModalOpen(false)}
       />
     </DashboardLayout>
   );

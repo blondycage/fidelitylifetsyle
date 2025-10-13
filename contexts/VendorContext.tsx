@@ -1,5 +1,5 @@
 'use client';
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { VendorData } from '@/types/api';
 import { fetchVendorByEmail } from '@/services/authService';
 
@@ -30,7 +30,7 @@ export const VendorProvider: React.FC<VendorProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const refreshVendorData = async () => {
+  const refreshVendorData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -58,7 +58,7 @@ export const VendorProvider: React.FC<VendorProviderProps> = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const clearVendorData = () => {
     setVendorData(null);

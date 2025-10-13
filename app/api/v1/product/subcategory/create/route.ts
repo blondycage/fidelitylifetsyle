@@ -2,12 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    console.log('🚀 Accommodation Create API Request:', {
+    console.log('🚀 Subcategory Create API Request:', {
       timestamp: new Date().toISOString(),
       method: 'POST',
-      url: 'http://45.33.68.176:9091/api/v1/product/create/accomodation',
-      payload: body
+      url: 'http://45.33.68.176:9091/api/v1/product/subcategory/create'
     });
 
     // Get token from Authorization header
@@ -21,12 +19,16 @@ export async function POST(request: NextRequest) {
 
     const token = authorization.split(' ')[1];
 
+    // Get request body
+    const body = await request.json();
+    console.log('📄 Subcategory Create Request Body:', body);
+
     // Make request to backend
-    const backendResponse = await fetch('http://45.33.68.176:9091/api/v1/product/create/accomodation', {
+    const backendResponse = await fetch('http://45.33.68.176:9091/api/v1/product/subcategory/create', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
         'accept': '*/*'
       },
       body: JSON.stringify(body),
@@ -52,54 +54,23 @@ export async function POST(request: NextRequest) {
 
     let data;
     try {
-      // Only try to parse JSON if there's actual content
       if (responseText.trim()) {
         data = JSON.parse(responseText);
-        console.log('✅ Parsed JSON Response:', {
-          timestamp: new Date().toISOString(),
-          data: data
-        });
+        console.log('✅ Parsed JSON Response:', { timestamp: new Date().toISOString(), data: data });
       } else {
-        // Handle empty response
-        data = {
-          responseCode: backendResponse.status,
-          responseMessage: backendResponse.statusText || 'Empty response from backend',
-          data: null
-        };
-        console.log('⚠️ Empty Response - Using fallback data:', {
-          timestamp: new Date().toISOString(),
-          fallbackData: data
-        });
+        data = { responseCode: backendResponse.status, responseMessage: backendResponse.statusText || 'Empty response from backend', data: null };
+        console.log('⚠️ Empty Response - Using fallback data:', { timestamp: new Date().toISOString(), fallbackData: data });
       }
     } catch (parseError) {
-      console.error('❌ JSON Parse Error:', {
-        timestamp: new Date().toISOString(),
-        error: parseError,
-        responseText: responseText
-      });
-      
-      // Return error response for invalid JSON
-      data = {
-        responseCode: 500,
-        responseMessage: 'Invalid JSON response from backend',
-        data: null,
-        error: parseError.message,
-        rawResponse: responseText
-      };
+      console.error('❌ JSON Parse Error:', { timestamp: new Date().toISOString(), error: parseError, responseText: responseText });
+      data = { responseCode: 500, responseMessage: 'Invalid JSON response from backend', data: null, error: parseError.message, rawResponse: responseText };
     }
 
-    console.log('✅ Accommodation Create Backend Response:', {
-      timestamp: new Date().toISOString(),
-      status: backendResponse.status,
-      data: data
-    });
-
-    return NextResponse.json(data, {
-      status: backendResponse.status
-    });
+    console.log('✅ Subcategory Create Backend Response:', { timestamp: new Date().toISOString(), status: backendResponse.status, data: data });
+    return NextResponse.json(data, { status: backendResponse.status });
 
   } catch (error) {
-    console.error('❌ Accommodation Create API Error:', error);
+    console.error('❌ Subcategory Create API Error:', error);
     return NextResponse.json(
       {
         responseCode: 500,

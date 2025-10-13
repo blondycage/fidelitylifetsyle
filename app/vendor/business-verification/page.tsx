@@ -61,13 +61,13 @@ const BusinessVerification = () => {
    
 
     if (!formData.accountNumber.trim()) {
-      newErrors.accountNumber = 'Account number is required';
+      newErrors.accountNumber = 'Account Number is required.';
     } else if (formData.accountNumber.length < 10) {
       newErrors.accountNumber = 'Account number must be at least 10 digits';
     }
 
     if (!formData.bvn.trim()) {
-      newErrors.bvn = 'BVN is required';
+      newErrors.bvn = 'BVN is required.';
     } else if (formData.bvn.length !== 11) {
       newErrors.bvn = 'BVN must be exactly 11 digits';
     }

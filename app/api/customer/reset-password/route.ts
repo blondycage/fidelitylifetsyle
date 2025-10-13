@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
 
     if (!email) {
       return NextResponse.json(
-        { responseCode: 400, responseMessage: 'Email parameter is required', data: null },
+        { responseCode: 400, responseMessage: 'Email parameter is required.', data: null },
         { status: 400 }
       );
     }

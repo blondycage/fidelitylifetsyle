@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { registerVendor } from '@/services/authService';
 import { VendorPayload } from '@/types/api';
 import { validatePassword } from '@/utils/passwordValidation';
+import { getCategories, Category } from '@/services/categoryService';
 import { ArrowRight } from 'iconsax-react';
 import { Loader } from '@googlemaps/js-api-loader';
 
@@ -32,6 +33,8 @@ const VendorSignup = () => {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
 
   // Google Maps Autocomplete state
   const addressInputRef = useRef<HTMLInputElement>(null);
@@ -40,6 +43,27 @@ const VendorSignup = () => {
   const [addressInputValue, setAddressInputValue] = useState('');
   const [isAddressSelected, setIsAddressSelected] = useState(false);
   const isSelectingFromAutocomplete = useRef(false);
+
+  // Load categories from backend
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        setCategoriesLoading(true);
+        const fetchedCategories = await getCategories();
+        setCategories(fetchedCategories);
+        console.log('✅ Categories loaded:', fetchedCategories);
+        console.log('📊 Categories count:', fetchedCategories.length);
+        console.log('📋 First few categories:', fetchedCategories.slice(0, 3));
+      } catch (error) {
+        console.error('❌ Error loading categories:', error);
+        toast.error('Failed to load business categories');
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+
+    loadCategories();
+  }, []);
 
   // Load Google Maps
   useEffect(() => {
@@ -178,18 +202,18 @@ const VendorSignup = () => {
   const validateStep1 = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
-    if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
-    if (!formData.email.trim()) newErrors.email = 'Email is required';
+    if (!formData.firstName.trim()) newErrors.firstName = 'First Name is required.';
+    if (!formData.lastName.trim()) newErrors.lastName = 'Last Name is required.';
+    if (!formData.email.trim()) newErrors.email = 'Email is required.';
     if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email is invalid';
-    if (!formData.phoneNumber.trim()) newErrors.phoneNumber = 'Phone number is required';
+    if (!formData.phoneNumber.trim()) newErrors.phoneNumber = 'Phone Number is required.';
     if (!/^\+?[\d\s\-()]+$/.test(formData.phoneNumber)) newErrors.phoneNumber = 'Phone number is invalid';
-    if (!formData.username.trim()) newErrors.username = 'Username is required';
+    if (!formData.username.trim()) newErrors.username = 'Username is required.';
     if (formData.username.length < 3) newErrors.username = 'Username must be at least 3 characters';
 
     // Enhanced password validation
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = 'Password is required.';
     } else {
       const passwordValidation = validatePassword(formData.password);
       if (!passwordValidation.isValid) {
@@ -208,10 +232,10 @@ const VendorSignup = () => {
   const validateStep2 = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.businessType) newErrors.businessType = 'Business type is required';
-    if (!formData.businessName.trim()) newErrors.businessName = 'Business name is required';
-    if (!formData.businessAddress.trim()) newErrors.businessAddress = 'Business address is required';
-    if (!formData.businessDescription.trim()) newErrors.businessDescription = 'Business description is required';
+    if (!formData.businessType) newErrors.businessType = 'Business Type is required.';
+    if (!formData.businessName.trim()) newErrors.businessName = 'Business Name is required.';
+    if (!formData.businessAddress.trim()) newErrors.businessAddress = 'Business Address is required.';
+    if (!formData.businessDescription.trim()) newErrors.businessDescription = 'Business Description is required.';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -273,19 +297,17 @@ const VendorSignup = () => {
     }
   };
 
-  const businessTypes = [
-    { value: 'HOTEL', label: 'Hotel & Accommodation' },
-    { value: 'RESTAURANT', label: 'Restaurant & Dining' },
-    { value: 'CLUB', label: 'Club & Nightlife' },
-    { value: 'EVENTS', label: 'Event Management' },
-    { value: 'EXPERIENCES', label: 'Experience Provider' },
-    { value: 'TOUR_GUIDE', label: 'Tour Guide & Travel' },
-    { value: 'FASHION', label: 'Fashion & Retail' },
-    { value: 'SUPERMARKET', label: 'Supermarket & Grocery' },
-    { value: 'PHARMACY', label: 'Pharmacy & Health' },
-    { value: 'INFLUENCER', label: 'Content & Influencer' },
-    { value: 'OTHERS', label: 'Other Services' },
-  ];
+  // Convert categories to business types format
+  const businessTypes = categories.map(category => ({
+    value: category.name,
+    label: category.description
+  }));
+
+  // Debug business types (only in development)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🏢 Business types generated:', businessTypes);
+    console.log('📊 Business types count:', businessTypes.length);
+  }
 
   return (
     <AuthLayout
@@ -401,13 +423,22 @@ const VendorSignup = () => {
                 onChange={handleInputChange}
                 className="w-full px-4 py-3 bg-[var(--inputHex)] border border-[var(--borderHex)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--blueHex)] focus:border-transparent"
                 required
+                disabled={categoriesLoading}
               >
-                <option value="">Select your business type</option>
-                {businessTypes.map((type) => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
+                <option value="">
+                  {categoriesLoading ? 'Loading categories...' : 'Select your business type'}
+                </option>
+                {businessTypes.length > 0 ? (
+                  businessTypes.map((type) => (
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
+                  ))
+                ) : (
+                  <option value="" disabled>
+                    No categories available
                   </option>
-                ))}
+                )}
               </select>
               {errors.businessType && (
                 <p className="mt-1 text-sm text-red-500">{errors.businessType}</p>

@@ -2,17 +2,19 @@
 import React from 'react';
 
 interface DynamicFormProps {
-  category: string;
+  businessType: string;
   formData: any;
   onInputChange: (field: string, value: any) => void;
+  subcategories?: string[];
+  subcategoriesLoading?: boolean;
 }
 
-const DynamicForm: React.FC<DynamicFormProps> = ({ category, formData, onInputChange }) => {
+const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInputChange, subcategories = [], subcategoriesLoading = false }) => {
   // Events, Experiences, Tour Guide, Influencer forms
   const renderEventsForm = () => (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Event Name */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Event Name
@@ -30,26 +32,66 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ category, formData, onInputCh
         </div>
       </div>
 
-      {/* Sub-category */}
-      <div className="w-full max-w-[450px]">
+      {/* Description */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
-            Sub-category
+            Description
           </label>
           <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
         <div className="relative">
+          <textarea
+            value={formData.description || ''}
+            onChange={(e) => onInputChange('description', e.target.value)}
+            className="w-full h-24 px-4 py-3 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] resize-none"
+            placeholder="Enter event description"
+            rows={3}
+          />
+        </div>
+      </div>
+
+      {/* Address */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Address
+          </label>
+          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
+        </div>
+        <div className="relative">
+          <input
+            type="text"
+            value={formData.address || ''}
+            onChange={(e) => onInputChange('address', e.target.value)}
+            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+            placeholder="Enter event address"
+          />
+        </div>
+      </div>
+
+      {/* Sub-category */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Sub-category
+          </label>
+        </div>
+        <div className="relative">
           <select
-            value={formData.subCategory || ''}
+            value={formData.subCategory || formData.subcategoryName || ''}
             onChange={(e) => onInputChange('subCategory', e.target.value)}
-            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] appearance-none"
+            disabled={subcategoriesLoading}
+            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] appearance-none disabled:opacity-50"
           >
-            <option value="">Select sub-category</option>
-            <option value="conference">Conference</option>
-            <option value="workshop">Workshop</option>
-            <option value="seminar">Seminar</option>
-            <option value="meetup">Meetup</option>
-            <option value="exhibition">Exhibition</option>
+            <option value="">
+              {subcategoriesLoading ? 'Loading subcategories...' : 'Select sub-category'}
+            </option>
+            {subcategories.map((subcategory) => (
+              <option key={subcategory} value={subcategory}>
+                {subcategory}
+              </option>
+            ))}
           </select>
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -70,76 +112,114 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ category, formData, onInputCh
       </div>
 
       {/* Event Date */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Event Date
           </label>
           <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
-        <input
-          type="date"
-          value={formData.eventDate || ''}
-          onChange={(e) => onInputChange('eventDate', e.target.value)}
-          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
-        />
+        <div className="relative">
+          <input
+            type="date"
+            value={formData.eventDate || ''}
+            onChange={(e) => onInputChange('eventDate', e.target.value)}
+            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] [color-scheme:light]"
+            style={{ colorScheme: 'light' }}
+          />
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M3.333 6h9.334M8 1v3.333M8 1a3.333 3.333 0 0 0-3.333 3.333V6M8 1a3.333 3.333 0 0 1 3.333 3.333V6M3.333 6v6.667A1.333 1.333 0 0 0 4.667 14h6.666a1.333 1.333 0 0 0 1.334-1.333V6" stroke="#616161" strokeWidth="1.333" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        </div>
       </div>
 
       {/* Event Time */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Event Time
           </label>
           <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
-        <input
-          type="time"
-          value={formData.eventTime || ''}
-          onChange={(e) => onInputChange('eventTime', e.target.value)}
-          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
-        />
+        <div className="relative">
+          <input
+            type="time"
+            value={formData.eventTime || ''}
+            onChange={(e) => onInputChange('eventTime', e.target.value)}
+            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] [color-scheme:light]"
+            style={{ colorScheme: 'light' }}
+            step="1"
+          />
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M8 1.333a6.667 6.667 0 1 0 0 13.334A6.667 6.667 0 0 0 8 1.333ZM8 4v4l2.667 1.6" stroke="#616161" strokeWidth="1.333" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        </div>
+        <p className="mt-1 text-[12px] text-[#9E9E9E] font-urbanist">
+          Format: HH:MM (will be converted to HH:MM:SS automatically)
+        </p>
       </div>
 
       {/* Event End Date */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Event End Date
           </label>
           <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
-        <input
-          type="date"
-          value={formData.eventEndDate || ''}
-          onChange={(e) => onInputChange('eventEndDate', e.target.value)}
-          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
-        />
+        <div className="relative">
+          <input
+            type="date"
+            value={formData.eventEndDate || ''}
+            onChange={(e) => onInputChange('eventEndDate', e.target.value)}
+            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] [color-scheme:light]"
+            style={{ colorScheme: 'light' }}
+          />
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M3.333 6h9.334M8 1v3.333M8 1a3.333 3.333 0 0 0-3.333 3.333V6M8 1a3.333 3.333 0 0 1 3.333 3.333V6M3.333 6v6.667A1.333 1.333 0 0 0 4.667 14h6.666a1.333 1.333 0 0 0 1.334-1.333V6" stroke="#616161" strokeWidth="1.333" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        </div>
       </div>
 
       {/* Event End Time */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Event End Time
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
-        <input
-          type="time"
-          value={formData.eventEndTime || ''}
-          onChange={(e) => onInputChange('eventEndTime', e.target.value)}
-          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
-        />
+        <div className="relative">
+          <input
+            type="time"
+            value={formData.eventEndTime || ''}
+            onChange={(e) => onInputChange('eventEndTime', e.target.value)}
+            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] [color-scheme:light]"
+            style={{ colorScheme: 'light' }}
+            step="1"
+          />
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M8 1.333a6.667 6.667 0 1 0 0 13.334A6.667 6.667 0 0 0 8 1.333ZM8 4v4l2.667 1.6" stroke="#616161" strokeWidth="1.333" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        </div>
+        <p className="mt-1 text-[12px] text-[#9E9E9E] font-urbanist">
+          Format: HH:MM (will be converted to HH:MM:SS automatically)
+        </p>
       </div>
 
       {/* Venue */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Venue
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
         <input
           type="text"
@@ -151,67 +231,83 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ category, formData, onInputCh
       </div>
 
       {/* Max Attendees */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Max Attendees
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
         <input
           type="number"
+          min="1"
+          max="2147483647"
           value={formData.maxAttendees || ''}
           onChange={(e) => onInputChange('maxAttendees', e.target.value)}
           className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
           placeholder="Enter maximum attendees"
         />
+        <p className="mt-1 text-[12px] text-[#9E9E9E] font-urbanist">
+          Maximum value: 2,147,483,647 (int32 limit)
+        </p>
       </div>
 
       {/* Product Type */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Product Type
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
-        <select
-          value={formData.productType || 'GENERAL_PRODUCT'}
-          onChange={(e) => onInputChange('productType', e.target.value)}
-          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] appearance-none"
-        >
-          <option value="GENERAL_PRODUCT">General Product</option>
-          <option value="RESTAURANT_SERVICE">Restaurant Service</option>
-          <option value="FOOD_ITEM">Food Item</option>
-          <option value="HOTEL">Hotel</option>
-          <option value="APARTMENT">Apartment</option>
-        </select>
+        <div className="relative">
+          <select
+            value={formData.productType || 'GENERAL_PRODUCT'}
+            onChange={(e) => onInputChange('productType', e.target.value)}
+            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] appearance-none"
+          >
+            <option value="GENERAL_PRODUCT">General Product</option>
+            <option value="RESTAURANT_SERVICE">Restaurant Service</option>
+            <option value="FOOD_ITEM">Food Item</option>
+            <option value="HOTEL">Hotel</option>
+            <option value="APARTMENT">Apartment</option>
+          </select>
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M2.22 5.47L8 11.25L13.78 5.47" stroke="#616161" strokeWidth="0.67" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        </div>
       </div>
 
       {/* Event Type */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Event Type
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
-        <select
-          value={formData.eventType || 'PAID'}
-          onChange={(e) => onInputChange('eventType', e.target.value)}
-          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] appearance-none"
-        >
-          <option value="PAID">Paid Event</option>
-          <option value="FREE">Free Event</option>
-          <option value="ADULT">Adult Event</option>
-          <option value="CHILD">Child Event</option>
-          <option value="STANDARD_MEET_AND_GREET">Standard Meet and Greet</option>
-          <option value="VIP_EXPERIENCE">VIP Experience</option>
-        </select>
+        <div className="relative">
+          <select
+            value={formData.eventType || 'PAID'}
+            onChange={(e) => onInputChange('eventType', e.target.value)}
+            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] appearance-none"
+          >
+            <option value="PAID">Paid Event</option>
+            <option value="FREE">Free Event</option>
+            <option value="ADULT">Adult Event</option>
+            <option value="CHILD">Child Event</option>
+            <option value="STANDARD_MEET_AND_GREET">Standard Meet and Greet</option>
+            <option value="VIP_EXPERIENCE">VIP Experience</option>
+          </select>
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M2.22 5.47L8 11.25L13.78 5.47" stroke="#616161" strokeWidth="0.67" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        </div>
       </div>
 
       {/* Age Restriction */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Age Restriction
@@ -227,7 +323,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ category, formData, onInputCh
       </div>
 
       {/* Dress Code */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Dress Code
@@ -332,49 +428,45 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ category, formData, onInputCh
 
   // Accommodation form
   const renderAccommodationForm = () => (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Property Type */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Property Type
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
-        <select
+        <input
+          type="text"
           value={formData.propertyType || ''}
           onChange={(e) => onInputChange('propertyType', e.target.value)}
-          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] appearance-none"
-        >
-          <option value="">Select property type</option>
-          <option value="apartment">Apartment</option>
-          <option value="house">House</option>
-          <option value="condo">Condo</option>
-          <option value="studio">Studio</option>
-          <option value="penthouse">Penthouse</option>
-        </select>
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+          placeholder="e.g., Duplex, Apartment, House, Villa"
+        />
       </div>
 
       {/* Sub-category */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Sub-category
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
         <div className="relative">
           <select
             value={formData.subCategory || ''}
             onChange={(e) => onInputChange('subCategory', e.target.value)}
-            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] appearance-none"
+            disabled={subcategoriesLoading}
+            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] appearance-none disabled:opacity-50"
           >
-            <option value="">Select sub-category</option>
-            <option value="luxury">Luxury</option>
-            <option value="budget">Budget</option>
-            <option value="business">Business</option>
-            <option value="family">Family</option>
-            <option value="vacation">Vacation</option>
+            <option value="">
+              {subcategoriesLoading ? 'Loading subcategories...' : 'Select sub-category'}
+            </option>
+            {subcategories.map((subcategory) => (
+              <option key={subcategory} value={subcategory}>
+                {subcategory}
+              </option>
+            ))}
           </select>
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -395,12 +487,11 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ category, formData, onInputCh
       </div>
 
       {/* Listing Type */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Listing Type
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
         <select
           value={formData.listingType || ''}
@@ -408,20 +499,20 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ category, formData, onInputCh
           className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] appearance-none"
         >
           <option value="">Select listing type</option>
-          <option value="rental">Rental</option>
-          <option value="sale">Sale</option>
-          <option value="short-term">Short-term</option>
-          <option value="long-term">Long-term</option>
+          <option value="Affordable">Affordable</option>
+          <option value="Luxury">Luxury</option>
+          <option value="Budget">Budget</option>
+          <option value="Premium">Premium</option>
+          <option value="Standard">Standard</option>
         </select>
       </div>
 
       {/* Property Name */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Property Name
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
         <input
           type="text"
@@ -432,13 +523,43 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ category, formData, onInputCh
         />
       </div>
 
+      {/* Description */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Description
+          </label>
+        </div>
+        <textarea
+          value={formData.description || ''}
+          onChange={(e) => onInputChange('description', e.target.value)}
+          className="w-full h-24 px-4 py-3 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] resize-none"
+          placeholder="Enter property description"
+        />
+      </div>
+
+      {/* Address */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Address
+          </label>
+        </div>
+        <input
+          type="text"
+          value={formData.address || ''}
+          onChange={(e) => onInputChange('address', e.target.value)}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+          placeholder="Enter property address"
+        />
+      </div>
+
       {/* Daily Rate */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Daily Rate
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
         <input
           type="number"
@@ -451,12 +572,11 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ category, formData, onInputCh
       </div>
 
       {/* Max Guests */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Max Guests
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
         <input
           type="number"
@@ -468,12 +588,11 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ category, formData, onInputCh
       </div>
 
       {/* Bedrooms */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Bedrooms
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
         <input
           type="number"
@@ -485,12 +604,11 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ category, formData, onInputCh
       </div>
 
       {/* Bathrooms */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Bathrooms
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
         <input
           type="number"
@@ -502,12 +620,11 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ category, formData, onInputCh
       </div>
 
       {/* Total Area */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Total Area
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
         <input
           type="text"
@@ -519,46 +636,46 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ category, formData, onInputCh
       </div>
 
       {/* Furnishing Status */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Furnishing Status
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
-        <select
+        <input
+          type="text"
           value={formData.furnishingStatus || ''}
           onChange={(e) => onInputChange('furnishingStatus', e.target.value)}
-          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] appearance-none"
-        >
-          <option value="">Select furnishing status</option>
-          <option value="furnished">Furnished</option>
-          <option value="semi-furnished">Semi-furnished</option>
-          <option value="unfurnished">Unfurnished</option>
-        </select>
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+          placeholder="e.g., well furnished, semi-furnished"
+        />
       </div>
 
       {/* Amenities */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Amenities
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
-        <select
-          value={formData.amenities || 'WIFI'}
-          onChange={(e) => onInputChange('amenities', e.target.value)}
-          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] appearance-none"
-        >
-          <option value="WIFI">WiFi</option>
-          <option value="KITCHEN">Kitchen</option>
-          <option value="BALCONY">Balcony</option>
-        </select>
+        <input
+          type="text"
+          value={Array.isArray(formData.amenities) ? formData.amenities.join(', ') : formData.amenities || ''}
+          onChange={(e) => {
+            const value = e.target.value;
+            const amenitiesArray = value ? value.split(',').map(item => item.trim()).filter(item => item) : [];
+            onInputChange('amenities', amenitiesArray);
+          }}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+          placeholder="e.g., swimming, pooling, wifi, kitchen, balcony"
+        />
+        <p className="mt-1 text-[12px] text-[#9E9E9E] font-urbanist">
+          Enter amenities separated by commas
+        </p>
       </div>
 
       {/* Floor Number */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Floor Number
@@ -574,12 +691,11 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ category, formData, onInputCh
       </div>
 
       {/* Parking Spaces */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Parking Spaces
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
         <input
           type="number"
@@ -591,12 +707,11 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ category, formData, onInputCh
       </div>
 
       {/* Check-in Time */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Check-in Time
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
         <input
           type="text"
@@ -608,12 +723,11 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ category, formData, onInputCh
       </div>
 
       {/* Check-out Time */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Check-out Time
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
         <input
           type="text"
@@ -625,30 +739,34 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ category, formData, onInputCh
       </div>
 
       {/* House Rules */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             House Rules
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
-        <select
-          value={formData.houseRules || 'NO_SMOKING'}
-          onChange={(e) => onInputChange('houseRules', e.target.value)}
-          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] appearance-none"
-        >
-          <option value="NO_SMOKING">No Smoking</option>
-          <option value="NO_PARTIES">No Parties</option>
-        </select>
+        <input
+          type="text"
+          value={Array.isArray(formData.houseRules) ? formData.houseRules.join(', ') : formData.houseRules || ''}
+          onChange={(e) => {
+            const value = e.target.value;
+            const rulesArray = value ? value.split(',').map(item => item.trim()).filter(item => item) : [];
+            onInputChange('houseRules', rulesArray);
+          }}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+          placeholder="e.g., No smoking, No Vaping, No parties, No pets"
+        />
+        <p className="mt-1 text-[12px] text-[#9E9E9E] font-urbanist">
+          Enter house rules separated by commas
+        </p>
       </div>
 
       {/* Cancellation Policy */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Cancellation Policy
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
         <input
           type="text"
@@ -663,9 +781,9 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ category, formData, onInputCh
 
   // Reservation form
   const renderReservationForm = () => (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Product Name */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Product Name
@@ -682,25 +800,27 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ category, formData, onInputCh
       </div>
 
       {/* Sub-category */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Sub-category
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
         <div className="relative">
           <select
             value={formData.subCategory || ''}
             onChange={(e) => onInputChange('subCategory', e.target.value)}
-            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] appearance-none"
+            disabled={subcategoriesLoading}
+            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] appearance-none disabled:opacity-50"
           >
-            <option value="">Select sub-category</option>
-            <option value="fine-dining">Fine Dining</option>
-            <option value="casual">Casual</option>
-            <option value="fast-food">Fast Food</option>
-            <option value="cafe">Cafe</option>
-            <option value="bar">Bar</option>
+            <option value="">
+              {subcategoriesLoading ? 'Loading subcategories...' : 'Select sub-category'}
+            </option>
+            {subcategories.map((subcategory) => (
+              <option key={subcategory} value={subcategory}>
+                {subcategory}
+              </option>
+            ))}
           </select>
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -720,65 +840,108 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ category, formData, onInputCh
         </button>
       </div>
 
+      {/* Description */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Description
+          </label>
+        </div>
+        <textarea
+          value={formData.description || ''}
+          onChange={(e) => onInputChange('description', e.target.value)}
+          className="w-full h-24 px-4 py-3 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] resize-none"
+          placeholder="Enter description"
+        />
+      </div>
+
+      {/* Address */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Address
+          </label>
+        </div>
+        <input
+          type="text"
+          value={formData.address || ''}
+          onChange={(e) => onInputChange('address', e.target.value)}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+          placeholder="Enter address"
+        />
+      </div>
+
       {/* Product Type */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Product Type
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
-        <input
-          type="text"
-          value={formData.productType || ''}
-          onChange={(e) => onInputChange('productType', e.target.value)}
-          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
-          placeholder="Enter product type"
-        />
+        <div className="relative">
+          <select
+            value={formData.productType || ''}
+            onChange={(e) => onInputChange('productType', e.target.value)}
+            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] appearance-none"
+          >
+            <option value="">Select product type</option>
+            <option value="RESTAURANT_SERVICE">Restaurant Service</option>
+            <option value="FOOD_ITEM">Food Item</option>
+            <option value="GENERAL_PRODUCT">General Product</option>
+          </select>
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M2.22 5.47L8 11.25L13.78 5.47" stroke="#616161" strokeWidth="0.67" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        </div>
       </div>
 
       {/* Service Type */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Service Type
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
         <input
           type="text"
           value={formData.serviceType || ''}
           onChange={(e) => onInputChange('serviceType', e.target.value)}
           className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
-          placeholder="Enter service type"
+          placeholder="e.g., Dine In, Takeaway, Delivery, Catering"
         />
       </div>
 
       {/* Cuisine Type */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Cuisine Type
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
-        <select
-          value={formData.cuisineType || 'CONTINENTAL'}
-          onChange={(e) => onInputChange('cuisineType', e.target.value)}
-          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] appearance-none"
-        >
-          <option value="CONTINENTAL">Continental</option>
-          <option value="NIGERIAN">Nigerian</option>
-        </select>
+        <input
+          type="text"
+          value={Array.isArray(formData.cuisineType) ? formData.cuisineType.join(', ') : formData.cuisineType || ''}
+          onChange={(e) => {
+            const value = e.target.value;
+            const cuisineArray = value ? value.split(',').map(item => item.trim()).filter(item => item) : [];
+            onInputChange('cuisineType', cuisineArray);
+          }}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+          placeholder="e.g., Continental, Italian, Chinese, Indian"
+        />
+        <p className="mt-1 text-[12px] text-[#9E9E9E] font-urbanist">
+          Enter cuisine types separated by commas
+        </p>
       </div>
 
       {/* Operating Hours */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Operating Hours
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
         <input
           type="number"
@@ -790,12 +953,11 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ category, formData, onInputCh
       </div>
 
       {/* Table Capacity */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Table Capacity
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
         <input
           type="number"
@@ -807,12 +969,11 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ category, formData, onInputCh
       </div>
 
       {/* Reservation Fee */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Reservation Fee
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
         <input
           type="number"
@@ -825,24 +986,23 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ category, formData, onInputCh
       </div>
 
       {/* Reservation Duration */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
-            Reservation Duration (hours)
+            Reservation Duration (minutes)
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
         <input
           type="number"
           value={formData.reservationDuration || ''}
           onChange={(e) => onInputChange('reservationDuration', e.target.value)}
           className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
-          placeholder="Enter reservation duration in hours"
+          placeholder="e.g., 120"
         />
       </div>
 
       {/* Accepts Walk-ins */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Accepts Walk-ins
@@ -873,12 +1033,11 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ category, formData, onInputCh
       </div>
 
       {/* Dress Code */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Dress Code
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
         <input
           type="text"
@@ -890,21 +1049,26 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ category, formData, onInputCh
       </div>
 
       {/* Special Features */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Special Features
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
-        <select
-          value={formData.specialFeatures || 'LIVE_BAND'}
-          onChange={(e) => onInputChange('specialFeatures', e.target.value)}
-          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] appearance-none"
-        >
-          <option value="LIVE_BAND">Live Band</option>
-          <option value="OUTDOOR_SEATING">Outdoor Seating</option>
-        </select>
+        <input
+          type="text"
+          value={Array.isArray(formData.specialFeatures) ? formData.specialFeatures.join(', ') : formData.specialFeatures || ''}
+          onChange={(e) => {
+            const value = e.target.value;
+            const featuresArray = value ? value.split(',').map(item => item.trim()).filter(item => item) : [];
+            onInputChange('specialFeatures', featuresArray);
+          }}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+          placeholder="e.g., Live Band, DJ, Karaoke, Dance Floor"
+        />
+        <p className="mt-1 text-[12px] text-[#9E9E9E] font-urbanist">
+          Enter special features separated by commas
+        </p>
       </div>
     </div>
   );
@@ -1085,14 +1249,13 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ category, formData, onInputCh
 
   // Create Product form for food, supermarket, pharmacy, restaurant, others
   const renderCreateProductForm = () => (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Product Name */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Product Name
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
         <div className="relative">
           <input
@@ -1106,25 +1269,27 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ category, formData, onInputCh
       </div>
 
       {/* Sub-category */}
-      <div className="w-full max-w-[450px]">
+      <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Sub-category
           </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
         <div className="relative">
           <select
             value={formData.subCategory || ''}
             onChange={(e) => onInputChange('subCategory', e.target.value)}
-            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] appearance-none"
+            disabled={subcategoriesLoading}
+            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] appearance-none disabled:opacity-50"
           >
-            <option value="">Select sub-category</option>
-            <option value="electronics">Electronics</option>
-            <option value="clothing">Clothing</option>
-            <option value="home">Home & Garden</option>
-            <option value="sports">Sports</option>
-            <option value="books">Books</option>
+            <option value="">
+              {subcategoriesLoading ? 'Loading subcategories...' : 'Select sub-category'}
+            </option>
+            {subcategories.map((subcategory) => (
+              <option key={subcategory} value={subcategory}>
+                {subcategory}
+              </option>
+            ))}
           </select>
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -1146,29 +1311,27 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ category, formData, onInputCh
     </div>
   );
 
-  // Render appropriate form based on category
+  // Render appropriate form based on business type
   const renderForm = () => {
-    switch (category) {
-      case 'events':
-      case 'experiences':
-      case 'tour_guide':
-      case 'influencer':
+    switch (businessType) {
+      case 'EVENTS':
+      case 'EXPERIENCES':
+      case 'TOUR_GUIDE':
+      case 'INFLUENCER':
         return renderEventsForm();
-      case 'hotels':
-        return renderHotelsForm();
-      case 'apartment':
+      case 'HOTEL':
+      case 'HOSPITALITY':
+      case 'APARTMENT':
         return renderAccommodationForm();
-      case 'club':
+      case 'CLUB':
+      case 'RESERVATIONS':
         return renderReservationForm();
-      case 'cars':
-        return renderCarsForm();
-      case 'fashion':
+      case 'FASHION':
         return renderFashionForm();
-      case 'food':
-      case 'supermarket':
-      case 'pharmacy':
-      case 'restaurant':
-      case 'others':
+      case 'RESTAURANT':
+      case 'SUPERMARKET':
+      case 'PHARMACY':
+      case 'OTHERS':
         return renderCreateProductForm();
       default:
         return null;
@@ -1176,7 +1339,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ category, formData, onInputCh
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {renderForm()}
     </div>
   );

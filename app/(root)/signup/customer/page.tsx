@@ -45,16 +45,16 @@ const CustomerSignup = () => {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
-    if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
-    if (!formData.email.trim()) newErrors.email = 'Email is required';
+    if (!formData.firstName.trim()) newErrors.firstName = 'First Name is required.';
+    if (!formData.lastName.trim()) newErrors.lastName = 'Last Name is required.';
+    if (!formData.email.trim()) newErrors.email = 'Email is required.';
     if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email is invalid';
-    if (!formData.phoneNumber.trim()) newErrors.phoneNumber = 'Phone number is required';
+    if (!formData.phoneNumber.trim()) newErrors.phoneNumber = 'Phone Number is required.';
     if (!/^\+?[\d\s\-()]+$/.test(formData.phoneNumber)) newErrors.phoneNumber = 'Phone number is invalid';
 
     // Enhanced password validation
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = 'Password is required.';
     } else {
       const passwordValidation = validatePassword(formData.password);
       if (!passwordValidation.isValid) {

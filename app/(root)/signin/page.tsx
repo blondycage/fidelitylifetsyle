@@ -44,13 +44,13 @@ const Signin = () => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.username.trim()) {
-      newErrors.username = 'Email is required';
+      newErrors.username = 'Email is required.';
     } else if (!/\S+@\S+\.\S+/.test(formData.username)) {
       newErrors.username = 'Please enter a valid email address';
     }
 
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = 'Password is required.';
     }
 
     setErrors(newErrors);
