@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import ArrayInput from './ArrayInput';
 
 interface DynamicFormProps {
   businessType: string;
@@ -158,9 +159,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
             </svg>
           </div>
         </div>
-        <p className="mt-1 text-[12px] text-[#9E9E9E] font-urbanist">
-          Format: HH:MM (will be converted to HH:MM:SS automatically)
-        </p>
+       
       </div>
 
       {/* Event End Date */}
@@ -209,9 +208,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
             </svg>
           </div>
         </div>
-        <p className="mt-1 text-[12px] text-[#9E9E9E] font-urbanist">
-          Format: HH:MM (will be converted to HH:MM:SS automatically)
-        </p>
+       
       </div>
 
       {/* Venue */}
@@ -336,6 +333,26 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
           className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
           placeholder="e.g., Formal, Casual, Black tie"
         />
+      </div>
+
+      {/* Price */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Price
+          </label>
+          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
+        </div>
+        <div className="relative">
+          <input
+            type="number"
+            step="0.01"
+            value={formData.price || ''}
+            onChange={(e) => onInputChange('price', e.target.value)}
+            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+            placeholder="Enter event price"
+          />
+        </div>
       </div>
     </div>
   );
@@ -652,27 +669,13 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
       </div>
 
       {/* Amenities */}
-      <div className="w-full max-w-full sm:max-w-[450px]">
-        <div className="flex items-center gap-2 mb-2">
-          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
-            Amenities
-          </label>
-        </div>
-        <input
-          type="text"
-          value={Array.isArray(formData.amenities) ? formData.amenities.join(', ') : formData.amenities || ''}
-          onChange={(e) => {
-            const value = e.target.value;
-            const amenitiesArray = value ? value.split(',').map(item => item.trim()).filter(item => item) : [];
-            onInputChange('amenities', amenitiesArray);
-          }}
-          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
-          placeholder="e.g., swimming, pooling, wifi, kitchen, balcony"
-        />
-        <p className="mt-1 text-[12px] text-[#9E9E9E] font-urbanist">
-          Enter amenities separated by commas
-        </p>
-      </div>
+      <ArrayInput
+        label="Amenities"
+        value={Array.isArray(formData.amenities) ? formData.amenities : []}
+        onChange={(value) => onInputChange('amenities', value)}
+        placeholder="e.g., swimming, wifi, kitchen, balcony"
+        helpText="Press Enter to add each amenity"
+      />
 
       {/* Floor Number */}
       <div className="w-full max-w-full sm:max-w-[450px]">
@@ -739,27 +742,13 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
       </div>
 
       {/* House Rules */}
-      <div className="w-full max-w-full sm:max-w-[450px]">
-        <div className="flex items-center gap-2 mb-2">
-          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
-            House Rules
-          </label>
-        </div>
-        <input
-          type="text"
-          value={Array.isArray(formData.houseRules) ? formData.houseRules.join(', ') : formData.houseRules || ''}
-          onChange={(e) => {
-            const value = e.target.value;
-            const rulesArray = value ? value.split(',').map(item => item.trim()).filter(item => item) : [];
-            onInputChange('houseRules', rulesArray);
-          }}
-          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
-          placeholder="e.g., No smoking, No Vaping, No parties, No pets"
-        />
-        <p className="mt-1 text-[12px] text-[#9E9E9E] font-urbanist">
-          Enter house rules separated by commas
-        </p>
-      </div>
+      <ArrayInput
+        label="House Rules"
+        value={Array.isArray(formData.houseRules) ? formData.houseRules : []}
+        onChange={(value) => onInputChange('houseRules', value)}
+        placeholder="e.g., No smoking, No parties, No pets"
+        helpText="Press Enter to add each rule"
+      />
 
       {/* Cancellation Policy */}
       <div className="w-full max-w-full sm:max-w-[450px]">
@@ -914,27 +903,13 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
       </div>
 
       {/* Cuisine Type */}
-      <div className="w-full max-w-full sm:max-w-[450px]">
-        <div className="flex items-center gap-2 mb-2">
-          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
-            Cuisine Type
-          </label>
-        </div>
-        <input
-          type="text"
-          value={Array.isArray(formData.cuisineType) ? formData.cuisineType.join(', ') : formData.cuisineType || ''}
-          onChange={(e) => {
-            const value = e.target.value;
-            const cuisineArray = value ? value.split(',').map(item => item.trim()).filter(item => item) : [];
-            onInputChange('cuisineType', cuisineArray);
-          }}
-          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
-          placeholder="e.g., Continental, Italian, Chinese, Indian"
-        />
-        <p className="mt-1 text-[12px] text-[#9E9E9E] font-urbanist">
-          Enter cuisine types separated by commas
-        </p>
-      </div>
+      <ArrayInput
+        label="Cuisine Type"
+        value={Array.isArray(formData.cuisineType) ? formData.cuisineType : []}
+        onChange={(value) => onInputChange('cuisineType', value)}
+        placeholder="e.g., Continental, Italian, Chinese, Indian"
+        helpText="Press Enter to add each cuisine type"
+      />
 
       {/* Operating Hours */}
       <div className="w-full max-w-full sm:max-w-[450px]">
@@ -1049,27 +1024,13 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
       </div>
 
       {/* Special Features */}
-      <div className="w-full max-w-full sm:max-w-[450px]">
-        <div className="flex items-center gap-2 mb-2">
-          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
-            Special Features
-          </label>
-        </div>
-        <input
-          type="text"
-          value={Array.isArray(formData.specialFeatures) ? formData.specialFeatures.join(', ') : formData.specialFeatures || ''}
-          onChange={(e) => {
-            const value = e.target.value;
-            const featuresArray = value ? value.split(',').map(item => item.trim()).filter(item => item) : [];
-            onInputChange('specialFeatures', featuresArray);
-          }}
-          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
-          placeholder="e.g., Live Band, DJ, Karaoke, Dance Floor"
-        />
-        <p className="mt-1 text-[12px] text-[#9E9E9E] font-urbanist">
-          Enter special features separated by commas
-        </p>
-      </div>
+      <ArrayInput
+        label="Special Features"
+        value={Array.isArray(formData.specialFeatures) ? formData.specialFeatures : []}
+        onChange={(value) => onInputChange('specialFeatures', value)}
+        placeholder="e.g., Live Band, DJ, Karaoke, Dance Floor"
+        helpText="Press Enter to add each feature"
+      />
     </div>
   );
 

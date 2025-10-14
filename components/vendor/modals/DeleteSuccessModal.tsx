@@ -11,7 +11,7 @@ export const DeleteSuccessModal: React.FC<DeleteSuccessModalProps> = ({ isOpen, 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-transparent">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" style={{ minHeight: '100vh' }}>
       <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-8 relative">
         {/* Close button */}
         <button

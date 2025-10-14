@@ -1,15 +1,18 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import DynamicForm from './components/DynamicForm';
 import { useVendor } from '@/contexts/VendorContext';
 import toast from 'react-hot-toast';
 import AddSubcategoryModal from '@/components/vendor/modals/AddSubcategoryModal';
 import { ProductSuccessModal } from '@/components/vendor/modals/ProductSuccessModal';
+import TicketCreationModal from '@/components/vendor/modals/TicketCreationModal';
 import { getSubcategories, clearSubcategoriesCache } from '@/services/subcategoryService';
 
 const CreateProductPage = () => {
+  const router = useRouter();
   const { vendorData, loading: vendorLoading, refreshVendorData } = useVendor();
   const [selectedCategory, setSelectedCategory] = useState('');
   const [isCreatingProduct, setIsCreatingProduct] = useState(false);
@@ -18,6 +21,10 @@ const CreateProductPage = () => {
   const [isSubcategoryModalOpen, setIsSubcategoryModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<string>('');
+  const [showUploadArea, setShowUploadArea] = useState(false);
+  const [showScrollPrompt, setShowScrollPrompt] = useState(false);
+  const [showTicketModal, setShowTicketModal] = useState(false);
+  const [eventId, setEventId] = useState<number | null>(null);
   const [subcategories, setSubcategories] = useState<string[]>([]);
   const [subcategoriesLoading, setSubcategoriesLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -147,11 +154,26 @@ const CreateProductPage = () => {
     };
 
     window.addEventListener('openSubcategoryModal', handleOpenSubcategoryModal);
-    
+
     return () => {
       window.removeEventListener('openSubcategoryModal', handleOpenSubcategoryModal);
     };
   }, []);
+
+  // Debug vendor data and business type
+  useEffect(() => {
+    if (vendorData) {
+      console.log('Vendor data loaded:', vendorData);
+      console.log('Business type:', vendorData.businessType);
+      console.log('Is event category:', isEventCategory());
+    }
+  }, [vendorData]);
+
+  // Debug ticket modal state
+  useEffect(() => {
+    console.log('Ticket modal state changed:', { showTicketModal, eventId, productName: formData.productName });
+  }, [showTicketModal, eventId, formData.productName]);
+
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -197,6 +219,48 @@ const CreateProductPage = () => {
     if (vendorData?.id) {
       await fetchSubcategories(vendorData.id);
     }
+  };
+
+  // Scroll to upload area
+  const scrollToUploadArea = () => {
+    console.log('Scrolling to upload area');
+    setShowUploadArea(true);
+    setShowScrollPrompt(false);
+    // Small delay to ensure the upload area is rendered
+    setTimeout(() => {
+      const uploadArea = document.getElementById('upload-area');
+      if (uploadArea) {
+        uploadArea.scrollIntoView({ 
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+    }, 100);
+  };
+
+  // Skip to manage store
+  const skipToManageStore = () => {
+    router.push('/vendor/manage-store');
+  };
+
+  // Check if current business type is an event category
+  const isEventCategory = () => {
+    if (!vendorData?.businessType) {
+      console.log('No vendor business type found');
+      return false;
+    }
+    const eventCategories = ['EVENTS', 'EXPERIENCES', 'TOUR_GUIDE', 'INFLUENCER'];
+    const isEvent = eventCategories.includes(vendorData.businessType);
+    console.log('Business type:', vendorData.businessType, 'Is event category:', isEvent);
+    return isEvent;
+  };
+
+  // Handle ticket creation success
+  const handleTicketSuccess = () => {
+    setShowTicketModal(false);
+    setEventId(null);
+    clearForm();
+    setIsSuccessModalOpen(true);
   };
 
   const clearForm = () => {
@@ -261,14 +325,26 @@ const CreateProductPage = () => {
     setImagePreviews([]);
     setUploadProgress('');
     setCreatedProductId(null);
+    setShowUploadArea(false);
+    setShowScrollPrompt(false);
+    setShowTicketModal(false);
+    setEventId(null);
   };
 
   const handleUploadImages = async (productId: number) => {
     if (formData.images.length === 0) {
       console.log('No images to upload');
-      // If no images to upload, still clear form and show success modal
-      clearForm();
-      setIsSuccessModalOpen(true);
+      // Check if this is an event category and show ticket creation modal
+      if (isEventCategory()) {
+        console.log('Showing ticket modal for event category');
+        setEventId(productId);
+        setShowTicketModal(true);
+      } else {
+        console.log('Showing success modal for non-event category');
+        // Clear form and show success modal for non-event categories
+        clearForm();
+        setIsSuccessModalOpen(true);
+      }
       return;
     }
 
@@ -296,10 +372,19 @@ const CreateProductPage = () => {
 
       if (response.ok && data.responseCode === 200) {
         setUploadProgress('Images uploaded successfully!');
-        toast.success('Product and images uploaded successfully!');
-        // Clear form and show success modal
-        clearForm();
-        setIsSuccessModalOpen(true);
+        toast.success('Images uploaded successfully!');
+        
+        // Check if this is an event category and show ticket creation modal
+        if (isEventCategory() && createdProductId) {
+          console.log('After image upload: Showing ticket modal for event category');
+          setEventId(createdProductId);
+          setShowTicketModal(true);
+        } else {
+          console.log('After image upload: Showing success modal for non-event category');
+          // Clear form and show success modal for non-event categories
+          clearForm();
+          setIsSuccessModalOpen(true);
+        }
       } else {
         throw new Error(data.responseMessage || 'Failed to upload images');
       }
@@ -491,11 +576,11 @@ const CreateProductPage = () => {
       if (response.ok && data.responseCode === 200) {
         const productId = data.data?.productId;
         if (productId) {
+          console.log('Product created successfully, showing scroll prompt');
           setCreatedProductId(productId);
-          setUploadProgress('Product created successfully! Uploading images...');
-          
-          // Automatically upload images after product creation
-          await handleUploadImages(productId);
+          setShowScrollPrompt(true);
+          setUploadProgress('Product created successfully!');
+          toast.success('Product created successfully! Scroll up to upload images or skip to manage store.');
         } else {
           throw new Error('Product ID not returned from server');
         }
@@ -624,15 +709,17 @@ const CreateProductPage = () => {
                   </div>
                 )}
 
-                {/* Upload Image Card */}
-                <div className="bg-white rounded-[16px] sm:rounded-[24px] shadow-[0px_1px_4px_0px_rgba(12,12,13,0.05),0px_1px_4px_0px_rgba(12,12,13,0.1)] p-4 sm:p-6">
-                  <div className="space-y-4 sm:space-y-6">
-                    {/* Header */}
-                    <div className="h-7 text-center">
-                      <h2 className="text-[20px] sm:text-[24px] font-bold text-[#212121] font-urbanist leading-[1.17]">
-                        Upload Image
-                      </h2>
-                    </div>
+                {/* Upload Image Card - Only show after product creation */}
+                {showUploadArea && (
+                  <div id="upload-area" className="bg-white rounded-[16px] sm:rounded-[24px] shadow-[0px_1px_4px_0px_rgba(12,12,13,0.05),0px_1px_4px_0px_rgba(12,12,13,0.1)] p-4 sm:p-6">
+                    <div className="space-y-4 sm:space-y-6">
+                      {/* Header */}
+                      <div className="h-7 text-center">
+                        <h2 className="text-[20px] sm:text-[24px] font-bold text-[#212121] font-urbanist leading-[1.17]">
+                          Upload Images
+                        </h2>
+                       
+                      </div>
 
                     {/* Upload Area - Original Design */}
                     <div className="flex justify-center">
@@ -695,33 +782,95 @@ const CreateProductPage = () => {
                       </div>
                     )}
 
-                    {/* Upload Progress Message */}
-                    {uploadProgress && (
-                      <div className={`rounded-[8px] p-3 ${
-                        uploadProgress.includes('successfully') 
-                          ? 'bg-[#D4EDDA] border border-[#C3E6CB]' 
-                          : uploadProgress.includes('Failed') 
-                          ? 'bg-[#F8D7DA] border border-[#F5C6CB]'
-                          : 'bg-[#D1ECF1] border border-[#BEE5EB]'
-                      }`}>
-                        <p className={`text-[12px] font-urbanist text-center ${
+                      {/* Upload Progress Message */}
+                      {uploadProgress && (
+                        <div className={`rounded-[8px] p-3 ${
                           uploadProgress.includes('successfully') 
-                            ? 'text-[#155724]' 
+                            ? 'bg-[#D4EDDA] border border-[#C3E6CB]' 
                             : uploadProgress.includes('Failed') 
-                            ? 'text-[#721C24]'
-                            : 'text-[#0C5460]'
+                            ? 'bg-[#F8D7DA] border border-[#F5C6CB]'
+                            : 'bg-[#D1ECF1] border border-[#BEE5EB]'
                         }`}>
-                          {uploadProgress}
-                        </p>
+                          <p className={`text-[12px] font-urbanist text-center ${
+                            uploadProgress.includes('successfully') 
+                              ? 'text-[#155724]' 
+                              : uploadProgress.includes('Failed') 
+                              ? 'text-[#721C24]'
+                              : 'text-[#0C5460]'
+                          }`}>
+                            {uploadProgress}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Upload Button */}
+                      <div className="w-full">
+                        <button
+                          type="button"
+                          onClick={() => createdProductId && handleUploadImages(createdProductId)}
+                          disabled={isUploadingImages || formData.images.length === 0}
+                          className={`w-full h-[44px] sm:h-[48px] text-white text-[14px] sm:text-[16px] font-semibold font-urbanist rounded-[60px] transition-colors duration-200 flex items-center justify-center ${
+                            isUploadingImages || formData.images.length === 0
+                              ? 'bg-[#BDBDBD] cursor-not-allowed'
+                              : 'bg-[#6CC049] hover:bg-[#5AA03A]'
+                          }`}
+                        >
+                          {isUploadingImages ? (
+                            <div className="flex items-center gap-2">
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              Uploading Images...
+                            </div>
+                          ) : formData.images.length === 0 ? (
+                            'Select images first'
+                          ) : (
+                            `Upload ${formData.images.length} Image${formData.images.length > 1 ? 's' : ''}`
+                          )}
+                        </button>
                       </div>
-                    )}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
 
-            {/* Submit Button - Only show for supported business types */}
-            {vendorData?.businessType && (['OTHERS', 'SUPERMARKET', 'PHARMACY', 'RESTAURANT'].includes(vendorData.businessType) || ['EVENTS', 'EXPERIENCES', 'TOUR_GUIDE', 'INFLUENCER'].includes(vendorData.businessType) || ['HOTEL', 'HOSPITALITY', 'APARTMENT'].includes(vendorData.businessType) || ['CLUB', 'RESERVATIONS'].includes(vendorData.businessType)) && (
+            {/* Scroll Prompt - Show after product creation */}
+            {showScrollPrompt && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-[16px] shadow-[0px_8px_32px_0px_rgba(0,0,0,0.12)] p-4 sm:p-6 max-w-sm w-full mx-4">
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-[#6CC049] rounded-full flex items-center justify-center mx-auto mb-3">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-bold text-[#212121] font-urbanist mb-2">
+                    Product Created Successfully!
+                  </h3>
+                  <p className="text-sm text-[#616161] font-urbanist mb-4">
+                    Would you like to upload images to showcase your listing?
+                  </p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={scrollToUploadArea}
+                      className="flex-1 h-10 bg-[#6CC049] text-white text-sm font-semibold font-urbanist rounded-[8px] hover:bg-[#5AA03A] transition-colors"
+                    >
+                      Upload Images
+                    </button>
+                    <button
+                      onClick={skipToManageStore}
+                      className="flex-1 h-10 border border-[#E0E0E0] text-[#616161] text-sm font-semibold font-urbanist rounded-[8px] hover:bg-[#F5F5F5] transition-colors"
+                    >
+                      Skip
+                    </button>
+                  </div>
+                </div>
+                </div>
+              </div>
+            )}
+
+
+            {/* Submit Button - Only show for supported business types and when upload area is not visible */}
+            {!showUploadArea && vendorData?.businessType && (['OTHERS', 'SUPERMARKET', 'PHARMACY', 'RESTAURANT'].includes(vendorData.businessType) || ['EVENTS', 'EXPERIENCES', 'TOUR_GUIDE', 'INFLUENCER'].includes(vendorData.businessType) || ['HOTEL', 'HOSPITALITY', 'APARTMENT'].includes(vendorData.businessType) || ['CLUB', 'RESERVATIONS'].includes(vendorData.businessType)) && (
               <div className="w-full">
                 <button
                   type="submit"
@@ -747,7 +896,7 @@ const CreateProductPage = () => {
                   ) : !vendorData?.id ? (
                     'Vendor data unavailable'
                   ) : (
-                    'Create New Listing'
+                    'Create Product'
                   )}
                 </button>
               </div>
@@ -768,6 +917,15 @@ const CreateProductPage = () => {
       <ProductSuccessModal
         isOpen={isSuccessModalOpen}
         onClose={() => setIsSuccessModalOpen(false)}
+      />
+
+      {/* Ticket Creation Modal */}
+      <TicketCreationModal
+        isOpen={showTicketModal}
+        onClose={() => setShowTicketModal(false)}
+        onSuccess={handleTicketSuccess}
+        eventId={eventId || 0}
+        eventName={formData.productName || 'Event'}
       />
     </DashboardLayout>
   );

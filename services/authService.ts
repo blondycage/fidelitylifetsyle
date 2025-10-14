@@ -251,6 +251,56 @@ export const customerResetPasswordFinal = async (email: string, otp: string, new
 };
 
 
+export const fetchCustomerByEmail = async (email: string, token: string): Promise<ApiResponse<CustomerData>> => {
+    const startTime = Date.now();
+    const requestId = Math.random().toString(36).substring(7);
+
+    try {
+        const endpoint = `/api/customer/profile?email=${encodeURIComponent(email)}`;
+
+        console.log(`[${requestId}] 🚀 FRONTEND FETCH_CUSTOMER_BY_EMAIL REQUEST:`, {
+            timestamp: new Date().toISOString(),
+            method: 'GET',
+            endpoint,
+            email,
+            hasToken: !!token
+        });
+
+        const response = await fetch(endpoint, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        const data = await response.json();
+        const duration = Date.now() - startTime;
+
+        console.log(`[${requestId}] ${response.ok ? '✅' : '❌'} FRONTEND FETCH_CUSTOMER_BY_EMAIL RESPONSE:`, {
+            timestamp: new Date().toISOString(),
+            status: response.status,
+            duration: `${duration}ms`,
+            hasData: !!data.data
+        });
+
+        return data;
+    } catch (error) {
+        const duration = Date.now() - startTime;
+        console.error(`[${requestId}] 💥 FRONTEND FETCH_CUSTOMER_BY_EMAIL ERROR:`, {
+            timestamp: new Date().toISOString(),
+            duration: `${duration}ms`,
+            error: error instanceof Error ? error.message : 'Unknown error'
+        });
+
+        return {
+            responseCode: 500,
+            responseMessage: 'Network error occurred',
+            data: null as CustomerData,
+        };
+    }
+};
+
 export const fetchVendorByEmail = async (email: string, token: string): Promise<ApiResponse<VendorData>> => {
     const startTime = Date.now();
     const requestId = Math.random().toString(36).substring(7);

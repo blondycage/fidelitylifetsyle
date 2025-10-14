@@ -4,6 +4,17 @@ import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Edit, Trash, ShoppingCart, CloseCircle, TickCircle, Warning2 } from 'iconsax-react';
 import { UpdatePricesModal } from '@/components/vendor/modals/UpdatePricesModal';
+import { useVendor } from '@/contexts/VendorContext';
+import { 
+  fetchVendorProducts, 
+  getPrimaryImageUrl, 
+  getImageUrl,
+  getProductStatus, 
+  getDisplayName, 
+  getProductSku,
+  getProductType,
+  ApiProduct 
+} from '@/services/productService';
 import toast from 'react-hot-toast';
 
 interface Product {
@@ -14,144 +25,133 @@ interface Product {
   stock: number;
   status: 'Available' | 'Unavailable';
   image: string;
+  type: 'product' | 'event' | 'accommodation' | 'reservation';
+  categoryName?: string;
+  subcategoryName: string;
+  description?: string;
+  images?: string[];
 }
 
 const ManageStore = () => {
   const router = useRouter();
+  const { vendorData, loading: vendorLoading } = useVendor();
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [showUpdatePricesModal, setShowUpdatePricesModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'All' | 'Available' | 'Unavailable'>('All');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [productToDelete, setProductToDelete] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Initialize mock data
-  useEffect(() => {
-    const saved = localStorage.getItem('storeProducts');
-    if (saved) {
-      setProducts(JSON.parse(saved));
-    } else {
-      const mockProducts: Product[] = [
-        {
-          id: '1',
-          name: 'Presidential Suite',
-          sku: 'PS001',
-          price: 250000,
-          stock: 5,
-          status: 'Available' as const,
-          image: '/images/accommodation-card-1.png'
-        },
-        {
-          id: '2',
-          name: 'Deluxe Room',
-          sku: 'DR002',
-          price: 150000,
-          stock: 12,
-          status: 'Available' as const,
-          image: '/images/accommodation-card-2.png'
-        },
-        {
-          id: '3',
-          name: 'Executive Suite',
-          sku: 'ES003',
-          price: 200000,
-          stock: 8,
-          status: 'Available' as const,
-          image: '/images/accommodation-card-3.png'
-        },
-        {
-          id: '4',
-          name: 'Standard Room',
-          sku: 'SR004',
-          price: 80000,
-          stock: 20,
-          status: 'Available' as const,
-          image: '/images/accommodation-card-8.png'
-        },
-        {
-          id: '5',
-          name: 'Penthouse Suite',
-          sku: 'PH005',
-          price: 350000,
-          stock: 3,
-          status: 'Available' as const,
-          image: '/images/accommodation-card-9.png'
-        },
-        {
-          id: '6',
-          name: 'Family Room',
-          sku: 'FR006',
-          price: 120000,
-          stock: 15,
-          status: 'Available' as const,
-          image: '/images/accommodation-card-10.png'
-        },
-        {
-          id: '7',
-          name: 'Business Suite',
-          sku: 'BS007',
-          price: 180000,
-          stock: 10,
-          status: 'Available' as const,
-          image: '/images/accommodation-card-11.png'
-        },
-        {
-          id: '8',
-          name: 'Garden View Room',
-          sku: 'GVR008',
-          price: 95000,
-          stock: 18,
-          status: 'Available' as const,
-          image: '/images/accommodation-card-12.png'
-        },
-        {
-          id: '9',
-          name: 'Ocean View Suite',
-          sku: 'OVS009',
-          price: 220000,
-          stock: 6,
-          status: 'Available' as const,
-          image: '/images/accommodation-card-13.png'
-        },
-        {
-          id: '10',
-          name: 'Studio Apartment',
-          sku: 'SA010',
-          price: 75000,
-          stock: 25,
-          status: 'Available' as const,
-          image: '/images/accommodation-card-14.png'
-        },
-        {
-          id: '11',
-          name: 'Luxury Villa',
-          sku: 'LV011',
-          price: 500000,
-          stock: 2,
-          status: 'Available' as const,
-          image: '/images/accommodation-card-15.png'
-        },
-        {
-          id: '12',
-          name: 'Budget Room',
-          sku: 'BR012',
-          price: 45000,
-          stock: 30,
-          status: 'Unavailable' as const,
-          image: '/images/accommodation-card-1.png'
-        }
-      ];
-      setProducts(mockProducts);
-      localStorage.setItem('storeProducts', JSON.stringify(mockProducts));
-    }
-  }, []);
+  // Fetch products from API
+  const fetchProducts = async () => {
+    if (!vendorData?.id) return;
+    
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
 
-  // Save to localStorage when products change
-  useEffect(() => {
-    if (products.length > 0) {
-      localStorage.setItem('storeProducts', JSON.stringify(products));
+      const response = await fetchVendorProducts(vendorData.id, token);
+      
+      if (response.responseCode === 200) {
+        const transformedProducts: Product[] = response.data.map((apiProduct: ApiProduct) => {
+          try {
+            return {
+              id: apiProduct.productId.toString(),
+              name: (() => {
+                try {
+                  return getDisplayName(apiProduct);
+                } catch (error) {
+                  console.error('Error getting display name:', error);
+                  return apiProduct.productName || 'Unknown Product';
+                }
+              })(),
+              sku: (() => {
+                try {
+                  return getProductSku(apiProduct);
+                } catch (error) {
+                  console.error('Error getting product SKU:', error);
+                  return `SKU-${apiProduct.productId}`;
+                }
+              })(),
+              price: apiProduct.price || 0,
+              stock: apiProduct.quantity || 0,
+              status: getProductStatus(apiProduct.quantity || 0),
+              image: (() => {
+                try {
+                  return Array.isArray(apiProduct.images) ? getPrimaryImageUrl(apiProduct.images) : '/placeholder-product.png';
+                } catch (error) {
+                  console.error('Error getting primary image:', error);
+                  return '/placeholder-product.png';
+                }
+              })(),
+              type: (() => {
+                try {
+                  return getProductType(apiProduct);
+                } catch (error) {
+                  console.error('Error getting product type:', error);
+                  return 'product' as const;
+                }
+              })(),
+              categoryName: apiProduct.categoryName,
+              subcategoryName: apiProduct.subcategoryName || '',
+              description: apiProduct.description || '',
+              images: (() => {
+                try {
+                  return Array.isArray(apiProduct.images) ? apiProduct.images.map(img => getImageUrl(img.imageUrl)) : [];
+                } catch (error) {
+                  console.error('Error processing images:', error);
+                  return [];
+                }
+              })()
+            };
+          } catch (error) {
+            console.error('Error processing product:', apiProduct, error);
+            return {
+              id: apiProduct.productId.toString(),
+              name: apiProduct.productName || 'Unknown Product',
+              sku: `SKU-${apiProduct.productId}`,
+              price: apiProduct.price || 0,
+              stock: apiProduct.quantity || 0,
+              status: 'Available' as const,
+              image: '/placeholder-product.png',
+              type: 'product' as const,
+              categoryName: apiProduct.categoryName,
+              subcategoryName: apiProduct.subcategoryName || '',
+              description: apiProduct.description || '',
+              images: []
+            };
+          }
+        });
+        
+        setProducts(transformedProducts);
+        
+        // Store products in sessionStorage for access by detail page
+        sessionStorage.setItem('vendorProducts', JSON.stringify(transformedProducts));
+      } else {
+        throw new Error(response.responseMessage || 'Failed to fetch products');
+      }
+    } catch (err) {
+      console.error('Error fetching products:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch products');
+      toast.error('Failed to load products');
+    } finally {
+      setLoading(false);
     }
-  }, [products]);
+  };
+
+  // Fetch products when vendor data is available
+  useEffect(() => {
+    if (vendorData?.id && !vendorLoading) {
+      fetchProducts();
+    }
+  }, [vendorData?.id, vendorLoading]);
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -259,6 +259,53 @@ const ManageStore = () => {
     outOfStock: products.filter(p => p.stock === 0).length,
     lowStock: products.filter(p => p.stock > 0 && p.stock < 50).length,
   };
+
+  // Loading state
+  if (loading || vendorLoading) {
+    return (
+      <DashboardLayout 
+        pageTitle="Manage Store"
+        pageDescription="Create, edit, delete products and manage inventory"
+      >
+        <div className="p-6 lg:p-8">
+          <div className="flex items-center justify-center h-64">
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6 border-2 border-[#6CC049] border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-gray-600">Loading products...</span>
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <DashboardLayout 
+        pageTitle="Manage Store"
+        pageDescription="Create, edit, delete products and manage inventory"
+      >
+        <div className="p-6 lg:p-8">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="text-red-500 mb-4">
+                <CloseCircle size={48} color="currentColor" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Products</h3>
+              <p className="text-gray-600 mb-4">{error}</p>
+              <button
+                onClick={fetchProducts}
+                className="px-4 py-2 bg-[#6CC049] text-white rounded-lg hover:bg-[#5AA03A] transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout 
@@ -370,6 +417,14 @@ const ManageStore = () => {
 
         {/* Products Table */}
         <div className="bg-white rounded-lg overflow-hidden">
+          <div className="px-6 py-3 bg-gradient-to-r from-[#6CC049]/5 to-blue-50 border-b border-gray-200">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-[#6CC049] rounded-full"></div>
+              <p className="text-sm text-gray-700 font-medium">
+                Click on any product row to view and edit details
+              </p>
+            </div>
+          </div>
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-200">
@@ -383,6 +438,7 @@ const ManageStore = () => {
                 </th>
                 <th className="text-left px-6 py-4 text-sm font-medium text-gray-500">Image</th>
                 <th className="text-left px-6 py-4 text-sm font-medium text-gray-500">Product Name</th>
+                <th className="text-left px-6 py-4 text-sm font-medium text-gray-500">Type</th>
                 <th className="text-left px-6 py-4 text-sm font-medium text-gray-500">SKU</th>
                 <th className="text-left px-6 py-4 text-sm font-medium text-gray-500">Price</th>
                 <th className="text-left px-6 py-4 text-sm font-medium text-gray-500">Stock</th>
@@ -392,8 +448,12 @@ const ManageStore = () => {
             </thead>
             <tbody>
               {filteredProducts.map((product) => (
-                <tr key={product.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4">
+                <tr 
+                  key={product.id} 
+                  className="border-b border-gray-100 hover:bg-gray-50 hover:border-[#6CC049]/20 transition-all duration-200 cursor-pointer group"
+                  onClick={() => router.push(`/vendor/manage-store/${product.id}`)}
+                >
+                  <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                     <input
                       type="checkbox"
                       checked={selectedProducts.includes(product.id)}
@@ -414,9 +474,31 @@ const ManageStore = () => {
                       />
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm font-bold text-gray-900">{product.name}</td>
+                  <td className="px-6 py-4 text-sm font-bold text-gray-900 group-hover:text-[#6CC049] transition-colors">
+                    <div className="flex items-center justify-between">
+                      <span>{product.name}</span>
+                      <svg 
+                        className="w-4 h-4 text-gray-400 group-hover:text-[#6CC049] transition-colors opacity-0 group-hover:opacity-100" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                      product.type === 'event' ? 'bg-purple-100 text-purple-600' :
+                      product.type === 'accommodation' ? 'bg-blue-100 text-blue-600' :
+                      product.type === 'reservation' ? 'bg-orange-100 text-orange-600' :
+                      'bg-gray-100 text-gray-600'
+                    }`}>
+                      {product.type.charAt(0).toUpperCase() + product.type.slice(1)}
+                    </span>
+                  </td>
                   <td className="px-6 py-4 text-sm font-bold text-gray-900">{product.sku}</td>
-                  <td className="px-6 py-4 text-sm font-bold text-gray-900">₦{product.price.toLocaleString()}</td>
+                  <td className="px-6 py-4 text-sm font-bold text-gray-900">₦{(product.price || 0).toLocaleString()}</td>
                   <td className="px-6 py-4 text-sm font-bold text-gray-900">{product.stock}</td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${
@@ -430,7 +512,7 @@ const ManageStore = () => {
                       {product.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => router.push(`/vendor/manage-store/${product.id}`)}

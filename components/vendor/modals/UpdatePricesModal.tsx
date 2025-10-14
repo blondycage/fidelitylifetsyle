@@ -36,7 +36,7 @@ export const UpdatePricesModal: React.FC<UpdatePricesModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-transparent">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" style={{ minHeight: '100vh' }}>
       <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-8 relative">
         {/* Close button */}
         <button

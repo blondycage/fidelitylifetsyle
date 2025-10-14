@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import { useVendor } from '@/contexts/VendorContext';
 import {
   ShoppingCart,
   CloseCircle,
@@ -12,6 +13,7 @@ import {
 
 const VendorDashboard = () => {
   const router = useRouter();
+  const { vendorData, loading: vendorLoading } = useVendor();
   const [isOTPVerified, setIsOTPVerified] = useState(false);
 
   // Sample orders data
@@ -46,7 +48,7 @@ const VendorDashboard = () => {
     toast.error('Order rejected');
   };
 
-  if (!isOTPVerified) {
+  if (!isOTPVerified || vendorLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-[var(--blueHex)] border-t-transparent rounded-full animate-spin"></div>
@@ -62,11 +64,18 @@ const VendorDashboard = () => {
       {/* Business Header */}
       <div className="mb-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 font-urbanist">Lagos Continental Hotel</h1>
-          <div className="mt-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 font-urbanist">
+            {vendorData?.businessProfile?.name || 'Business Name'}
+          </h1>
+          <div className="mt-2 flex items-center gap-2">
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
               ✓ Verified
             </span>
+            {vendorData?.businessType && (
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                {vendorData.businessType.replace('_', ' ')}
+              </span>
+            )}
           </div>
         </div>
       </div>

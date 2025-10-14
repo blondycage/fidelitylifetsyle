@@ -16,6 +16,14 @@ const nextConfig = {
       },
     },
   },
+  async rewrites() {
+    return [
+      {
+        source: '/api/v1/:path*',
+        destination: 'http://45.33.68.176:9091/api/v1/:path*',
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;

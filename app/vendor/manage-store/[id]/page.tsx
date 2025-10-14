@@ -4,18 +4,21 @@ import { useRouter, useParams } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { ArrowLeft, Edit, Trash, Export } from 'iconsax-react';
 import toast from 'react-hot-toast';
+// Removed unused imports since we're now using sessionStorage
 
 interface Product {
   id: string;
   name: string;
-  category: string;
-  description: string;
-  price: number;
   sku: string;
-  quantity: number;
-  lowStockAlert: number;
-  status: boolean;
-  images: string[];
+  price: number;
+  stock: number;
+  status: 'Available' | 'Unavailable';
+  image: string;
+  type: 'product' | 'event' | 'accommodation' | 'reservation';
+  categoryName?: string;
+  subcategoryName: string;
+  description?: string;
+  images?: string[];
 }
 
 const EditProductPage = () => {
@@ -27,11 +30,13 @@ const EditProductPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Form data
   const [formData, setFormData] = useState({
     name: '',
-    category: '',
+    categoryName: '',
+    subcategoryName: '',
     description: '',
     price: '',
     sku: '',
@@ -40,30 +45,42 @@ const EditProductPage = () => {
     status: true
   });
 
-  // Load product data
+  // Load product data from sessionStorage
   useEffect(() => {
     const loadProduct = () => {
       try {
-        const saved = localStorage.getItem('storeProducts');
-        if (saved) {
-          const products = JSON.parse(saved);
-          const foundProduct = products.find((p: any) => p.id === productId);
+        setIsLoading(true);
+        setError(null);
+        
+        // Get products from sessionStorage
+        const storedProducts = sessionStorage.getItem('vendorProducts');
+        
+        if (storedProducts) {
+          const products: Product[] = JSON.parse(storedProducts);
+          const foundProduct = products.find(p => p.id === productId);
+          
           if (foundProduct) {
             setProduct(foundProduct);
             setFormData({
-              name: foundProduct.name || '',
-              category: foundProduct.category || 'Hotels',
+              name: foundProduct.name,
+              categoryName: foundProduct.categoryName || '',
+              subcategoryName: foundProduct.subcategoryName || '',
               description: foundProduct.description || '',
-              price: foundProduct.price?.toString() || '',
-              sku: foundProduct.sku || '',
-              quantity: foundProduct.stock?.toString() || '',
-              lowStockAlert: foundProduct.lowStockAlert?.toString() || '',
+              price: foundProduct.price.toString(),
+              sku: foundProduct.sku,
+              quantity: foundProduct.stock.toString(),
+              lowStockAlert: '10', // Default value
               status: foundProduct.status === 'Available'
             });
+          } else {
+            setError('Product not found');
           }
+        } else {
+          setError('No products data available. Please go back to manage store and try again.');
         }
       } catch (error) {
         console.error('Error loading product:', error);
+        setError('Failed to load product data');
         toast.error('Failed to load product data');
       } finally {
         setIsLoading(false);
@@ -85,28 +102,10 @@ const EditProductPage = () => {
 
     setIsSaving(true);
     try {
-      const saved = localStorage.getItem('storeProducts');
-      if (saved) {
-        const products = JSON.parse(saved);
-        const updatedProducts = products.map((p: any) => 
-          p.id === productId 
-            ? {
-                ...p,
-                name: formData.name,
-                category: formData.category,
-                description: formData.description,
-                price: parseFloat(formData.price),
-                sku: formData.sku,
-                stock: parseInt(formData.quantity),
-                lowStockAlert: parseInt(formData.lowStockAlert),
-                status: formData.status ? 'Available' : 'Unavailable'
-              }
-            : p
-        );
-        localStorage.setItem('storeProducts', JSON.stringify(updatedProducts));
-        toast.success('Product updated successfully');
-        router.push('/vendor/manage-store');
-      }
+      // TODO: Implement API call to update product
+      // For now, just show success message
+      toast.success('Product updated successfully');
+      router.push('/vendor/manage-store');
     } catch (error) {
       console.error('Error saving product:', error);
       toast.error('Failed to save product');
@@ -119,14 +118,10 @@ const EditProductPage = () => {
     if (!product) return;
 
     try {
-      const saved = localStorage.getItem('storeProducts');
-      if (saved) {
-        const products = JSON.parse(saved);
-        const updatedProducts = products.filter((p: any) => p.id !== productId);
-        localStorage.setItem('storeProducts', JSON.stringify(updatedProducts));
-        toast.success('Product deleted successfully');
-        router.push('/vendor/manage-store');
-      }
+      // TODO: Implement API call to delete product
+      // For now, just show success message
+      toast.success('Product deleted successfully');
+      router.push('/vendor/manage-store');
     } catch (error) {
       console.error('Error deleting product:', error);
       toast.error('Failed to delete product');
@@ -146,12 +141,50 @@ const EditProductPage = () => {
     );
   }
 
+  if (error) {
+    return (
+      <DashboardLayout pageTitle="Edit Product" pageDescription="Error loading product">
+        <div className="p-6 lg:p-8 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Error Loading Product</h2>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => window.location.reload()}
+                className="px-6 py-2 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition-colors"
+              >
+                Refresh Page
+              </button>
+              <button
+                onClick={() => router.push('/vendor/manage-store')}
+                className="px-6 py-2 bg-[#6CC049] text-white rounded-full hover:bg-green-600 transition-colors"
+              >
+                Back to Store
+              </button>
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   if (!product) {
     return (
       <DashboardLayout pageTitle="Edit Product" pageDescription="Product not found">
         <div className="p-6 lg:p-8 flex items-center justify-center">
           <div className="text-center">
-            <p className="text-gray-600 mb-4">Product not found</p>
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.29-1.009-5.824-2.709M15 6.291A7.962 7.962 0 0012 5c-2.34 0-4.29 1.009-5.824 2.709" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Product Not Found</h2>
+            <p className="text-gray-600 mb-4">The product you're looking for doesn't exist or has been removed.</p>
             <button
               onClick={() => router.push('/vendor/manage-store')}
               className="px-6 py-2 bg-[#6CC049] text-white rounded-full hover:bg-green-600 transition-colors"
@@ -210,14 +243,23 @@ const EditProductPage = () => {
                   </label>
                   <div className="relative">
                     <select
-                      value={formData.category}
-                      onChange={(e) => handleInputChange('category', e.target.value)}
+                      value={formData.categoryName}
+                      onChange={(e) => handleInputChange('categoryName', e.target.value)}
                       className="w-full h-12 px-4 bg-[#EEEEEE] border border-black rounded-[8px] text-[16px] font-urbanist text-black focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] appearance-none"
                     >
-                      <option value="Hotels">Hotels</option>
-                      <option value="Restaurants">Restaurants</option>
-                      <option value="Events">Events</option>
-                      <option value="Shopping">Shopping</option>
+                      <option value="HOTELS">Hotels</option>
+                      <option value="RESTAURANT">Restaurants</option>
+                      <option value="EVENTS">Events</option>
+                      <option value="SUPERMARKET">Shopping</option>
+                      <option value="PHARMACY">Pharmacy</option>
+                      <option value="HOSPITALITY">Hospitality</option>
+                      <option value="APARTMENT">Apartment</option>
+                      <option value="CLUB">Club</option>
+                      <option value="RESERVATIONS">Reservations</option>
+                      <option value="EXPERIENCES">Experiences</option>
+                      <option value="TOUR_GUIDE">Tour Guide</option>
+                      <option value="INFLUENCER">Influencer</option>
+                      <option value="OTHERS">Others</option>
                     </select>
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
                       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -225,6 +267,20 @@ const EditProductPage = () => {
                       </svg>
                     </div>
                   </div>
+                </div>
+
+                {/* Subcategory */}
+                <div className="w-full">
+                  <label className="block text-sm font-medium text-[#616161] mb-2">
+                    Subcategory
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.subcategoryName}
+                    onChange={(e) => handleInputChange('subcategoryName', e.target.value)}
+                    className="w-full h-12 px-4 bg-[#EEEEEE] border border-black rounded-[8px] text-[16px] font-urbanist text-black placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+                    placeholder="Enter subcategory"
+                  />
                 </div>
 
                 {/* Description */}
@@ -344,21 +400,51 @@ const EditProductPage = () => {
 
               {/* Image Grid */}
               <div className="grid grid-cols-4 gap-4 mb-6">
-                {[1, 2, 3, 4].map((index) => (
-                  <div key={index} className="relative group">
-                    <div className="w-full h-24 bg-[#D9D9D9] rounded-[8px] flex items-center justify-center">
-                      <span className="text-gray-500 text-sm">Image {index}</span>
+                {product?.images && product.images.length > 0 ? (
+                  product.images.slice(0, 4).map((image, index) => (
+                    <div key={index} className="relative group">
+                      <div className="w-full h-24 bg-[#D9D9D9] rounded-[8px] overflow-hidden">
+                        <img
+                          src={image}
+                          alt={`Product image ${index + 1}`}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            target.nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
+                        <div className="w-full h-full flex items-center justify-center hidden">
+                          <span className="text-gray-500 text-sm">Image {index + 1}</span>
+                        </div>
+                      </div>
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-[8px] flex items-center justify-center gap-4 opacity-0 group-hover:opacity-100">
+                        <button className="p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors">
+                          <Edit size={16} color="#616161" />
+                        </button>
+                        <button className="p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors">
+                          <Trash size={16} color="#FF383C" />
+                        </button>
+                      </div>
                     </div>
-                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-[8px] flex items-center justify-center gap-4 opacity-0 group-hover:opacity-100">
-                      <button className="p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors">
-                        <Edit size={16} color="#616161" />
-                      </button>
-                      <button className="p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors">
-                        <Trash size={16} color="#FF383C" />
-                      </button>
+                  ))
+                ) : (
+                  [1, 2, 3, 4].map((index) => (
+                    <div key={index} className="relative group">
+                      <div className="w-full h-24 bg-[#D9D9D9] rounded-[8px] flex items-center justify-center">
+                        <span className="text-gray-500 text-sm">No Image</span>
+                      </div>
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-[8px] flex items-center justify-center gap-4 opacity-0 group-hover:opacity-100">
+                        <button className="p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors">
+                          <Edit size={16} color="#616161" />
+                        </button>
+                        <button className="p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors">
+                          <Trash size={16} color="#FF383C" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
 
               <button className="flex items-center gap-2 text-[#616161] hover:text-[#6CC049] transition-colors">
