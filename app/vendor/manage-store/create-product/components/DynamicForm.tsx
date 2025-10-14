@@ -243,9 +243,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
           className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
           placeholder="Enter maximum attendees"
         />
-        <p className="mt-1 text-[12px] text-[#9E9E9E] font-urbanist">
-          Maximum value: 2,147,483,647 (int32 limit)
-        </p>
+        
       </div>
 
       {/* Product Type */}
