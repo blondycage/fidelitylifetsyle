@@ -57,7 +57,7 @@ const ManageStore = () => {
         throw new Error('No authentication token found');
       }
 
-      const response = await fetchVendorProducts(vendorData.id, token);
+      const response = await fetchVendorProducts(vendorData.id, token, vendorData.businessType);
       
       if (response.responseCode === 200) {
         const transformedProducts: Product[] = response.data.map((apiProduct: ApiProduct) => {
@@ -372,42 +372,52 @@ const ManageStore = () => {
         </div>
 
         {/* Actions Bar */}
-        <div className="bg-white rounded-lg p-4 mb-4 flex items-center justify-between">
-          <div className="text-sm text-gray-600">
+        <div className="bg-white rounded-lg p-4 mb-4">
+          {/* Selected products info */}
+          <div className="text-sm text-gray-600 mb-3 sm:mb-0">
             {selectedProducts.length > 0 && `${selectedProducts.length} product${selectedProducts.length > 1 ? 's' : ''} selected`}
           </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleEnableProducts}
-              disabled={selectedProducts.length === 0}
-              className="px-6 py-2 bg-blue-100 text-blue-600 rounded-full text-sm font-medium hover:bg-blue-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Enable
-            </button>
-            <button
-              onClick={handleDisableProducts}
-              disabled={selectedProducts.length === 0}
-              className="px-6 py-2 bg-red-100 text-red-500 rounded-full text-sm font-medium hover:bg-red-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Disable
-            </button>
-            <button
-              onClick={() => setShowUpdatePricesModal(true)}
-              disabled={selectedProducts.length === 0}
-              className="px-6 py-2 bg-gray-100 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Update Prices
-            </button>
-            <button
-              onClick={handleExport}
-              disabled={selectedProducts.length === 0}
-              className="px-6 py-2 bg-gray-100 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Export
-            </button>
+          
+          {/* Action buttons - responsive layout */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-end">
+            {/* Bulk action buttons - only show when products are selected */}
+            {selectedProducts.length > 0 && (
+              <div className="flex flex-wrap gap-2 sm:gap-3">
+                <button
+                  onClick={handleEnableProducts}
+                  disabled={selectedProducts.length === 0}
+                  className="px-4 py-2 bg-blue-100 text-blue-600 rounded-full text-sm font-medium hover:bg-blue-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Enable
+                </button>
+                <button
+                  onClick={handleDisableProducts}
+                  disabled={selectedProducts.length === 0}
+                  className="px-4 py-2 bg-red-100 text-red-500 rounded-full text-sm font-medium hover:bg-red-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Disable
+                </button>
+                <button
+                  onClick={() => setShowUpdatePricesModal(true)}
+                  disabled={selectedProducts.length === 0}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Update Prices
+                </button>
+                <button
+                  onClick={handleExport}
+                  disabled={selectedProducts.length === 0}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Export
+                </button>
+              </div>
+            )}
+            
+            {/* Create Product button - always visible */}
             <button
               onClick={() => router.push('/vendor/manage-store/create-product')}
-              className="px-6 py-3 bg-[var(--greenHex)] text-white rounded-full text-sm font-medium hover:bg-green-600 transition-all flex items-center gap-2"
+              className="px-6 py-3 bg-[var(--greenHex)] text-white rounded-full text-sm font-medium hover:bg-green-600 transition-all flex items-center justify-center gap-2 w-full sm:w-auto"
             >
               <span className="text-xl">+</span>
               Create Product

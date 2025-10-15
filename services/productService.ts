@@ -142,7 +142,7 @@ export const getProductSku = (product: ApiProduct): string => {
 };
 
 // Function to fetch products for a vendor
-export const fetchVendorProducts = async (vendorId: number, token: string): Promise<ProductListResponse> => {
+export const fetchVendorProducts = async (vendorId: number, token: string, businessType?: string): Promise<ProductListResponse> => {
   try {
     const response = await fetch(`/api/v1/product/list?vendorId=${vendorId}`, {
       method: 'GET',
@@ -157,6 +157,46 @@ export const fetchVendorProducts = async (vendorId: number, token: string): Prom
     }
 
     const data: ProductListResponse = await response.json();
+    
+    // Filter products by business type if provided
+    if (businessType && data.data) {
+      // Map business types to category names for filtering
+      const businessTypeToCategoryMap: Record<string, string[]> = {
+        'EVENTS': ['EVENTS'],
+        'EXPERIENCES': ['EXPERIENCES'],
+        'TOUR_GUIDE': ['TOUR_GUIDE'],
+        'INFLUENCER': ['INFLUENCER'],
+        'HOTEL': ['HOTEL'],
+        'HOSPITALITY': ['HOSPITALITY'],
+        'APARTMENT': ['APARTMENT'],
+        'RESTAURANT': ['RESTAURANT'],
+        'CLUB': ['CLUB'],
+        'RESERVATIONS': ['RESERVATIONS'],
+        'SUPERMARKET': ['SUPERMARKET'],
+        'PHARMACY': ['PHARMACY'],
+        'FASHION': ['FASHION'],
+        'OTHERS': ['OTHERS']
+      };
+
+      const allowedCategories = businessTypeToCategoryMap[businessType] || [];
+      
+      const filteredProducts = data.data.filter(product => {
+        return allowedCategories.includes(product.categoryName || '');
+      });
+
+      console.log(`Filtered products for business type ${businessType}:`, {
+        totalProducts: data.data.length,
+        filteredProducts: filteredProducts.length,
+        businessType,
+        allowedCategories
+      });
+
+      return {
+        ...data,
+        data: filteredProducts
+      };
+    }
+
     return data;
   } catch (error) {
     console.error('Error fetching vendor products:', error);

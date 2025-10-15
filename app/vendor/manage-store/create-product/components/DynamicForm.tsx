@@ -1,16 +1,219 @@
 'use client';
-import React from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import ArrayInput from './ArrayInput';
+import { SubcategoryItem } from '@/services/subcategoryService';
+import { Loader } from '@googlemaps/js-api-loader';
 
 interface DynamicFormProps {
   businessType: string;
   formData: any;
   onInputChange: (field: string, value: any) => void;
-  subcategories?: string[];
+  subcategories?: SubcategoryItem[];
   subcategoriesLoading?: boolean;
 }
 
 const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInputChange, subcategories = [], subcategoriesLoading = false }) => {
+  // Google Maps Autocomplete state
+  const addressInputRef = useRef<HTMLInputElement>(null);
+  const venueInputRef = useRef<HTMLInputElement>(null);
+  const addressAutocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const venueAutocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false);
+  const [isAddressSelected, setIsAddressSelected] = useState(false);
+  const [isVenueSelected, setIsVenueSelected] = useState(false);
+  const [addressInputValue, setAddressInputValue] = useState('');
+  const [venueInputValue, setVenueInputValue] = useState('');
+  const isSelectingFromAutocomplete = useRef(false);
+
+  // Load Google Maps
+  useEffect(() => {
+    const loadGoogleMaps = async () => {
+      if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
+        console.error('Google Maps API key not found');
+        return;
+      }
+
+      try {
+        const loader = new Loader({
+          apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+          version: 'weekly',
+          libraries: ['places'],
+        });
+
+        await loader.load();
+        console.log('Google Maps loaded successfully');
+        setIsGoogleMapsLoaded(true);
+      } catch (error) {
+        console.error('Error loading Google Maps:', error);
+      }
+    };
+
+    loadGoogleMaps();
+  }, []);
+
+  // Initialize autocomplete for address field
+  useEffect(() => {
+    if (isGoogleMapsLoaded && addressInputRef.current && !addressAutocompleteRef.current) {
+      console.log('Initializing Google Places Autocomplete for Address');
+
+      addressAutocompleteRef.current = new google.maps.places.Autocomplete(
+        addressInputRef.current,
+        {
+          types: ['establishment', 'geocode'],
+          fields: ['formatted_address', 'geometry.location', 'name'],
+        }
+      );
+
+      addressAutocompleteRef.current.addListener('place_changed', () => {
+        const place = addressAutocompleteRef.current?.getPlace();
+
+        if (place && place.geometry && place.geometry.location) {
+          isSelectingFromAutocomplete.current = true;
+
+          const selectedAddress = place.formatted_address || place.name || '';
+          
+          // Update form data with selected address and coordinates
+          onInputChange('address', selectedAddress);
+          onInputChange('addressLatitude', place.geometry.location.lat());
+          onInputChange('addressLongitude', place.geometry.location.lng());
+          
+          // Update local address state - clear input value so it shows selected address
+          setAddressInputValue('');
+          setIsAddressSelected(true);
+
+          setTimeout(() => {
+            isSelectingFromAutocomplete.current = false;
+          }, 100);
+        }
+      });
+    }
+
+    return () => {
+      if (addressAutocompleteRef.current) {
+        google.maps.event.clearInstanceListeners(addressAutocompleteRef.current);
+      }
+    };
+  }, [isGoogleMapsLoaded, onInputChange]);
+
+  // Sync input values with form data
+  useEffect(() => {
+    if (formData.address && !isAddressSelected) {
+      setAddressInputValue(formData.address);
+    }
+    if (formData.venue && !isVenueSelected) {
+      setVenueInputValue(formData.venue);
+    }
+  }, [formData.address, formData.venue, isAddressSelected, isVenueSelected]);
+
+  // Initialize autocomplete for venue field
+  useEffect(() => {
+    if (isGoogleMapsLoaded && venueInputRef.current && !venueAutocompleteRef.current) {
+      console.log('Initializing Google Places Autocomplete for Venue');
+
+      venueAutocompleteRef.current = new google.maps.places.Autocomplete(
+        venueInputRef.current,
+        {
+          types: ['establishment'],
+          fields: ['formatted_address', 'geometry.location', 'name'],
+        }
+      );
+
+      venueAutocompleteRef.current.addListener('place_changed', () => {
+        const place = venueAutocompleteRef.current?.getPlace();
+
+        if (place && place.geometry && place.geometry.location) {
+          isSelectingFromAutocomplete.current = true;
+
+          const selectedVenue = place.formatted_address || place.name || '';
+          
+          // Update form data with selected venue and coordinates
+          onInputChange('venue', selectedVenue);
+          onInputChange('venueLatitude', place.geometry.location.lat());
+          onInputChange('venueLongitude', place.geometry.location.lng());
+          
+          // Update local venue state - clear input value so it shows selected venue
+          setVenueInputValue('');
+          setIsVenueSelected(true);
+
+          setTimeout(() => {
+            isSelectingFromAutocomplete.current = false;
+          }, 100);
+        }
+      });
+    }
+
+    return () => {
+      if (venueAutocompleteRef.current) {
+        google.maps.event.clearInstanceListeners(venueAutocompleteRef.current);
+      }
+    };
+  }, [isGoogleMapsLoaded, onInputChange]);
+
+  // Handle address input changes
+  const handleAddressInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setAddressInputValue(newValue);
+    
+    // If user starts typing after having a selected address, clear the selection
+    if (isAddressSelected && !isSelectingFromAutocomplete.current) {
+      setIsAddressSelected(false);
+      // Clear the form data address when user starts typing manually
+      onInputChange('address', '');
+    }
+
+    // Don't update formData for manual typing - only for autocomplete selections
+  };
+
+  // Effect to set price to 0 for free events
+  useEffect(() => {
+    if (formData.eventType === 'FREE' && formData.price !== '0') {
+      onInputChange('price', '0');
+    }
+  }, [formData.eventType, formData.price, onInputChange]);
+
+  // Handle venue input changes
+  const handleVenueInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setVenueInputValue(newValue);
+    
+    // If user starts typing after having a selected venue, clear the selection
+    if (isVenueSelected && !isSelectingFromAutocomplete.current) {
+      setIsVenueSelected(false);
+      // Clear the form data venue when user starts typing manually
+      onInputChange('venue', '');
+    }
+    
+    // Clear address when venue is filled
+    if (newValue && formData.address) {
+      onInputChange('address', '');
+      setAddressInputValue('');
+      setIsAddressSelected(false);
+    }
+
+    // Don't update formData for manual typing - only for autocomplete selections
+  };
+
+  // Handle address input changes with venue clearing
+  const handleAddressInputChangeWithVenue = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setAddressInputValue(newValue);
+    
+    // If user starts typing after having a selected address, clear the selection
+    if (isAddressSelected && !isSelectingFromAutocomplete.current) {
+      setIsAddressSelected(false);
+      // Clear the form data address when user starts typing manually
+      onInputChange('address', '');
+    }
+    
+    // Clear venue when address is filled
+    if (newValue && formData.venue) {
+      onInputChange('venue', '');
+      setVenueInputValue('');
+      setIsVenueSelected(false);
+    }
+
+    // Don't update formData for manual typing - only for autocomplete selections
+  };
   // Events, Experiences, Tour Guide, Influencer forms
   const renderEventsForm = () => (
     <div className="space-y-4 sm:space-y-6">
@@ -52,24 +255,60 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
         </div>
       </div>
 
-      {/* Address */}
-      <div className="w-full max-w-full sm:max-w-[450px]">
-        <div className="flex items-center gap-2 mb-2">
-          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
-            Address
-          </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
+      {/* Address - Only show if venue is not filled */}
+      {!formData.venue && (
+        <div className="w-full max-w-full sm:max-w-[450px]">
+          <div className="flex items-center gap-2 mb-2">
+            <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+              Address
+            </label>
+          </div>
+          <div className="relative">
+            <input
+              ref={addressInputRef}
+              type="text"
+              value={isAddressSelected ? formData.address : addressInputValue}
+              onChange={handleAddressInputChangeWithVenue}
+              onFocus={() => {
+                if (isAddressSelected && formData.address) {
+                  setAddressInputValue(formData.address);
+                }
+              }}
+              className={`w-full h-12 px-4 bg-[#EEEEEE] border rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:ring-1 focus:ring-[#6CC049] ${
+                isAddressSelected
+                  ? 'border-[#6CC049] bg-green-50'
+                  : 'border-[#EEEEEE]'
+              }`}
+              placeholder="Enter event address"
+            />
+            {/* Clear button */}
+            {(formData.address || addressInputValue) && (
+              <button
+                type="button"
+                onClick={() => {
+                  onInputChange('address', '');
+                  setAddressInputValue('');
+                  setIsAddressSelected(false);
+                }}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            )}
+          </div>
+          {/* Success indicator */}
+          {isAddressSelected && (
+            <div className="mt-2 flex items-center gap-2 text-[#6CC049] text-[12px] font-urbanist">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Address selected from Google Maps
+            </div>
+          )}
         </div>
-        <div className="relative">
-          <input
-            type="text"
-            value={formData.address || ''}
-            onChange={(e) => onInputChange('address', e.target.value)}
-            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
-            placeholder="Enter event address"
-          />
-        </div>
-      </div>
+      )}
 
       {/* Sub-category */}
       <div className="w-full max-w-full sm:max-w-[450px]">
@@ -80,17 +319,22 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
         </div>
         <div className="relative">
           <select
-            value={formData.subCategory || formData.subcategoryName || ''}
-            onChange={(e) => onInputChange('subCategory', e.target.value)}
+            value={formData.subCategory || formData.subcategoryId || ''}
+            onChange={(e) => {
+              const selectedSubcategory = subcategories?.find(sub => sub.subcategoryId.toString() === e.target.value);
+              onInputChange('subCategory', e.target.value);
+              onInputChange('subcategoryName', selectedSubcategory?.subcategoryName || '');
+              onInputChange('subcategoryId', selectedSubcategory?.subcategoryId || null);
+            }}
             disabled={subcategoriesLoading}
             className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] appearance-none disabled:opacity-50"
           >
             <option value="">
               {subcategoriesLoading ? 'Loading subcategories...' : 'Select sub-category'}
             </option>
-            {subcategories.map((subcategory) => (
-              <option key={subcategory} value={subcategory}>
-                {subcategory}
+            {subcategories?.map((subcategory) => (
+              <option key={subcategory.subcategoryId} value={subcategory.subcategoryId}>
+                {subcategory.subcategoryName}
               </option>
             ))}
           </select>
@@ -218,13 +462,50 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
             Venue
           </label>
         </div>
-        <input
-          type="text"
-          value={formData.venue || ''}
-          onChange={(e) => onInputChange('venue', e.target.value)}
-          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
-          placeholder="Enter venue name"
-        />
+        <div className="relative">
+          <input
+            ref={venueInputRef}
+            type="text"
+            value={isVenueSelected ? formData.venue : venueInputValue}
+            onChange={handleVenueInputChange}
+            onFocus={() => {
+              if (isVenueSelected && formData.venue) {
+                setVenueInputValue(formData.venue);
+              }
+            }}
+            className={`w-full h-12 px-4 bg-[#EEEEEE] border rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:ring-1 focus:ring-[#6CC049] ${
+              isVenueSelected
+                ? 'border-[#6CC049] bg-green-50'
+                : 'border-[#EEEEEE]'
+            }`}
+            placeholder="Enter venue name"
+          />
+          {/* Clear button */}
+          {(formData.venue || venueInputValue) && (
+            <button
+              type="button"
+              onClick={() => {
+                onInputChange('venue', '');
+                setVenueInputValue('');
+                setIsVenueSelected(false);
+              }}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          )}
+        </div>
+        {/* Success indicator */}
+        {isVenueSelected && (
+          <div className="mt-2 flex items-center gap-2 text-[#6CC049] text-[12px] font-urbanist">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Venue selected from Google Maps
+          </div>
+        )}
       </div>
 
       {/* Max Attendees */}
@@ -345,12 +626,25 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
           <input
             type="number"
             step="0.01"
-            value={formData.price || ''}
+            value={formData.eventType === 'FREE' ? '0' : (formData.price || '')}
             onChange={(e) => onInputChange('price', e.target.value)}
-            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
-            placeholder="Enter event price"
+            disabled={formData.eventType === 'FREE'}
+            className={`w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] ${formData.eventType === 'FREE' ? 'opacity-50 cursor-not-allowed' : ''}`}
+            placeholder={formData.eventType === 'FREE' ? 'Free event - Price set to 0' : 'Enter event price'}
           />
+          {formData.eventType === 'FREE' && (
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#6CC049]">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M8 1L10.5 5.5L15.5 6L12 9.5L13 14.5L8 12L3 14.5L4 9.5L0.5 6L5.5 5.5L8 1Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+          )}
         </div>
+        {formData.eventType === 'FREE' && (
+          <div className="mt-2 text-[12px] text-[#6CC049] font-urbanist">
+            Free event - Price automatically set to 0
+          </div>
+        )}
       </div>
     </div>
   );
@@ -469,17 +763,22 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
         </div>
         <div className="relative">
           <select
-            value={formData.subCategory || ''}
-            onChange={(e) => onInputChange('subCategory', e.target.value)}
+            value={formData.subCategory || formData.subcategoryId || ''}
+            onChange={(e) => {
+              const selectedSubcategory = subcategories?.find(sub => sub.subcategoryId.toString() === e.target.value);
+              onInputChange('subCategory', e.target.value);
+              onInputChange('subcategoryName', selectedSubcategory?.subcategoryName || '');
+              onInputChange('subcategoryId', selectedSubcategory?.subcategoryId || null);
+            }}
             disabled={subcategoriesLoading}
             className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] appearance-none disabled:opacity-50"
           >
             <option value="">
               {subcategoriesLoading ? 'Loading subcategories...' : 'Select sub-category'}
             </option>
-            {subcategories.map((subcategory) => (
-              <option key={subcategory} value={subcategory}>
-                {subcategory}
+            {subcategories?.map((subcategory) => (
+              <option key={subcategory.subcategoryId} value={subcategory.subcategoryId}>
+                {subcategory.subcategoryName}
               </option>
             ))}
           </select>
@@ -560,13 +859,50 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
             Address
           </label>
         </div>
-        <input
-          type="text"
-          value={formData.address || ''}
-          onChange={(e) => onInputChange('address', e.target.value)}
-          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
-          placeholder="Enter property address"
-        />
+        <div className="relative">
+          <input
+            ref={addressInputRef}
+            type="text"
+            value={isAddressSelected ? formData.address : addressInputValue}
+            onChange={handleAddressInputChange}
+            onFocus={() => {
+              if (isAddressSelected && formData.address) {
+                setAddressInputValue(formData.address);
+              }
+            }}
+            className={`w-full h-12 px-4 bg-[#EEEEEE] border rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:ring-1 focus:ring-[#6CC049] ${
+              isAddressSelected
+                ? 'border-[#6CC049] bg-green-50'
+                : 'border-[#EEEEEE]'
+            }`}
+            placeholder="Enter property address"
+          />
+          {/* Clear button */}
+          {(formData.address || addressInputValue) && (
+            <button
+              type="button"
+              onClick={() => {
+                onInputChange('address', '');
+                setAddressInputValue('');
+                setIsAddressSelected(false);
+              }}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          )}
+        </div>
+        {/* Success indicator */}
+        {isAddressSelected && (
+          <div className="mt-2 flex items-center gap-2 text-[#6CC049] text-[12px] font-urbanist">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Address selected from Google Maps
+          </div>
+        )}
       </div>
 
       {/* Daily Rate */}
@@ -795,17 +1131,22 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
         </div>
         <div className="relative">
           <select
-            value={formData.subCategory || ''}
-            onChange={(e) => onInputChange('subCategory', e.target.value)}
+            value={formData.subCategory || formData.subcategoryId || ''}
+            onChange={(e) => {
+              const selectedSubcategory = subcategories?.find(sub => sub.subcategoryId.toString() === e.target.value);
+              onInputChange('subCategory', e.target.value);
+              onInputChange('subcategoryName', selectedSubcategory?.subcategoryName || '');
+              onInputChange('subcategoryId', selectedSubcategory?.subcategoryId || null);
+            }}
             disabled={subcategoriesLoading}
             className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] appearance-none disabled:opacity-50"
           >
             <option value="">
               {subcategoriesLoading ? 'Loading subcategories...' : 'Select sub-category'}
             </option>
-            {subcategories.map((subcategory) => (
-              <option key={subcategory} value={subcategory}>
-                {subcategory}
+            {subcategories?.map((subcategory) => (
+              <option key={subcategory.subcategoryId} value={subcategory.subcategoryId}>
+                {subcategory.subcategoryName}
               </option>
             ))}
           </select>
@@ -849,13 +1190,50 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
             Address
           </label>
         </div>
-        <input
-          type="text"
-          value={formData.address || ''}
-          onChange={(e) => onInputChange('address', e.target.value)}
-          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
-          placeholder="Enter address"
-        />
+        <div className="relative">
+          <input
+            ref={addressInputRef}
+            type="text"
+            value={isAddressSelected ? formData.address : addressInputValue}
+            onChange={handleAddressInputChange}
+            onFocus={() => {
+              if (isAddressSelected && formData.address) {
+                setAddressInputValue(formData.address);
+              }
+            }}
+            className={`w-full h-12 px-4 bg-[#EEEEEE] border rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:ring-1 focus:ring-[#6CC049] ${
+              isAddressSelected
+                ? 'border-[#6CC049] bg-green-50'
+                : 'border-[#EEEEEE]'
+            }`}
+            placeholder="Enter address"
+          />
+          {/* Clear button */}
+          {(formData.address || addressInputValue) && (
+            <button
+              type="button"
+              onClick={() => {
+                onInputChange('address', '');
+                setAddressInputValue('');
+                setIsAddressSelected(false);
+              }}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          )}
+        </div>
+        {/* Success indicator */}
+        {isAddressSelected && (
+          <div className="mt-2 flex items-center gap-2 text-[#6CC049] text-[12px] font-urbanist">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Address selected from Google Maps
+          </div>
+        )}
       </div>
 
       {/* Product Type */}
@@ -1236,17 +1614,22 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
         </div>
         <div className="relative">
           <select
-            value={formData.subCategory || ''}
-            onChange={(e) => onInputChange('subCategory', e.target.value)}
+            value={formData.subCategory || formData.subcategoryId || ''}
+            onChange={(e) => {
+              const selectedSubcategory = subcategories?.find(sub => sub.subcategoryId.toString() === e.target.value);
+              onInputChange('subCategory', e.target.value);
+              onInputChange('subcategoryName', selectedSubcategory?.subcategoryName || '');
+              onInputChange('subcategoryId', selectedSubcategory?.subcategoryId || null);
+            }}
             disabled={subcategoriesLoading}
             className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] appearance-none disabled:opacity-50"
           >
             <option value="">
               {subcategoriesLoading ? 'Loading subcategories...' : 'Select sub-category'}
             </option>
-            {subcategories.map((subcategory) => (
-              <option key={subcategory} value={subcategory}>
-                {subcategory}
+            {subcategories?.map((subcategory) => (
+              <option key={subcategory.subcategoryId} value={subcategory.subcategoryId}>
+                {subcategory.subcategoryName}
               </option>
             ))}
           </select>

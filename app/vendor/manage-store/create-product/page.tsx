@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 import AddSubcategoryModal from '@/components/vendor/modals/AddSubcategoryModal';
 import { ProductSuccessModal } from '@/components/vendor/modals/ProductSuccessModal';
 import TicketCreationModal from '@/components/vendor/modals/TicketCreationModal';
-import { getSubcategories, clearSubcategoriesCache } from '@/services/subcategoryService';
+import { getSubcategories, clearSubcategoriesCache, SubcategoryItem } from '@/services/subcategoryService';
 
 const CreateProductPage = () => {
   const router = useRouter();
@@ -25,7 +25,7 @@ const CreateProductPage = () => {
   const [showScrollPrompt, setShowScrollPrompt] = useState(false);
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [eventId, setEventId] = useState<number | null>(null);
-  const [subcategories, setSubcategories] = useState<string[]>([]);
+  const [subcategories, setSubcategories] = useState<SubcategoryItem[]>([]);
   const [subcategoriesLoading, setSubcategoriesLoading] = useState(false);
   const [formData, setFormData] = useState({
     // Create Product payload fields
@@ -41,13 +41,18 @@ const CreateProductPage = () => {
     eventEndTime: '',
     eventType: 'PAID',
     venue: '',
+    venueLatitude: 0,
+    venueLongitude: 0,
     maxAttendees: '',
     ageRestriction: '',
     dressCode: '',
     // Additional required fields for events
     description: '',
     address: '',
+    addressLatitude: 0,
+    addressLongitude: 0,
     subcategoryName: '',
+    subcategoryId: null,
     // Accommodation payload fields
     propertyType: '',
     listingType: '',
@@ -87,10 +92,10 @@ const CreateProductPage = () => {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
   // Fetch subcategories when vendor data is available
-  const fetchSubcategories = async (vendorId: number) => {
+  const fetchSubcategories = async (vendorId: number, categoryName: string) => {
     try {
       setSubcategoriesLoading(true);
-      const subcategoriesList = await getSubcategories(vendorId);
+      const subcategoriesList = await getSubcategories(categoryName, vendorId);
       setSubcategories(subcategoriesList);
       console.log('✅ Subcategories fetched:', subcategoriesList);
     } catch (error) {
@@ -116,10 +121,10 @@ const CreateProductPage = () => {
 
   // Fetch subcategories when vendor data is loaded
   useEffect(() => {
-    if (vendorData?.id) {
-      fetchSubcategories(vendorData.id);
+    if (vendorData?.id && vendorData?.businessType) {
+      fetchSubcategories(vendorData.id, vendorData.businessType);
     }
-  }, [vendorData?.id]);
+  }, [vendorData?.id, vendorData?.businessType]);
 
   // Set selected category based on vendor's business type
   useEffect(() => {
@@ -216,8 +221,8 @@ const CreateProductPage = () => {
     setFormData({ ...formData, subCategory: subcategoryName });
     
     // Refresh subcategories list
-    if (vendorData?.id) {
-      await fetchSubcategories(vendorData.id);
+    if (vendorData?.id && vendorData?.businessType) {
+      await fetchSubcategories(vendorData.id, vendorData.businessType);
     }
   };
 
@@ -278,13 +283,18 @@ const CreateProductPage = () => {
       eventEndTime: '',
       eventType: 'PAID',
       venue: '',
+      venueLatitude: 0,
+      venueLongitude: 0,
       maxAttendees: '',
       ageRestriction: '',
       dressCode: '',
-      // Additional required fields for events
-      description: '',
-      address: '',
-      subcategoryName: '',
+    // Additional required fields for events
+    description: '',
+    address: '',
+    addressLatitude: 0,
+    addressLongitude: 0,
+    subcategoryName: '',
+    subcategoryId: null,
       // Accommodation payload fields
       propertyType: '',
       listingType: '',
@@ -332,11 +342,12 @@ const CreateProductPage = () => {
   };
 
   const handleUploadImages = async (productId: number) => {
+    console.log('handleUploadImages called with productId:', productId);
     if (formData.images.length === 0) {
       console.log('No images to upload');
       // Check if this is an event category and show ticket creation modal
       if (isEventCategory()) {
-        console.log('Showing ticket modal for event category');
+        console.log('Showing ticket modal for event category with eventId:', productId);
         setEventId(productId);
         setShowTicketModal(true);
       } else {
@@ -375,9 +386,9 @@ const CreateProductPage = () => {
         toast.success('Images uploaded successfully!');
         
         // Check if this is an event category and show ticket creation modal
-        if (isEventCategory() && createdProductId) {
-          console.log('After image upload: Showing ticket modal for event category');
-          setEventId(createdProductId);
+        if (isEventCategory()) {
+          console.log('After image upload: Showing ticket modal for event category with eventId:', productId);
+          setEventId(productId);
           setShowTicketModal(true);
         } else {
           console.log('After image upload: Showing success modal for non-event category');
@@ -440,10 +451,6 @@ const CreateProductPage = () => {
         toast.error('Description is required.');
         return;
       }
-      if (!formData.address) {
-        toast.error('Address is required.');
-        return;
-      }
       if (!formData.eventDate) {
         toast.error('Event Date is required.');
         return;
@@ -478,6 +485,7 @@ const CreateProductPage = () => {
           productName: formData.productName,
           categoryName: vendorData.businessType,
           subcategoryName: formData.subCategory || formData.subcategoryName || '',
+          subcategoryId: formData.subcategoryId || null,
           description: formData.description,
           address: formData.address,
           vendorId: vendorData.id,
@@ -502,6 +510,7 @@ const CreateProductPage = () => {
           propertyType: formData.propertyType || '',
           listingType: formData.listingType || '',
           subcategoryName: formData.subCategory || formData.subcategoryName || '',
+          subcategoryId: formData.subcategoryId || null,
           description: formData.description || '',
           address: formData.address || '',
           propertyName: formData.propertyName || '',
@@ -527,6 +536,7 @@ const CreateProductPage = () => {
           productName: formData.productName || '',
           categoryName: vendorData.businessType,
           subcategoryName: formData.subCategory || formData.subcategoryName || '',
+          subcategoryId: formData.subcategoryId || null,
           description: formData.description || '',
           address: formData.address || '',
           productType: formData.productType || '',
@@ -896,7 +906,7 @@ const CreateProductPage = () => {
                   ) : !vendorData?.id ? (
                     'Vendor data unavailable'
                   ) : (
-                    'Create Product'
+                    'Next'
                   )}
                 </button>
               </div>

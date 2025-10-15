@@ -18,6 +18,7 @@ const TicketCreationModal: React.FC<TicketCreationModalProps> = ({
   eventId,
   eventName
 }) => {
+  console.log('TicketCreationModal rendered with eventId:', eventId, 'eventName:', eventName);
   const [formData, setFormData] = useState({
     price: '',
     quantity: '',
@@ -55,6 +56,8 @@ const TicketCreationModal: React.FC<TicketCreationModalProps> = ({
         quantity: parseInt(formData.quantity),
         description: formData.description
       };
+      
+      console.log('Creating ticket with data:', ticketData);
 
       const response = await createTicket(ticketData, token);
       

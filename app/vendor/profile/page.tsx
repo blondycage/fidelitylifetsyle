@@ -15,6 +15,8 @@ import {
   SearchNormal1,
   Notification,
   ArrowLeft,
+  HambergerMenu,
+  CloseCircle,
 } from 'iconsax-react';
 import { fetchVendorByEmail, updateVendor } from '@/services/authService';
 import { VendorData, VendorUpdatePayload } from '@/types/api';
@@ -25,6 +27,7 @@ import { validatePhoneNumber, formatPhoneNumber } from '@/utils/validation';
 const VendorProfilePage = () => {
   const router = useRouter();
   const [activeMenuItem, setActiveMenuItem] = useState('Profile');
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [vendorData, setVendorData] = useState<VendorData | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -567,10 +570,11 @@ const VendorProfilePage = () => {
         <header className="bg-white shadow-sm border-b border-gray-200">
           <div className="flex justify-between items-center px-4 sm:px-6 lg:px-8 h-16">
             {/* Mobile menu button */}
-            <button className="lg:hidden p-2 rounded-md text-[var(--greenHex)] hover:text-blue-700 transition-all duration-200">
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" />
-              </svg>
+            <button 
+              onClick={() => setIsMobileSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-md text-[var(--greenHex)] hover:text-blue-700 transition-all duration-200"
+            >
+              <HambergerMenu size={24} color="currentColor" />
             </button>
 
             {/* Search bar */}
@@ -815,7 +819,18 @@ const VendorProfilePage = () => {
                 <ArrowLeft size={24} />
               </button>
               <h1 className="text-lg font-semibold text-gray-900 font-urbanist">Edit Profile</h1>
-              <div className="w-8"></div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-500">{isMobileSidebarOpen ? 'Open' : 'Closed'}</span>
+                <button
+                  onClick={() => {
+                    console.log('Hamburger button clicked, opening mobile sidebar');
+                    setIsMobileSidebarOpen(true);
+                  }}
+                  className="p-2 text-[var(--greenHex)] hover:text-blue-700 transition-all duration-200 rounded-lg hover:bg-blue-50 border border-gray-300"
+                >
+                  <HambergerMenu size={24} />
+                </button>
+              </div>
             </div>
           </header>
 
@@ -1005,6 +1020,121 @@ const VendorProfilePage = () => {
           </main>
         </div>
       </div>
+
+      {/* Mobile Sidebar Overlay */}
+      {isMobileSidebarOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 flex" style={{ display: 'flex' }}>
+          {/* Overlay */}
+          <div
+            className="fixed inset-0 bg-gray-600 bg-opacity-50"
+            onClick={() => {
+              console.log('Overlay clicked, closing mobile sidebar');
+              setIsMobileSidebarOpen(false);
+            }}
+          ></div>
+
+          {/* Sidebar */}
+          <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white">
+            <div className="absolute top-0 right-0 -mr-12 pt-2">
+              <button
+                onClick={() => setIsMobileSidebarOpen(false)}
+                className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+              >
+                <CloseCircle size={24} color="white" />
+              </button>
+            </div>
+
+            <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
+              <div className="flex items-center justify-center px-4 mb-8">
+                <FidelityLogo showText={false} size="md" />
+              </div>
+              <nav className="px-4 space-y-2">
+                {menuItems.map((item) => {
+                  const IconComponent = item.icon;
+                  return (
+                    <button
+                      key={item.name}
+                      onClick={() => {
+                        setActiveMenuItem(item.name);
+                        setIsMobileSidebarOpen(false);
+                        if (item.name === 'Dashboard') {
+                          router.push('/vendor/dashboard');
+                        } else if (item.name === 'Business Verification') {
+                          router.push('/vendor/business-verification');
+                        }
+                        else if (item.name === 'Manage Store') {
+                          router.push('/vendor/manage-store');
+                        }
+                        else if (item.name === 'Manage Orders') {
+                          router.push('/vendor/manage-orders');
+                        }
+                        else if (item.name === 'Earnings') {
+                          router.push('/vendor/earnings');
+                        }
+                      }}
+                      className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
+                        activeMenuItem === item.name
+                          ? 'bg-blue-50 text-[var(--greenHex)]'
+                          : 'text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className={`flex items-center justify-center w-10 h-10 rounded-xl mr-4 transition-all duration-200 ${
+                        activeMenuItem === item.name
+                          ? 'bg-[var(--greenHex)] shadow-lg'
+                          : 'bg-gray-100'
+                      }`}>
+                        <IconComponent
+                          size={20}
+                          color={activeMenuItem === item.name ? 'white' : '#6B7280'}
+                        />
+                      </div>
+                      <span className="font-semibold">{item.name}</span>
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
+
+            <div className="flex-shrink-0 px-4 py-4 border-t border-gray-200 space-y-2">
+              <button
+                onClick={() => {
+                  setActiveMenuItem('Profile');
+                  setIsMobileSidebarOpen(false);
+                }}
+                className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
+                  activeMenuItem === 'Profile'
+                    ? 'bg-blue-50 text-[var(--greenHex)]'
+                    : 'text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                <div className={`flex items-center justify-center w-10 h-10 rounded-xl mr-4 transition-all duration-200 ${
+                  activeMenuItem === 'Profile'
+                    ? 'bg-[var(--greenHex)] shadow-lg'
+                    : 'bg-gray-100'
+                }`}>
+                  <Profile
+                    size={20}
+                    color={activeMenuItem === 'Profile' ? 'white' : '#6B7280'}
+                  />
+                </div>
+                <span className="font-semibold">Profile</span>
+              </button>
+              <button
+                onClick={() => {
+                  setIsMobileSidebarOpen(false);
+                  handleLogout();
+                }}
+                className="w-full flex items-center px-4 py-3 text-sm font-medium text-red-600 rounded-xl hover:bg-red-50 transition-all duration-200"
+              >
+                <div className="flex items-center justify-center w-10 h-10 rounded-xl mr-4 bg-red-100">
+                  <Logout size={20} color="#DC2626" />
+                </div>
+                <span className="font-semibold">Log out</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       </div>
     </>
   );
