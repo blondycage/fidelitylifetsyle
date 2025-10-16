@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { handleBackendResponse, createErrorResponse } from '@/lib/api-proxy-utils';
 
 export async function POST(
   request: NextRequest,
@@ -20,10 +21,7 @@ export async function POST(
     // Get token from Authorization header
     const authorization = request.headers.get('authorization');
     if (!authorization || !authorization.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { responseCode: 401, responseMessage: 'Authorization token required', data: null },
-        { status: 401 }
-      );
+      return createErrorResponse(401, 'Authorization token required');
     }
 
     const token = authorization.split(' ')[1];

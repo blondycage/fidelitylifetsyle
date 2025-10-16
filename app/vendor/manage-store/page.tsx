@@ -25,7 +25,7 @@ interface Product {
   stock: number;
   status: 'Available' | 'Unavailable';
   image: string;
-  type: 'product' | 'event' | 'accommodation' | 'reservation';
+  type: 'product' | 'event' | 'accommodation' | 'reservation' | 'car';
   categoryName?: string;
   subcategoryName: string;
   description?: string;
@@ -44,6 +44,35 @@ const ManageStore = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Map business types to their corresponding product types
+  const getExpectedProductTypes = (businessType: string): string[] => {
+    switch (businessType?.toUpperCase()) {
+      case 'EVENTS':
+      case 'EXPERIENCES':
+      case 'TOUR_GUIDE':
+      case 'INFLUENCER':
+        return ['event'];
+      case 'HOTEL':
+      case 'HOSPITALITY':
+      case 'APARTMENT':
+        return ['accommodation'];
+      case 'CLUB':
+      case 'RESERVATIONS':
+        return ['reservation'];
+      case 'CARS':
+        return ['car'];
+      case 'FASHION':
+        return ['product']; // Fashion products are general products
+      case 'RESTAURANT':
+      case 'SUPERMARKET':
+      case 'PHARMACY':
+      case 'OTHERS':
+        return ['product'];
+      default:
+        return ['product'];
+    }
+  };
+
   // Fetch products from API
   const fetchProducts = async () => {
     if (!vendorData?.id) return;
@@ -60,7 +89,14 @@ const ManageStore = () => {
       const response = await fetchVendorProducts(vendorData.id, token, vendorData.businessType);
       
       if (response.responseCode === 200) {
-        const transformedProducts: Product[] = response.data.map((apiProduct: ApiProduct) => {
+        // Get expected product types for this business type
+        const expectedTypes = getExpectedProductTypes(vendorData.businessType);
+        console.log(`\n🎯 VENDOR BUSINESS TYPE: ${vendorData.businessType}`);
+        console.log(`📋 EXPECTED PRODUCT TYPES:`, expectedTypes);
+        console.log(`📊 TOTAL PRODUCTS FROM API:`, response.data.length);
+        
+        const transformedProducts: Product[] = response.data
+          .map((apiProduct: ApiProduct) => {
           try {
             return {
               id: apiProduct.productId.toString(),
@@ -128,8 +164,11 @@ const ManageStore = () => {
               images: []
             };
           }
-        });
+        })
         
+        console.log(`\n📈 FILTERING RESULTS:`);
+        console.log(`✅ FILTERED PRODUCTS COUNT:`, transformedProducts.length);
+        console.log(`📋 FINAL PRODUCTS:`, transformedProducts.map(p => `${p.name} (${p.type})`));
         setProducts(transformedProducts);
         
         // Store products in sessionStorage for access by detail page
@@ -313,7 +352,29 @@ const ManageStore = () => {
       pageDescription="Create, edit, delete products and manage inventory"
     >
       <div className="p-6 lg:p-8">
-        {/* Header - Removed since it's now in DashboardLayout */}
+        {/* Business Type Indicator */}
+        <div className="mb-6">
+          <div className="bg-gradient-to-r from-[#6CC049] to-[#4CAF50] rounded-lg p-4 text-white">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                <ShoppingCart size={20} color="white" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">
+                  {vendorData?.businessType === 'APARTMENT' ? 'Apartment' :
+                   vendorData?.businessType === 'HOSPITALITY' ? 'Hospitality' :
+                   vendorData?.businessType === 'TOUR_GUIDE' ? 'Tour Guide' :
+                   vendorData?.businessType === 'EXPERIENCES' ? 'Experiences' :
+                   vendorData?.businessType === 'RESERVATIONS' ? 'Reservations' :
+                   vendorData?.businessType?.charAt(0).toUpperCase() + vendorData?.businessType?.slice(1).toLowerCase() || 'Business'} Products
+                </h3>
+                <p className="text-sm opacity-90">
+                  Showing {getExpectedProductTypes(vendorData?.businessType || '').join(', ')} products
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Product Statistics */}
         <div className="mb-8">
@@ -414,14 +475,15 @@ const ManageStore = () => {
               </div>
             )}
             
-            {/* Create Product button - always visible */}
-            <button
-              onClick={() => router.push('/vendor/manage-store/create-product')}
-              className="px-6 py-3 bg-[var(--greenHex)] text-white rounded-full text-sm font-medium hover:bg-green-600 transition-all flex items-center justify-center gap-2 w-full sm:w-auto"
-            >
-              <span className="text-xl">+</span>
-              Create Product
-            </button>
+              {/* Create Product button - always visible */}
+              <button
+                onClick={() => router.push('/vendor/manage-store/create-product')}
+                className="px-6 py-3 bg-[var(--greenHex)] text-white rounded-full text-sm font-medium hover:bg-green-600 transition-all flex items-center justify-center gap-2 w-full sm:w-auto"
+              >
+                <span className="text-xl">+</span>
+                Create Product
+              </button>
+            </div>
           </div>
         </div>
 
@@ -502,6 +564,7 @@ const ManageStore = () => {
                       product.type === 'event' ? 'bg-purple-100 text-purple-600' :
                       product.type === 'accommodation' ? 'bg-blue-100 text-blue-600' :
                       product.type === 'reservation' ? 'bg-orange-100 text-orange-600' :
+                      product.type === 'car' ? 'bg-green-100 text-green-600' :
                       'bg-gray-100 text-gray-600'
                     }`}>
                       {product.type.charAt(0).toUpperCase() + product.type.slice(1)}
@@ -544,6 +607,7 @@ const ManageStore = () => {
           </table>
         </div>
 
+
         {/* Update Prices Modal */}
         <UpdatePricesModal
           isOpen={showUpdatePricesModal}
@@ -577,7 +641,8 @@ const ManageStore = () => {
             </div>
           </div>
         )}
-      </div>
+
+      
     </DashboardLayout>
   );
 };

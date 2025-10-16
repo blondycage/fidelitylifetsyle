@@ -819,18 +819,15 @@ const VendorProfilePage = () => {
                 <ArrowLeft size={24} />
               </button>
               <h1 className="text-lg font-semibold text-gray-900 font-urbanist">Edit Profile</h1>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500">{isMobileSidebarOpen ? 'Open' : 'Closed'}</span>
-                <button
-                  onClick={() => {
-                    console.log('Hamburger button clicked, opening mobile sidebar');
-                    setIsMobileSidebarOpen(true);
-                  }}
-                  className="p-2 text-[var(--greenHex)] hover:text-blue-700 transition-all duration-200 rounded-lg hover:bg-blue-50 border border-gray-300"
-                >
-                  <HambergerMenu size={24} />
-                </button>
-              </div>
+              <button
+                onClick={() => {
+                  console.log('Hamburger button clicked, opening mobile sidebar');
+                  setIsMobileSidebarOpen(true);
+                }}
+                className="p-2 text-[var(--greenHex)] hover:text-blue-700 transition-all duration-200 rounded-lg hover:bg-blue-50"
+              >
+                <HambergerMenu size={24} />
+              </button>
             </div>
           </header>
 
@@ -1023,7 +1020,7 @@ const VendorProfilePage = () => {
 
       {/* Mobile Sidebar Overlay */}
       {isMobileSidebarOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 flex" style={{ display: 'flex' }}>
+        <div className="lg:hidden fixed inset-0 z-50 flex" onLoad={() => console.log('Mobile sidebar rendered')}>
           {/* Overlay */}
           <div
             className="fixed inset-0 bg-gray-600 bg-opacity-50"

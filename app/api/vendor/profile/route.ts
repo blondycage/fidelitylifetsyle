@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { handleBackendResponse, createErrorResponse } from '@/lib/api-proxy-utils';
 
 const VENDOR_URL = 'http://45.33.68.176:8077/api/v1/vendor';
 
@@ -20,10 +21,7 @@ export async function GET(request: NextRequest) {
     // Get token from Authorization header
     const authorization = request.headers.get('authorization');
     if (!authorization || !authorization.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { responseCode: 401, responseMessage: 'Authorization token required', data: null },
-        { status: 401 }
-      );
+      return createErrorResponse(401, 'Authorization token required');
     }
 
     const token = authorization.split(' ')[1];
@@ -98,9 +96,6 @@ export async function GET(request: NextRequest) {
       stack: error instanceof Error ? error.stack : undefined
     });
 
-    return NextResponse.json(
-      { responseCode: 500, responseMessage: 'Internal server error', data: null },
-      { status: 500 }
-    );
+    return createErrorResponse(500, 'Internal server error');
   }
 }

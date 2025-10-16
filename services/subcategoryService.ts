@@ -2,7 +2,6 @@
 
 export interface SubcategoryItem {
   subcategoryId: number;
-  vendorId: number;
   subcategoryName: string;
 }
 
@@ -63,25 +62,24 @@ export const createSubcategory = async (vendorId: number, subcategoryName: strin
 };
 
 /**
- * Fetch subcategories for a vendor by category name
+ * Fetch subcategories for a vendor by vendor ID
  */
-export const getSubcategories = async (categoryName: string, vendorId: number): Promise<SubcategoryItem[]> => {
+export const getSubcategories = async (vendorId: number): Promise<SubcategoryItem[]> => {
   try {
     // Check cache first
     if (subcategoriesCache && cacheTimestamp && (Date.now() - cacheTimestamp) < CACHE_DURATION) {
       console.log('📦 Using cached subcategories');
-      // Filter cached subcategories by vendorId
-      return subcategoriesCache.filter(sub => sub.vendorId === vendorId);
+      return subcategoriesCache;
     }
 
-    console.log('🌐 Fetching subcategories from backend...', { categoryName, vendorId });
+    console.log('🌐 Fetching subcategories from backend...', { vendorId });
     
     const token = localStorage.getItem('token');
     if (!token) {
       throw new Error('No authentication token found');
     }
 
-    const response = await fetch(`/api/v1/product/subcategory/list?categoryName=${categoryName}`, {
+    const response = await fetch(`/api/v1/product/subcategory/vendor?vendorId=${vendorId}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -94,15 +92,11 @@ export const getSubcategories = async (categoryName: string, vendorId: number): 
     console.log('📄 Fetch Subcategories API Response data:', data);
 
     if (data.responseCode === 200 && data.data && data.data.length > 0) {
-      // Filter subcategories by vendorId
-      const vendorSubcategories = data.data.filter(sub => sub.vendorId === vendorId);
-      
-      // Cache all subcategories (not just vendor-specific ones)
+      // Cache the subcategories
       subcategoriesCache = data.data;
       cacheTimestamp = Date.now();
       console.log('✅ Subcategories cached successfully:', data.data);
-      console.log('🎯 Vendor-specific subcategories:', vendorSubcategories);
-      return vendorSubcategories;
+      return data.data;
     }
 
     console.warn('⚠️ No subcategories found or error occurred');

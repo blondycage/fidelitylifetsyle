@@ -1,168 +1,25 @@
 'use client';
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import ArrayInput from './ArrayInput';
 import { SubcategoryItem } from '@/services/subcategoryService';
-import { Loader } from '@googlemaps/js-api-loader';
 
 interface DynamicFormProps {
   businessType: string;
   formData: any;
   onInputChange: (field: string, value: any) => void;
+  onNext: () => void;
   subcategories?: SubcategoryItem[];
   subcategoriesLoading?: boolean;
 }
 
-const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInputChange, subcategories = [], subcategoriesLoading = false }) => {
-  // Google Maps Autocomplete state
-  const addressInputRef = useRef<HTMLInputElement>(null);
-  const venueInputRef = useRef<HTMLInputElement>(null);
-  const addressAutocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
-  const venueAutocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
-  const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false);
-  const [isAddressSelected, setIsAddressSelected] = useState(false);
-  const [isVenueSelected, setIsVenueSelected] = useState(false);
-  const [addressInputValue, setAddressInputValue] = useState('');
-  const [venueInputValue, setVenueInputValue] = useState('');
-  const isSelectingFromAutocomplete = useRef(false);
+const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInputChange, onNext, subcategories = [], subcategoriesLoading = false }) => {
+  console.log('DynamicForm rendered with businessType:', businessType);
+  console.log('DynamicForm props:', { businessType, formData, onNext });
 
-  // Load Google Maps
-  useEffect(() => {
-    const loadGoogleMaps = async () => {
-      if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
-        console.error('Google Maps API key not found');
-        return;
-      }
 
-      try {
-        const loader = new Loader({
-          apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
-          version: 'weekly',
-          libraries: ['places'],
-        });
 
-        await loader.load();
-        console.log('Google Maps loaded successfully');
-        setIsGoogleMapsLoaded(true);
-      } catch (error) {
-        console.error('Error loading Google Maps:', error);
-      }
-    };
 
-    loadGoogleMaps();
-  }, []);
 
-  // Initialize autocomplete for address field
-  useEffect(() => {
-    if (isGoogleMapsLoaded && addressInputRef.current && !addressAutocompleteRef.current) {
-      console.log('Initializing Google Places Autocomplete for Address');
-
-      addressAutocompleteRef.current = new google.maps.places.Autocomplete(
-        addressInputRef.current,
-        {
-          types: ['establishment', 'geocode'],
-          fields: ['formatted_address', 'geometry.location', 'name'],
-        }
-      );
-
-      addressAutocompleteRef.current.addListener('place_changed', () => {
-        const place = addressAutocompleteRef.current?.getPlace();
-
-        if (place && place.geometry && place.geometry.location) {
-          isSelectingFromAutocomplete.current = true;
-
-          const selectedAddress = place.formatted_address || place.name || '';
-          
-          // Update form data with selected address and coordinates
-          onInputChange('address', selectedAddress);
-          onInputChange('addressLatitude', place.geometry.location.lat());
-          onInputChange('addressLongitude', place.geometry.location.lng());
-          
-          // Update local address state - clear input value so it shows selected address
-          setAddressInputValue('');
-          setIsAddressSelected(true);
-
-          setTimeout(() => {
-            isSelectingFromAutocomplete.current = false;
-          }, 100);
-        }
-      });
-    }
-
-    return () => {
-      if (addressAutocompleteRef.current) {
-        google.maps.event.clearInstanceListeners(addressAutocompleteRef.current);
-      }
-    };
-  }, [isGoogleMapsLoaded, onInputChange]);
-
-  // Sync input values with form data
-  useEffect(() => {
-    if (formData.address && !isAddressSelected) {
-      setAddressInputValue(formData.address);
-    }
-    if (formData.venue && !isVenueSelected) {
-      setVenueInputValue(formData.venue);
-    }
-  }, [formData.address, formData.venue, isAddressSelected, isVenueSelected]);
-
-  // Initialize autocomplete for venue field
-  useEffect(() => {
-    if (isGoogleMapsLoaded && venueInputRef.current && !venueAutocompleteRef.current) {
-      console.log('Initializing Google Places Autocomplete for Venue');
-
-      venueAutocompleteRef.current = new google.maps.places.Autocomplete(
-        venueInputRef.current,
-        {
-          types: ['establishment'],
-          fields: ['formatted_address', 'geometry.location', 'name'],
-        }
-      );
-
-      venueAutocompleteRef.current.addListener('place_changed', () => {
-        const place = venueAutocompleteRef.current?.getPlace();
-
-        if (place && place.geometry && place.geometry.location) {
-          isSelectingFromAutocomplete.current = true;
-
-          const selectedVenue = place.formatted_address || place.name || '';
-          
-          // Update form data with selected venue and coordinates
-          onInputChange('venue', selectedVenue);
-          onInputChange('venueLatitude', place.geometry.location.lat());
-          onInputChange('venueLongitude', place.geometry.location.lng());
-          
-          // Update local venue state - clear input value so it shows selected venue
-          setVenueInputValue('');
-          setIsVenueSelected(true);
-
-          setTimeout(() => {
-            isSelectingFromAutocomplete.current = false;
-          }, 100);
-        }
-      });
-    }
-
-    return () => {
-      if (venueAutocompleteRef.current) {
-        google.maps.event.clearInstanceListeners(venueAutocompleteRef.current);
-      }
-    };
-  }, [isGoogleMapsLoaded, onInputChange]);
-
-  // Handle address input changes
-  const handleAddressInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    setAddressInputValue(newValue);
-    
-    // If user starts typing after having a selected address, clear the selection
-    if (isAddressSelected && !isSelectingFromAutocomplete.current) {
-      setIsAddressSelected(false);
-      // Clear the form data address when user starts typing manually
-      onInputChange('address', '');
-    }
-
-    // Don't update formData for manual typing - only for autocomplete selections
-  };
 
   // Effect to set price to 0 for free events
   useEffect(() => {
@@ -171,49 +28,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
     }
   }, [formData.eventType, formData.price, onInputChange]);
 
-  // Handle venue input changes
-  const handleVenueInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    setVenueInputValue(newValue);
-    
-    // If user starts typing after having a selected venue, clear the selection
-    if (isVenueSelected && !isSelectingFromAutocomplete.current) {
-      setIsVenueSelected(false);
-      // Clear the form data venue when user starts typing manually
-      onInputChange('venue', '');
-    }
-    
-    // Clear address when venue is filled
-    if (newValue && formData.address) {
-      onInputChange('address', '');
-      setAddressInputValue('');
-      setIsAddressSelected(false);
-    }
 
-    // Don't update formData for manual typing - only for autocomplete selections
-  };
-
-  // Handle address input changes with venue clearing
-  const handleAddressInputChangeWithVenue = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    setAddressInputValue(newValue);
-    
-    // If user starts typing after having a selected address, clear the selection
-    if (isAddressSelected && !isSelectingFromAutocomplete.current) {
-      setIsAddressSelected(false);
-      // Clear the form data address when user starts typing manually
-      onInputChange('address', '');
-    }
-    
-    // Clear venue when address is filled
-    if (newValue && formData.venue) {
-      onInputChange('venue', '');
-      setVenueInputValue('');
-      setIsVenueSelected(false);
-    }
-
-    // Don't update formData for manual typing - only for autocomplete selections
-  };
   // Events, Experiences, Tour Guide, Influencer forms
   const renderEventsForm = () => (
     <div className="space-y-4 sm:space-y-6">
@@ -255,60 +70,6 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
         </div>
       </div>
 
-      {/* Address - Only show if venue is not filled */}
-      {!formData.venue && (
-        <div className="w-full max-w-full sm:max-w-[450px]">
-          <div className="flex items-center gap-2 mb-2">
-            <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
-              Address
-            </label>
-          </div>
-          <div className="relative">
-            <input
-              ref={addressInputRef}
-              type="text"
-              value={isAddressSelected ? formData.address : addressInputValue}
-              onChange={handleAddressInputChangeWithVenue}
-              onFocus={() => {
-                if (isAddressSelected && formData.address) {
-                  setAddressInputValue(formData.address);
-                }
-              }}
-              className={`w-full h-12 px-4 bg-[#EEEEEE] border rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:ring-1 focus:ring-[#6CC049] ${
-                isAddressSelected
-                  ? 'border-[#6CC049] bg-green-50'
-                  : 'border-[#EEEEEE]'
-              }`}
-              placeholder="Enter event address"
-            />
-            {/* Clear button */}
-            {(formData.address || addressInputValue) && (
-              <button
-                type="button"
-                onClick={() => {
-                  onInputChange('address', '');
-                  setAddressInputValue('');
-                  setIsAddressSelected(false);
-                }}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-            )}
-          </div>
-          {/* Success indicator */}
-          {isAddressSelected && (
-            <div className="mt-2 flex items-center gap-2 text-[#6CC049] text-[12px] font-urbanist">
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              Address selected from Google Maps
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Sub-category */}
       <div className="w-full max-w-full sm:max-w-[450px]">
@@ -455,8 +216,9 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
        
       </div>
 
-      {/* Venue */}
-      <div className="w-full max-w-full sm:max-w-[450px]">
+      {/* Venue - Only show if address is not filled */}
+      {!formData.address && (
+        <div className="w-full max-w-full sm:max-w-[450px]">
         <div className="flex items-center gap-2 mb-2">
           <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
             Venue
@@ -464,31 +226,17 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
         </div>
         <div className="relative">
           <input
-            ref={venueInputRef}
             type="text"
-            value={isVenueSelected ? formData.venue : venueInputValue}
-            onChange={handleVenueInputChange}
-            onFocus={() => {
-              if (isVenueSelected && formData.venue) {
-                setVenueInputValue(formData.venue);
-              }
-            }}
-            className={`w-full h-12 px-4 bg-[#EEEEEE] border rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:ring-1 focus:ring-[#6CC049] ${
-              isVenueSelected
-                ? 'border-[#6CC049] bg-green-50'
-                : 'border-[#EEEEEE]'
-            }`}
+            value={formData.venue || ''}
+            onChange={(e) => onInputChange('venue', e.target.value)}
+            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
             placeholder="Enter venue name"
           />
           {/* Clear button */}
-          {(formData.venue || venueInputValue) && (
+          {formData.venue && (
             <button
               type="button"
-              onClick={() => {
-                onInputChange('venue', '');
-                setVenueInputValue('');
-                setIsVenueSelected(false);
-              }}
+              onClick={() => onInputChange('venue', '')}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
             >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -497,16 +245,8 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
             </button>
           )}
         </div>
-        {/* Success indicator */}
-        {isVenueSelected && (
-          <div className="mt-2 flex items-center gap-2 text-[#6CC049] text-[12px] font-urbanist">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            Venue selected from Google Maps
-          </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Max Attendees */}
       <div className="w-full max-w-full sm:max-w-[450px]">
@@ -735,6 +475,237 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
     </div>
   );
 
+  // Hotel form
+  const renderHotelForm = () => (
+    <div className="space-y-4 sm:space-y-6">
+      {/* Hotel Name */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Hotel Name
+          </label>
+          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
+        </div>
+        <div className="relative">
+          <input
+            type="text"
+            value={formData.productName || ''}
+            onChange={(e) => onInputChange('productName', e.target.value)}
+            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+            placeholder="Enter hotel name"
+          />
+        </div>
+      </div>
+
+      {/* Sub-category */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Sub-category
+          </label>
+        </div>
+        <div className="relative">
+          <select
+            value={formData.subCategory || formData.subcategoryId || ''}
+            onChange={(e) => {
+              const selectedSubcategory = subcategories?.find(sub => sub.subcategoryId.toString() === e.target.value);
+              onInputChange('subCategory', e.target.value);
+              onInputChange('subcategoryName', selectedSubcategory?.subcategoryName || '');
+              onInputChange('subcategoryId', selectedSubcategory?.subcategoryId || null);
+            }}
+            disabled={subcategoriesLoading}
+            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] appearance-none disabled:opacity-50"
+          >
+            <option value="">
+              {subcategoriesLoading ? 'Loading subcategories...' : 'Select sub-category'}
+            </option>
+            {subcategories?.map((subcategory) => (
+              <option key={subcategory.subcategoryId} value={subcategory.subcategoryId}>
+                {subcategory.subcategoryName}
+              </option>
+            ))}
+          </select>
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M2.22 5.47L8 11.25L13.78 5.47" stroke="#616161" strokeWidth="0.67" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      {/* Description */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Description
+          </label>
+          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
+        </div>
+        <div className="relative">
+          <textarea
+            value={formData.description || ''}
+            onChange={(e) => onInputChange('description', e.target.value)}
+            className="w-full h-24 px-4 py-3 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] resize-none"
+            placeholder="Enter hotel description"
+            rows={3}
+          />
+        </div>
+      </div>
+
+      {/* Address */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Address
+          </label>
+          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
+        </div>
+        <div className="relative">
+          <input
+            type="text"
+            value={formData.address || ''}
+            onChange={(e) => onInputChange('address', e.target.value)}
+            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+            placeholder="Enter hotel address"
+          />
+        </div>
+      </div>
+
+      {/* Price */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Base Price
+          </label>
+        </div>
+        <div className="relative">
+          <input
+            type="number"
+            step="0.01"
+            value={formData.price || ''}
+            onChange={(e) => onInputChange('price', e.target.value)}
+            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+            placeholder="Enter base price"
+          />
+        </div>
+      </div>
+
+      {/* Check-in Time */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Check-in Time
+          </label>
+        </div>
+        <div className="relative">
+          <input
+            type="text"
+            value={formData.checkInTime || ''}
+            onChange={(e) => onInputChange('checkInTime', e.target.value)}
+            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+            placeholder="e.g., 2:00 PM"
+          />
+        </div>
+      </div>
+
+      {/* Check-out Time */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Check-out Time
+          </label>
+        </div>
+        <div className="relative">
+          <input
+            type="text"
+            value={formData.checkOutTime || ''}
+            onChange={(e) => onInputChange('checkOutTime', e.target.value)}
+            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+            placeholder="e.g., 11:00 AM"
+          />
+        </div>
+      </div>
+
+      {/* Property Amenities */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Property Amenities
+          </label>
+        </div>
+        <ArrayInput
+          label="Property Amenities"
+          value={Array.isArray(formData.propertyAmenities) ? formData.propertyAmenities : []}
+          onChange={(value) => onInputChange('propertyAmenities', value)}
+          placeholder="Add amenity (e.g., WiFi, Pool, Gym)"
+        />
+      </div>
+
+      {/* Available Start Date */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Available Start Date
+          </label>
+        </div>
+        <div className="relative">
+          <input
+            type="date"
+            value={formData.availableStartDate || ''}
+            onChange={(e) => onInputChange('availableStartDate', e.target.value)}
+            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+          />
+        </div>
+      </div>
+
+      {/* Available End Date */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Available End Date
+          </label>
+        </div>
+        <div className="relative">
+          <input
+            type="date"
+            value={formData.availableEndDate || ''}
+            onChange={(e) => onInputChange('availableEndDate', e.target.value)}
+            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+          />
+        </div>
+      </div>
+
+      {/* Cancellation Policy */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Cancellation Policy
+          </label>
+        </div>
+        <div className="relative">
+          <textarea
+            value={formData.cancellationPolicy || ''}
+            onChange={(e) => onInputChange('cancellationPolicy', e.target.value)}
+            className="w-full h-24 px-4 py-3 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] resize-none"
+            placeholder="Enter cancellation policy"
+            rows={3}
+          />
+        </div>
+      </div>
+
+      {/* Next Button */}
+      <div className="flex justify-end mt-6">
+        <button
+          type="button"
+          onClick={onNext}
+          className="px-6 py-3 bg-[#6CC049] text-white rounded-lg text-[14px] font-urbanist hover:bg-[#5AAE3A] transition-colors"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+
   // Accommodation form
   const renderAccommodationForm = () => (
     <div className="space-y-4 sm:space-y-6">
@@ -861,31 +832,17 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
         </div>
         <div className="relative">
           <input
-            ref={addressInputRef}
             type="text"
-            value={isAddressSelected ? formData.address : addressInputValue}
-            onChange={handleAddressInputChange}
-            onFocus={() => {
-              if (isAddressSelected && formData.address) {
-                setAddressInputValue(formData.address);
-              }
-            }}
-            className={`w-full h-12 px-4 bg-[#EEEEEE] border rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:ring-1 focus:ring-[#6CC049] ${
-              isAddressSelected
-                ? 'border-[#6CC049] bg-green-50'
-                : 'border-[#EEEEEE]'
-            }`}
+            value={formData.address || ''}
+            onChange={(e) => onInputChange('address', e.target.value)}
+            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
             placeholder="Enter property address"
           />
           {/* Clear button */}
-          {(formData.address || addressInputValue) && (
+          {formData.address && (
             <button
               type="button"
-              onClick={() => {
-                onInputChange('address', '');
-                setAddressInputValue('');
-                setIsAddressSelected(false);
-              }}
+              onClick={() => onInputChange('address', '')}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
             >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -894,15 +851,6 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
             </button>
           )}
         </div>
-        {/* Success indicator */}
-        {isAddressSelected && (
-          <div className="mt-2 flex items-center gap-2 text-[#6CC049] text-[12px] font-urbanist">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            Address selected from Google Maps
-          </div>
-        )}
       </div>
 
       {/* Daily Rate */}
@@ -1099,6 +1047,36 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
           placeholder="Enter cancellation policy"
         />
       </div>
+
+      {/* Available Start Date */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Available Start Date
+          </label>
+        </div>
+        <input
+          type="date"
+          value={formData.availableStartDate || ''}
+          onChange={(e) => onInputChange('availableStartDate', e.target.value)}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+        />
+      </div>
+
+      {/* Available End Date */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Available End Date
+          </label>
+        </div>
+        <input
+          type="date"
+          value={formData.availableEndDate || ''}
+          onChange={(e) => onInputChange('availableEndDate', e.target.value)}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+        />
+      </div>
     </div>
   );
 
@@ -1192,31 +1170,17 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
         </div>
         <div className="relative">
           <input
-            ref={addressInputRef}
             type="text"
-            value={isAddressSelected ? formData.address : addressInputValue}
-            onChange={handleAddressInputChange}
-            onFocus={() => {
-              if (isAddressSelected && formData.address) {
-                setAddressInputValue(formData.address);
-              }
-            }}
-            className={`w-full h-12 px-4 bg-[#EEEEEE] border rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:ring-1 focus:ring-[#6CC049] ${
-              isAddressSelected
-                ? 'border-[#6CC049] bg-green-50'
-                : 'border-[#EEEEEE]'
-            }`}
+            value={formData.address || ''}
+            onChange={(e) => onInputChange('address', e.target.value)}
+            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
             placeholder="Enter address"
           />
           {/* Clear button */}
-          {(formData.address || addressInputValue) && (
+          {formData.address && (
             <button
               type="button"
-              onClick={() => {
-                onInputChange('address', '');
-                setAddressInputValue('');
-                setIsAddressSelected(false);
-              }}
+              onClick={() => onInputChange('address', '')}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
             >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -1225,15 +1189,6 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
             </button>
           )}
         </div>
-        {/* Success indicator */}
-        {isAddressSelected && (
-          <div className="mt-2 flex items-center gap-2 text-[#6CC049] text-[12px] font-urbanist">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            Address selected from Google Maps
-          </div>
-        )}
       </div>
 
       {/* Product Type */}
@@ -1407,6 +1362,36 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
         placeholder="e.g., Live Band, DJ, Karaoke, Dance Floor"
         helpText="Press Enter to add each feature"
       />
+
+      {/* Available Start Date */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Available Start Date
+          </label>
+        </div>
+        <input
+          type="date"
+          value={formData.availableStartDate || ''}
+          onChange={(e) => onInputChange('availableStartDate', e.target.value)}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+        />
+      </div>
+
+      {/* Available End Date */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Available End Date
+          </label>
+        </div>
+        <input
+          type="date"
+          value={formData.availableEndDate || ''}
+          onChange={(e) => onInputChange('availableEndDate', e.target.value)}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+        />
+      </div>
     </div>
   );
 
@@ -1653,29 +1638,541 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
     </div>
   );
 
+  // Car rental form
+  const renderCarForm = () => (
+    <div className="space-y-4 sm:space-y-6">
+      {/* Car Name */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Car Name
+          </label>
+          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
+        </div>
+        <input
+          type="text"
+          value={formData.productName || ''}
+          onChange={(e) => onInputChange('productName', e.target.value)}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+          placeholder="Enter car name"
+        />
+      </div>
+
+      {/* Description */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Description
+          </label>
+          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
+        </div>
+        <div className="relative">
+          <textarea
+            value={formData.description || ''}
+            onChange={(e) => onInputChange('description', e.target.value)}
+            className="w-full h-24 px-4 py-3 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] resize-none"
+            placeholder="Enter car description"
+            rows={3}
+          />
+        </div>
+      </div>
+
+      {/* Subcategory */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Subcategory
+          </label>
+        </div>
+        <div className="relative">
+          <select
+            value={formData.subcategoryId || ''}
+            onChange={(e) => onInputChange('subcategoryId', e.target.value ? parseInt(e.target.value) : '')}
+            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] appearance-none cursor-pointer"
+          >
+            <option value="">Select a subcategory (optional)</option>
+            {subcategories.map((subcategory) => (
+              <option key={subcategory.subcategoryId} value={subcategory.subcategoryId}>
+                {subcategory.subcategoryName}
+              </option>
+            ))}
+          </select>
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+            <svg className="w-5 h-5 text-[#9E9E9E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            // This will be handled by the parent component
+            if (typeof window !== 'undefined') {
+              const event = new CustomEvent('openSubcategoryModal');
+              window.dispatchEvent(event);
+            }
+          }}
+          className="mt-2 text-[#6CC049] text-[12px] font-urbanist hover:underline"
+        >
+          Add a new sub-category
+        </button>
+      </div>
+
+      {/* Address */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Address
+          </label>
+        </div>
+        <input
+          type="text"
+          value={formData.address || ''}
+          onChange={(e) => onInputChange('address', e.target.value)}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+          placeholder="Enter address"
+        />
+      </div>
+
+      {/* Price */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Price
+          </label>
+        </div>
+        <input
+          type="number"
+          value={formData.price || ''}
+          onChange={(e) => onInputChange('price', e.target.value)}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+          placeholder="Enter price"
+        />
+      </div>
+
+      {/* Car Make */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Car Make
+          </label>
+        </div>
+        <input
+          type="text"
+          value={formData.carMake || ''}
+          onChange={(e) => onInputChange('carMake', e.target.value)}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+          placeholder="e.g., Toyota, Honda, BMW"
+        />
+      </div>
+
+      {/* Car Model */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Car Model
+          </label>
+        </div>
+        <input
+          type="text"
+          value={formData.carModel || ''}
+          onChange={(e) => onInputChange('carModel', e.target.value)}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+          placeholder="e.g., Camry, Civic, X5"
+        />
+      </div>
+
+      {/* Car Year */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Car Year
+          </label>
+        </div>
+        <input
+          type="number"
+          value={formData.carYear || ''}
+          onChange={(e) => onInputChange('carYear', e.target.value)}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+          placeholder="e.g., 2020"
+          min="1900"
+          max="2030"
+        />
+      </div>
+
+      {/* License Plate */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            License Plate
+          </label>
+        </div>
+        <input
+          type="text"
+          value={formData.licensePlate || ''}
+          onChange={(e) => onInputChange('licensePlate', e.target.value)}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+          placeholder="e.g., ABC-1234"
+        />
+      </div>
+
+      {/* Car Type */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Car Type
+          </label>
+        </div>
+        <select
+          value={formData.carType || ''}
+          onChange={(e) => onInputChange('carType', e.target.value)}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] appearance-none"
+        >
+          <option value="">Select car type</option>
+          <option value="SEDAN">Sedan</option>
+          <option value="SUV">SUV</option>
+          <option value="HATCHBACK">Hatchback</option>
+          <option value="COUPE">Coupe</option>
+          <option value="CONVERTIBLE">Convertible</option>
+          <option value="WAGON">Wagon</option>
+          <option value="PICKUP">Pickup</option>
+          <option value="VAN">Van</option>
+          <option value="TRUCK">Truck</option>
+        </select>
+      </div>
+
+      {/* Seats */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Number of Seats
+          </label>
+        </div>
+        <input
+          type="number"
+          value={formData.seats || ''}
+          onChange={(e) => onInputChange('seats', e.target.value)}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+          placeholder="e.g., 5"
+          min="1"
+          max="50"
+        />
+      </div>
+
+      {/* Hourly Rate */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Hourly Rate
+          </label>
+        </div>
+        <input
+          type="number"
+          value={formData.hourlyRate || ''}
+          onChange={(e) => onInputChange('hourlyRate', e.target.value)}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+          placeholder="Enter hourly rate"
+          min="0"
+          step="0.01"
+        />
+      </div>
+
+      {/* Daily Rate */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Daily Rate
+          </label>
+        </div>
+        <input
+          type="number"
+          value={formData.dailyRate || ''}
+          onChange={(e) => onInputChange('dailyRate', e.target.value)}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+          placeholder="Enter daily rate"
+          min="0"
+          step="0.01"
+        />
+      </div>
+
+      {/* Monthly Rate */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Monthly Rate
+          </label>
+        </div>
+        <input
+          type="number"
+          value={formData.monthlyRate || ''}
+          onChange={(e) => onInputChange('monthlyRate', e.target.value)}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+          placeholder="Enter monthly rate"
+          min="0"
+          step="0.01"
+        />
+      </div>
+
+      {/* Security Deposit */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Security Deposit
+          </label>
+        </div>
+        <input
+          type="number"
+          value={formData.securityDeposit || ''}
+          onChange={(e) => onInputChange('securityDeposit', e.target.value)}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+          placeholder="Enter security deposit"
+          min="0"
+          step="0.01"
+        />
+      </div>
+
+      {/* Has Driver */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Includes Driver
+          </label>
+        </div>
+        <div className="flex items-center gap-4">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="radio"
+              name="hasDriver"
+              value="true"
+              checked={formData.hasDriver === true}
+              onChange={() => onInputChange('hasDriver', true)}
+              className="w-4 h-4 text-[#6CC049] focus:ring-[#6CC049]"
+            />
+            <span className="text-[14px] font-urbanist text-[#212121]">Yes</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="radio"
+              name="hasDriver"
+              value="false"
+              checked={formData.hasDriver === false}
+              onChange={() => onInputChange('hasDriver', false)}
+              className="w-4 h-4 text-[#6CC049] focus:ring-[#6CC049]"
+            />
+            <span className="text-[14px] font-urbanist text-[#212121]">No</span>
+          </label>
+        </div>
+      </div>
+
+      {/* Available Days */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Available Days
+          </label>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
+            <label key={day} className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.availableDays?.includes(day) || false}
+                onChange={(e) => {
+                  const currentDays = formData.availableDays || [];
+                  if (e.target.checked) {
+                    onInputChange('availableDays', [...currentDays, day]);
+                  } else {
+                    onInputChange('availableDays', currentDays.filter(d => d !== day));
+                  }
+                }}
+                className="w-4 h-4 text-[#6CC049] focus:ring-[#6CC049] rounded"
+              />
+              <span className="text-[12px] sm:text-[14px] font-urbanist text-[#212121]">{day}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Available Hours */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Available Hours
+          </label>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="text-[12px] font-urbanist text-[#616161] mb-1 block">Start Time</label>
+            <input
+              type="time"
+              value={formData.availableHoursStart || ''}
+              onChange={(e) => onInputChange('availableHoursStart', e.target.value)}
+              className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+            />
+          </div>
+          <div>
+            <label className="text-[12px] font-urbanist text-[#616161] mb-1 block">End Time</label>
+            <input
+              type="time"
+              value={formData.availableHoursEnd || ''}
+              onChange={(e) => onInputChange('availableHoursEnd', e.target.value)}
+              className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Terms and Conditions */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Terms and Conditions
+          </label>
+        </div>
+        <textarea
+          value={formData.termsAndConditions || ''}
+          onChange={(e) => onInputChange('termsAndConditions', e.target.value)}
+          className="w-full h-24 px-4 py-3 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] resize-none"
+          placeholder="Enter terms and conditions"
+          rows={3}
+        />
+      </div>
+
+      {/* Addons */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Add-ons
+          </label>
+        </div>
+        <div className="space-y-3">
+          {formData.addons?.map((addon, index) => (
+            <div key={index} className="p-4 bg-gray-50 rounded-lg border">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="text-[12px] font-urbanist text-[#616161] mb-1 block">Name</label>
+                  <input
+                    type="text"
+                    value={addon.name}
+                    onChange={(e) => {
+                      const newAddons = [...(formData.addons || [])];
+                      newAddons[index] = { ...addon, name: e.target.value };
+                      onInputChange('addons', newAddons);
+                    }}
+                    className="w-full h-10 px-3 bg-white border border-gray-300 rounded text-[12px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+                    placeholder="Add-on name"
+                  />
+                </div>
+                <div>
+                  <label className="text-[12px] font-urbanist text-[#616161] mb-1 block">Price</label>
+                  <input
+                    type="number"
+                    value={addon.price}
+                    onChange={(e) => {
+                      const newAddons = [...(formData.addons || [])];
+                      newAddons[index] = { ...addon, price: e.target.value };
+                      onInputChange('addons', newAddons);
+                    }}
+                    className="w-full h-10 px-3 bg-white border border-gray-300 rounded text-[12px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+                    placeholder="0.00"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newAddons = (formData.addons || []).filter((_, i) => i !== index);
+                      onInputChange('addons', newAddons);
+                    }}
+                    className="w-full h-10 bg-red-500 text-white rounded text-[12px] font-urbanist hover:bg-red-600 transition-colors"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+              <div className="mt-2">
+                <label className="text-[12px] font-urbanist text-[#616161] mb-1 block">Description</label>
+                <input
+                  type="text"
+                  value={addon.description}
+                  onChange={(e) => {
+                    const newAddons = [...(formData.addons || [])];
+                    newAddons[index] = { ...addon, description: e.target.value };
+                    onInputChange('addons', newAddons);
+                  }}
+                  className="w-full h-10 px-3 bg-white border border-gray-300 rounded text-[12px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+                  placeholder="Add-on description"
+                />
+              </div>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => {
+              const newAddons = [...(formData.addons || []), { name: '', price: '', description: '' }];
+              onInputChange('addons', newAddons);
+            }}
+            className="w-full h-12 border-2 border-dashed border-[#6CC049] text-[#6CC049] rounded-lg text-[14px] font-urbanist hover:bg-[#6CC049] hover:text-white transition-colors"
+          >
+            + Add Add-on
+          </button>
+        </div>
+      </div>
+
+      {/* Next Button */}
+      <div className="flex justify-end mt-6">
+        <button
+          type="button"
+          onClick={onNext}
+          className="px-6 py-3 bg-[#6CC049] text-white rounded-lg text-[14px] font-urbanist hover:bg-[#5AAE3A] transition-colors"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+
   // Render appropriate form based on business type
   const renderForm = () => {
-    switch (businessType) {
+    const upperBusinessType = businessType?.toUpperCase();
+    console.log('DynamicForm - businessType:', businessType, 'upperBusinessType:', upperBusinessType);
+    console.log('Available cases: EVENTS, EXPERIENCES, TOUR_GUIDE, INFLUENCER, HOTEL, HOTELS, HOSPITALITY, APARTMENT, CLUB, RESERVATIONS, CARS, FASHION, RESTAURANT, SUPERMARKET, PHARMACY, OTHERS');
+    
+    switch (upperBusinessType) {
       case 'EVENTS':
       case 'EXPERIENCES':
       case 'TOUR_GUIDE':
       case 'INFLUENCER':
+        console.log('Rendering events form');
         return renderEventsForm();
       case 'HOTEL':
+      case 'HOTELS':
+        console.log('Rendering hotel form');
+        return renderHotelForm();
       case 'HOSPITALITY':
       case 'APARTMENT':
+        console.log('Rendering accommodation form');
         return renderAccommodationForm();
       case 'CLUB':
       case 'RESERVATIONS':
+        console.log('Rendering reservation form');
         return renderReservationForm();
+      case 'CARS':
+        console.log('Rendering car form');
+        return renderCarForm();
       case 'FASHION':
+        console.log('Rendering fashion form');
         return renderFashionForm();
       case 'RESTAURANT':
       case 'SUPERMARKET':
       case 'PHARMACY':
       case 'OTHERS':
+        console.log('Rendering create product form');
         return renderCreateProductForm();
       default:
+        console.log('No form found for business type:', upperBusinessType);
         return null;
     }
   };

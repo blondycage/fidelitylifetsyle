@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { handleBackendResponse, createErrorResponse } from '@/lib/api-proxy-utils';
 
 export async function POST(request: NextRequest) {
   try {

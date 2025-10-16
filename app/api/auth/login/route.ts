@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { handleBackendResponse, createErrorResponse } from '@/lib/api-proxy-utils';
 
 const LOGIN_URL = 'http://45.33.68.176:8090/api/v1/auth';
 
@@ -54,9 +55,6 @@ export async function POST(request: NextRequest) {
       stack: error instanceof Error ? error.stack : undefined
     });
 
-    return NextResponse.json(
-      { responseCode: 500, responseMessage: 'Internal server error', data: null },
-      { status: 500 }
-    );
+    return createErrorResponse(500, 'Internal server error');
   }
 }

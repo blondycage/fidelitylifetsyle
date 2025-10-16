@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { handleBackendResponse, createErrorResponse } from '@/lib/api-proxy-utils';
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,10 +23,7 @@ export async function GET(request: NextRequest) {
     // Get token from Authorization header
     const authorization = request.headers.get('authorization');
     if (!authorization || !authorization.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { responseCode: 401, responseMessage: 'Authorization token required', data: null },
-        { status: 401 }
-      );
+      return createErrorResponse(401, 'Authorization token required');
     }
 
     const token = authorization.split(' ')[1];
@@ -48,31 +46,11 @@ export async function GET(request: NextRequest) {
       ok: backendResponse.ok
     });
 
-    // Get response text first to check if it's valid JSON
-    const responseText = await backendResponse.text();
-    console.log('📄 Raw Response Text:', {
-      timestamp: new Date().toISOString(),
-      text: responseText,
-      length: responseText.length,
-      isEmpty: responseText.length === 0
+    // Handle backend response with improved responseCode handling
+    return await handleBackendResponse(backendResponse, {
+      fallbackResponseCode: 500,
+      fallbackMessage: 'Backend request failed'
     });
-
-    let data;
-    try {
-      if (responseText.trim()) {
-        data = JSON.parse(responseText);
-        console.log('✅ Parsed JSON Response:', { timestamp: new Date().toISOString(), data: data });
-      } else {
-        data = { responseCode: backendResponse.status, responseMessage: backendResponse.statusText || 'Empty response from backend', data: null };
-        console.log('⚠️ Empty Response - Using fallback data:', { timestamp: new Date().toISOString(), fallbackData: data });
-      }
-    } catch (parseError) {
-      console.error('❌ JSON Parse Error:', { timestamp: new Date().toISOString(), error: parseError, responseText: responseText });
-      data = { responseCode: 500, responseMessage: 'Invalid JSON response from backend', data: null, error: parseError.message, rawResponse: responseText };
-    }
-
-    console.log('✅ Subcategory Fetch Backend Response:', { timestamp: new Date().toISOString(), status: backendResponse.status, data: data });
-    return NextResponse.json(data, { status: backendResponse.status });
 
   } catch (error) {
     console.error('❌ Subcategory Fetch API Error:', error);

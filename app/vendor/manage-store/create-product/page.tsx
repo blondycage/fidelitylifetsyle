@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import AddSubcategoryModal from '@/components/vendor/modals/AddSubcategoryModal';
 import { ProductSuccessModal } from '@/components/vendor/modals/ProductSuccessModal';
 import TicketCreationModal from '@/components/vendor/modals/TicketCreationModal';
+import RoomCreationModal from '@/components/vendor/modals/RoomCreationModal';
 import { getSubcategories, clearSubcategoriesCache, SubcategoryItem } from '@/services/subcategoryService';
 
 const CreateProductPage = () => {
@@ -25,6 +26,8 @@ const CreateProductPage = () => {
   const [showScrollPrompt, setShowScrollPrompt] = useState(false);
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [eventId, setEventId] = useState<number | null>(null);
+  const [showRoomModal, setShowRoomModal] = useState(false);
+  const [hotelId, setHotelId] = useState<number | null>(null);
   const [subcategories, setSubcategories] = useState<SubcategoryItem[]>([]);
   const [subcategoriesLoading, setSubcategoriesLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -70,6 +73,10 @@ const CreateProductPage = () => {
     checkOutTime: '',
     houseRules: [] as string[],
     cancellationPolicy: '',
+    availableStartDate: '',
+    availableEndDate: '',
+    // Hotel payload fields
+    propertyAmenities: [] as string[],
     // Reservation payload fields
     productType: '',
     serviceType: '',
@@ -81,6 +88,23 @@ const CreateProductPage = () => {
     acceptsWalkIns: true,
     dressCode: '',
     specialFeatures: [] as string[],
+    // Car rental payload fields
+    carMake: '',
+    carModel: '',
+    carYear: '',
+    licensePlate: '',
+    carType: '',
+    seats: '',
+    hourlyRate: '',
+    dailyRate: '',
+    monthlyRate: '',
+    securityDeposit: '',
+    hasDriver: false,
+    availableDays: [] as string[],
+    availableHoursStart: '',
+    availableHoursEnd: '',
+    termsAndConditions: '',
+    addons: [] as Array<{name: string, price: string, description: string}>,
     // Additional fields for other categories (will be used later)
     subCategory: '',
     location: '',
@@ -92,10 +116,10 @@ const CreateProductPage = () => {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
   // Fetch subcategories when vendor data is available
-  const fetchSubcategories = async (vendorId: number, categoryName: string) => {
+  const fetchSubcategories = async (vendorId: number) => {
     try {
       setSubcategoriesLoading(true);
-      const subcategoriesList = await getSubcategories(categoryName, vendorId);
+      const subcategoriesList = await getSubcategories(vendorId);
       setSubcategories(subcategoriesList);
       console.log('✅ Subcategories fetched:', subcategoriesList);
     } catch (error) {
@@ -122,7 +146,7 @@ const CreateProductPage = () => {
   // Fetch subcategories when vendor data is loaded
   useEffect(() => {
     if (vendorData?.id && vendorData?.businessType) {
-      fetchSubcategories(vendorData.id, vendorData.businessType);
+      fetchSubcategories(vendorData.id);
     }
   }, [vendorData?.id, vendorData?.businessType]);
 
@@ -131,6 +155,7 @@ const CreateProductPage = () => {
     if (vendorData?.businessType) {
       const businessTypeToCategory = {
         'HOTEL': 'hotel',
+        'HOTELS': 'hotel',
         'HOSPITALITY': 'accommodation',
         'APARTMENT': 'accommodation',
         'INFLUENCER': 'influencer',
@@ -170,9 +195,12 @@ const CreateProductPage = () => {
     if (vendorData) {
       console.log('Vendor data loaded:', vendorData);
       console.log('Business type:', vendorData.businessType);
+      console.log('Business type uppercase:', vendorData.businessType?.toUpperCase());
       console.log('Is event category:', isEventCategory());
+      console.log('Is hotel category:', isHotelCategory());
+      console.log('Selected category:', selectedCategory);
     }
-  }, [vendorData]);
+  }, [vendorData, selectedCategory]);
 
   // Debug ticket modal state
   useEffect(() => {
@@ -260,10 +288,30 @@ const CreateProductPage = () => {
     return isEvent;
   };
 
+  // Check if current business type is a hotel category
+  const isHotelCategory = () => {
+    if (!vendorData?.businessType) {
+      console.log('No vendor business type found');
+      return false;
+    }
+    const hotelCategories = ['HOTEL', 'HOTELS'];
+    const isHotel = hotelCategories.includes(vendorData.businessType);
+    console.log('Business type:', vendorData.businessType, 'Is hotel category:', isHotel);
+    return isHotel;
+  };
+
   // Handle ticket creation success
   const handleTicketSuccess = () => {
     setShowTicketModal(false);
     setEventId(null);
+    clearForm();
+    setIsSuccessModalOpen(true);
+  };
+
+  // Handle room creation success
+  const handleRoomSuccess = () => {
+    setShowRoomModal(false);
+    setHotelId(null);
     clearForm();
     setIsSuccessModalOpen(true);
   };
@@ -312,6 +360,10 @@ const CreateProductPage = () => {
       checkOutTime: '',
       houseRules: [] as string[],
       cancellationPolicy: '',
+      availableStartDate: '',
+      availableEndDate: '',
+      // Hotel payload fields
+      propertyAmenities: [] as string[],
       // Reservation payload fields
       productType: '',
       serviceType: '',
@@ -323,6 +375,23 @@ const CreateProductPage = () => {
       acceptsWalkIns: true,
       dressCode: '',
       specialFeatures: [] as string[],
+      // Car rental payload fields
+      carMake: '',
+      carModel: '',
+      carYear: '',
+      licensePlate: '',
+      carType: '',
+      seats: '',
+      hourlyRate: '',
+      dailyRate: '',
+      monthlyRate: '',
+      securityDeposit: '',
+      hasDriver: false,
+      availableDays: [] as string[],
+      availableHoursStart: '',
+      availableHoursEnd: '',
+      termsAndConditions: '',
+      addons: [] as Array<{name: string, price: string, description: string}>,
       // Additional fields for other categories (will be used later)
       description: '',
       subCategory: '',
@@ -339,6 +408,8 @@ const CreateProductPage = () => {
     setShowScrollPrompt(false);
     setShowTicketModal(false);
     setEventId(null);
+    setShowRoomModal(false);
+    setHotelId(null);
   };
 
   const handleUploadImages = async (productId: number) => {
@@ -350,6 +421,10 @@ const CreateProductPage = () => {
         console.log('Showing ticket modal for event category with eventId:', productId);
         setEventId(productId);
         setShowTicketModal(true);
+      } else if (isHotelCategory()) {
+        console.log('Showing room modal for hotel category with hotelId:', productId);
+        setHotelId(productId);
+        setShowRoomModal(true);
       } else {
         console.log('Showing success modal for non-event category');
         // Clear form and show success modal for non-event categories
@@ -390,6 +465,10 @@ const CreateProductPage = () => {
           console.log('After image upload: Showing ticket modal for event category with eventId:', productId);
           setEventId(productId);
           setShowTicketModal(true);
+        } else if (isHotelCategory()) {
+          console.log('After image upload: Showing room modal for hotel category with hotelId:', productId);
+          setHotelId(productId);
+          setShowRoomModal(true);
         } else {
           console.log('After image upload: Showing success modal for non-event category');
           // Clear form and show success modal for non-event categories
@@ -403,6 +482,27 @@ const CreateProductPage = () => {
       console.error('Error uploading images:', error);
       setUploadProgress('Failed to upload images');
       toast.error(error instanceof Error ? error.message : 'Error uploading images');
+      
+      // For hotels, proceed to room creation even if image upload fails
+      if (isHotelCategory()) {
+        console.log('Image upload failed for hotel, but proceeding to room creation with hotelId:', productId);
+        toast.error('Image upload failed, but you can still create room types for your hotel');
+        setHotelId(productId);
+        setShowRoomModal(true);
+      }
+      // For events, also proceed to ticket creation even if image upload fails
+      else if (isEventCategory()) {
+        console.log('Image upload failed for event, but proceeding to ticket creation with eventId:', productId);
+        toast.error('Image upload failed, but you can still create tickets for your event');
+        setEventId(productId);
+        setShowTicketModal(true);
+      }
+      // For other categories, show success modal
+      else {
+        console.log('Image upload failed for other category, showing success modal');
+        clearForm();
+        setIsSuccessModalOpen(true);
+      }
     } finally {
       setIsUploadingImages(false);
     }
@@ -420,14 +520,16 @@ const CreateProductPage = () => {
     const createProductCategories = ['OTHERS', 'SUPERMARKET', 'PHARMACY', 'RESTAURANT'];
     const eventsCategories = ['EVENTS', 'EXPERIENCES', 'TOUR_GUIDE', 'INFLUENCER'];
     const accommodationCategories = ['HOSPITALITY', 'APARTMENT'];
+    const hotelCategories = ['HOTEL', 'HOTELS'];
     const reservationCategories = ['CLUB', 'RESERVATIONS'];
+    const carCategories = ['CARS'];
     
     if (!vendorData?.businessType) {
       toast.error('Business type not available. Please try again.');
       return;
     }
     
-    if (!createProductCategories.includes(vendorData.businessType) && !eventsCategories.includes(vendorData.businessType) && !accommodationCategories.includes(vendorData.businessType) && !reservationCategories.includes(vendorData.businessType)) {
+    if (!createProductCategories.includes(vendorData.businessType) && !eventsCategories.includes(vendorData.businessType) && !accommodationCategories.includes(vendorData.businessType) && !hotelCategories.includes(vendorData.businessType) && !reservationCategories.includes(vendorData.businessType) && !carCategories.includes(vendorData.businessType)) {
       toast.error('This business type is not yet supported for product creation.');
       return;
     }
@@ -437,6 +539,20 @@ const CreateProductPage = () => {
       // For accommodation, validate propertyName instead of productName
       if (!formData.propertyName) {
         toast.error('Property Name is required.');
+        return;
+      }
+    } else if (hotelCategories.includes(vendorData.businessType)) {
+      // For hotel, validate productName, description, and address
+      if (!formData.productName) {
+        toast.error('Hotel Name is required.');
+        return;
+      }
+      if (!formData.description) {
+        toast.error('Description is required.');
+        return;
+      }
+      if (!formData.address) {
+        toast.error('Address is required.');
         return;
       }
     } else if (!formData.productName) {
@@ -465,6 +581,15 @@ const CreateProductPage = () => {
       }
     }
 
+    // Validate car-specific required fields (only productName, vendorId, and description are required)
+    if (carCategories.includes(vendorData.businessType)) {
+      if (!formData.description) {
+        toast.error('Description is required.');
+        return;
+      }
+      // All other car fields are optional
+    }
+
     // Only validate price and quantity for business types that have these fields in the UI
     if (['OTHERS', 'SUPERMARKET', 'PHARMACY', 'RESTAURANT'].includes(vendorData.businessType)) {
       if (!formData.price || !formData.quantity) {
@@ -484,10 +609,7 @@ const CreateProductPage = () => {
         payload = {
           productName: formData.productName,
           categoryName: vendorData.businessType,
-          subcategoryName: formData.subCategory || formData.subcategoryName || '',
-          subcategoryId: formData.subcategoryId || null,
           description: formData.description,
-          address: formData.address,
           vendorId: vendorData.id,
           quantity: formData.quantity ? parseInt(formData.quantity) : 0,
           price: formData.price ? parseFloat(formData.price) : 0,
@@ -502,6 +624,12 @@ const CreateProductPage = () => {
           ageRestriction: formData.ageRestriction || '',
           dressCode: formData.dressCode || ''
         };
+        
+        // Add subcategory field only if it exists
+        if (formData.subcategoryId) {
+          payload.subcategoryId = formData.subcategoryId;
+        }
+        
         endpoint = '/api/v1/product/create/event';
       } else if (accommodationCategories.includes(vendorData.businessType)) {
         // Accommodation payload
@@ -509,8 +637,6 @@ const CreateProductPage = () => {
           vendorId: vendorData.id,
           propertyType: formData.propertyType || '',
           listingType: formData.listingType || '',
-          subcategoryName: formData.subCategory || formData.subcategoryName || '',
-          subcategoryId: formData.subcategoryId || null,
           description: formData.description || '',
           address: formData.address || '',
           propertyName: formData.propertyName || '',
@@ -526,17 +652,41 @@ const CreateProductPage = () => {
           checkInTime: formData.checkInTime || '',
           checkOutTime: formData.checkOutTime || '',
           houseRules: Array.isArray(formData.houseRules) ? formData.houseRules : [],
+          cancellationPolicy: formData.cancellationPolicy || '',
+          availableStartDate: formData.availableStartDate || '',
+          availableEndDate: formData.availableEndDate || ''
+        };
+        
+        // Add subcategory field only if it exists
+        if (formData.subcategoryId) {
+          payload.subcategoryId = formData.subcategoryId;
+        }
+        
+        endpoint = '/api/v1/product/create/accomodation';
+      } else if (hotelCategories.includes(vendorData.businessType)) {
+        // Hotel payload
+        payload = {
+          vendorId: vendorData.id,
+          productName: formData.productName,
+          subcategoryId: formData.subcategoryId || 9007199254740991,
+          description: formData.description || '',
+          address: formData.address || '',
+          price: formData.price ? parseFloat(formData.price) : 0,
+          checkInTime: formData.checkInTime || '',
+          checkOutTime: formData.checkOutTime || '',
+          propertyAmenities: Array.isArray(formData.propertyAmenities) ? formData.propertyAmenities : [],
+          availableStartDate: formData.availableStartDate || '',
+          availableEndDate: formData.availableEndDate || '',
           cancellationPolicy: formData.cancellationPolicy || ''
         };
-        endpoint = '/api/v1/product/create/accomodation';
+        
+        endpoint = '/api/v1/product/create/hotel';
       } else if (reservationCategories.includes(vendorData.businessType)) {
         // Reservation payload
         payload = {
           vendorId: vendorData.id,
           productName: formData.productName || '',
           categoryName: vendorData.businessType,
-          subcategoryName: formData.subCategory || formData.subcategoryName || '',
-          subcategoryId: formData.subcategoryId || null,
           description: formData.description || '',
           address: formData.address || '',
           productType: formData.productType || '',
@@ -548,9 +698,56 @@ const CreateProductPage = () => {
           reservationDuration: formData.reservationDuration ? parseInt(formData.reservationDuration) : 0,
           acceptsWalkIns: formData.acceptsWalkIns,
           dressCode: formData.dressCode || '',
-          specialFeatures: Array.isArray(formData.specialFeatures) ? formData.specialFeatures : []
+          specialFeatures: Array.isArray(formData.specialFeatures) ? formData.specialFeatures : [],
+          availableStartDate: formData.availableStartDate || '',
+          availableEndDate: formData.availableEndDate || ''
         };
+        
+        // Add subcategory field only if it exists
+        if (formData.subcategoryId) {
+          payload.subcategoryId = formData.subcategoryId;
+        }
+        
         endpoint = '/api/v1/product/create/reservation';
+      } else if (carCategories.includes(vendorData.businessType)) {
+        // Car rental payload - matching API specification
+        payload = {
+          vendorId: vendorData.id,
+          productName: formData.productName,
+          categoryName: vendorData.businessType,
+          description: formData.description || '',
+          address: formData.address || '',
+          price: formData.price ? parseFloat(formData.price) : 0,
+          carMake: formData.carMake || '',
+          carModel: formData.carModel || '',
+          carYear: formData.carYear ? parseInt(formData.carYear) : 0,
+          licensePlate: formData.licensePlate || '',
+          carType: formData.carType || '',
+          seats: formData.seats ? parseInt(formData.seats) : 0,
+          hourlyRate: formData.hourlyRate ? parseFloat(formData.hourlyRate) : 0,
+          dailyRate: formData.dailyRate ? parseFloat(formData.dailyRate) : 0,
+          monthlyRate: formData.monthlyRate ? parseFloat(formData.monthlyRate) : 0,
+          securityDeposit: formData.securityDeposit ? parseFloat(formData.securityDeposit) : 0,
+          hasDriver: formData.hasDriver === 'true' || formData.hasDriver === true,
+          availableDays: Array.isArray(formData.availableDays) ? formData.availableDays : [],
+          availableHours: {
+            start: formData.availableHoursStart || '',
+            end: formData.availableHoursEnd || ''
+          },
+          termsAndConditions: formData.termsAndConditions || '',
+          addons: Array.isArray(formData.addons) ? formData.addons.map(addon => ({
+            name: addon.name || '',
+            price: addon.price ? parseFloat(addon.price) : 0,
+            description: addon.description || ''
+          })) : []
+        };
+        
+        // Add subcategory field only if it exists
+        if (formData.subcategoryId) {
+          payload.subcategoryId = formData.subcategoryId;
+        }
+        
+        endpoint = '/api/v1/product/create/car';
       } else {
         // Create product payload
         payload = {
@@ -560,6 +757,12 @@ const CreateProductPage = () => {
           quantity: parseInt(formData.quantity),
           price: parseFloat(formData.price)
         };
+        
+        // Add subcategory field only if it exists
+        if (formData.subcategoryId) {
+          payload.subcategoryId = formData.subcategoryId;
+        }
+        
         endpoint = '/api/v1/product/create';
       }
 
@@ -652,6 +855,7 @@ const CreateProductPage = () => {
                           businessType={vendorData.businessType}
                           formData={formData}
                           onInputChange={handleInputChange}
+                          onNext={handleSubmit}
                           subcategories={subcategories}
                           subcategoriesLoading={subcategoriesLoading}
                         />
@@ -880,7 +1084,7 @@ const CreateProductPage = () => {
 
 
             {/* Submit Button - Only show for supported business types and when upload area is not visible */}
-            {!showUploadArea && vendorData?.businessType && (['OTHERS', 'SUPERMARKET', 'PHARMACY', 'RESTAURANT'].includes(vendorData.businessType) || ['EVENTS', 'EXPERIENCES', 'TOUR_GUIDE', 'INFLUENCER'].includes(vendorData.businessType) || ['HOTEL', 'HOSPITALITY', 'APARTMENT'].includes(vendorData.businessType) || ['CLUB', 'RESERVATIONS'].includes(vendorData.businessType)) && (
+            {!showUploadArea && vendorData?.businessType && (['OTHERS', 'SUPERMARKET', 'PHARMACY', 'RESTAURANT'].includes(vendorData.businessType) || ['EVENTS', 'EXPERIENCES', 'TOUR_GUIDE', 'INFLUENCER'].includes(vendorData.businessType) || ['HOTEL', 'HOSPITALITY', 'APARTMENT'].includes(vendorData.businessType) || ['CLUB', 'RESERVATIONS'].includes(vendorData.businessType) || ['CARS'].includes(vendorData.businessType)) && (
               <div className="w-full">
                 <button
                   type="submit"
@@ -936,6 +1140,15 @@ const CreateProductPage = () => {
         onSuccess={handleTicketSuccess}
         eventId={eventId || 0}
         eventName={formData.productName || 'Event'}
+      />
+
+      {/* Room Creation Modal */}
+      <RoomCreationModal
+        isOpen={showRoomModal}
+        onClose={() => setShowRoomModal(false)}
+        onSuccess={handleRoomSuccess}
+        hotelId={hotelId || 0}
+        hotelName={formData.productName || 'Hotel'}
       />
     </DashboardLayout>
   );

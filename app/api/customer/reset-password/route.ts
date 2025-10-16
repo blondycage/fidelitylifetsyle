@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { handleBackendResponse, createErrorResponse } from '@/lib/api-proxy-utils';
 
 const CUSTOMER_RESET_PASSWORD_URL = 'http://45.33.68.176:9090/api/v1/customer/reset-pass';
 
@@ -50,9 +51,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
     console.error('❌ Customer Reset Password API Error:', error);
-    return NextResponse.json(
-      { responseCode: 500, responseMessage: 'Internal server error', data: null },
-      { status: 500 }
-    );
+    return createErrorResponse(500, 'Internal server error');
   }
 }

@@ -64,7 +64,18 @@ export interface VendorPayload {
   phoneNumber: string,
   password: string,
   username: string,
-  businessType: string,
+  businessType: "HOTEL" |
+    "INFLUENCER" |
+    "RESTAURANT" |
+    "CLUB" |
+    "OTHERS" |
+    "SUPERMARKET" |
+    "PHARMACY" |
+    "FASHION" |
+    "TOUR_GUIDE" |
+    "EXPERIENCES" |
+    "EVENTS" |
+    "CARS",
   businessProfileDTO: {
     id?: number,
     name: string,
@@ -81,7 +92,18 @@ export interface VendorUpdatePayload {
   email: string,
   phoneNumber: string,
   username: string,
-  businessType: string,
+  businessType: "HOTEL" |
+    "INFLUENCER" |
+    "RESTAURANT" |
+    "CLUB" |
+    "OTHERS" |
+    "SUPERMARKET" |
+    "PHARMACY" |
+    "FASHION" |
+    "TOUR_GUIDE" |
+    "EXPERIENCES" |
+    "EVENTS" |
+    "CARS",
   businessProfileDTO: {
     id: number,
     name: string,
@@ -109,7 +131,8 @@ export interface VendorData {
     "FASHION" |
     "TOUR_GUIDE" |
     "EXPERIENCES" |
-    "EVENTS",
+    "EVENTS" |"APARTMENT" |"HOSPITALITY" |
+    "CARS" | "RESERVATIONS"|"HOTEL",
   businessProfile: {
     id: number,
     name: string,
