@@ -139,7 +139,7 @@ export const getPrimaryImageUrl = (images: ProductImage[]): string => {
 };
 
 // Function to determine product type based on which nested object has the most meaningful data
-export const getProductType = (product: ApiProduct): 'product' | 'event' | 'accommodation' | 'reservation' | 'car' => {
+export const getProductType = (product: ApiProduct): 'product' | 'event' | 'accommodation' | 'hotel' | 'reservation' | 'car' => {
   console.log(`\n🔍 Analyzing Product: ${product.productName} (ID: ${product.productId})`);
   console.log(`📋 CategoryName: ${product.categoryName || 'Not provided'}`);
   
@@ -186,6 +186,9 @@ export const getProductType = (product: ApiProduct): 'product' | 'event' | 'acco
         console.log(`✅ DETECTED: EVENT (via categoryName)`);
         return 'event';
       case 'HOTEL':
+      case 'HOTELS':
+        console.log(`✅ DETECTED: HOTEL (via categoryName)`);
+        return 'hotel';
       case 'HOSPITALITY':
       case 'APARTMENT':
       case 'DUPLEX':
@@ -210,8 +213,8 @@ export const getProductType = (product: ApiProduct): 'product' | 'event' | 'acco
     return 'accommodation';
   }
   if (hotelFields === maxFields) {
-    console.log(`✅ DETECTED: ACCOMMODATION via hotel (${hotelFields} meaningful fields)`);
-    return 'accommodation';
+    console.log(`✅ DETECTED: HOTEL (${hotelFields} meaningful fields)`);
+    return 'hotel';
   }
   if (reservationFields === maxFields) {
     console.log(`✅ DETECTED: RESERVATION (${reservationFields} meaningful fields)`);
@@ -244,6 +247,11 @@ export const getDisplayName = (product: ApiProduct): string => {
     return accommodation.propertyName || product.productName || 'Unnamed Property';
   }
   
+  if (type === 'hotel' && Object.keys(product.hotel).length > 0) {
+    const hotel = product.hotel as any;
+    return hotel.productName || product.productName || 'Unnamed Hotel';
+  }
+  
   return product.productName || 'Unnamed Product';
 };
 
@@ -252,9 +260,64 @@ export const getProductSku = (product: ApiProduct): string => {
   const type = getProductType(product);
   const prefix = type === 'event' ? 'EVT' : 
                  type === 'accommodation' ? 'ACC' : 
+                 type === 'hotel' ? 'HTL' :
                  type === 'reservation' ? 'RES' : 
                  type === 'car' ? 'CAR' : 'PRD';
   return `${prefix}${product.productId.toString().padStart(3, '0')}`;
+};
+
+// Function to map business type to expected product types
+const getExpectedProductTypes = (businessType: string): string[] => {
+  switch (businessType?.toUpperCase()) {
+    case 'EVENTS':
+    case 'EXPERIENCES':
+    case 'TOUR_GUIDE':
+    case 'INFLUENCER':
+      return ['event'];
+    case 'HOTEL':
+    case 'HOTELS':
+      return ['hotel'];
+    case 'HOSPITALITY':
+    case 'APARTMENT':
+      return ['accommodation'];
+    case 'CLUB':
+    case 'RESERVATIONS':
+      return ['reservation'];
+    case 'CARS':
+      return ['car'];
+    case 'FASHION':
+      return ['product']; // Fashion products are general products
+    case 'RESTAURANT':
+    case 'SUPERMARKET':
+    case 'PHARMACY':
+    case 'OTHERS':
+      return ['product'];
+    default:
+      return ['product'];
+  }
+};
+
+// Function to filter products based on business type
+const filterProductsByBusinessType = (products: ApiProduct[], businessType: string): ApiProduct[] => {
+  if (!businessType) {
+    console.log('No business type provided, returning all products');
+    return products;
+  }
+
+  const expectedTypes = getExpectedProductTypes(businessType);
+  console.log(`Filtering products for business type: ${businessType}, expected types:`, expectedTypes);
+
+  const filteredProducts = products.filter(product => {
+    const productType = getProductType(product);
+    const matches = expectedTypes.includes(productType);
+    
+    console.log(`Product "${product.productName}" (ID: ${product.productId}) - Detected type: ${productType}, Expected: ${expectedTypes.join(', ')}, Matches: ${matches}`);
+    
+    return matches;
+  });
+
+  console.log(`Filtered ${products.length} products down to ${filteredProducts.length} for business type: ${businessType}`);
+  return filteredProducts;
 };
 
 // Function to fetch products for a vendor
@@ -278,6 +341,14 @@ export const fetchVendorProducts = async (vendorId: number, token: string, busin
       totalProducts: data.data.length,
       businessType
     });
+
+    // Filter products based on business type
+    if (businessType) {
+      data.data = filterProductsByBusinessType(data.data, businessType);
+      console.log(`After filtering for business type "${businessType}":`, {
+        filteredProducts: data.data.length
+      });
+    }
 
     return data;
   } catch (error) {

@@ -25,7 +25,7 @@ interface Product {
   stock: number;
   status: 'Available' | 'Unavailable';
   image: string;
-  type: 'product' | 'event' | 'accommodation' | 'reservation' | 'car';
+  type: 'product' | 'event' | 'accommodation' | 'hotel' | 'reservation' | 'car';
   categoryName?: string;
   subcategoryName: string;
   description?: string;
@@ -44,7 +44,7 @@ const ManageStore = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Map business types to their corresponding product types
+  // Helper function to get expected product types for display
   const getExpectedProductTypes = (businessType: string): string[] => {
     switch (businessType?.toUpperCase()) {
       case 'EVENTS':
@@ -53,6 +53,8 @@ const ManageStore = () => {
       case 'INFLUENCER':
         return ['event'];
       case 'HOTEL':
+      case 'HOTELS':
+        return ['hotel'];
       case 'HOSPITALITY':
       case 'APARTMENT':
         return ['accommodation'];
@@ -93,9 +95,11 @@ const ManageStore = () => {
         const expectedTypes = getExpectedProductTypes(vendorData.businessType);
         console.log(`\n🎯 VENDOR BUSINESS TYPE: ${vendorData.businessType}`);
         console.log(`📋 EXPECTED PRODUCT TYPES:`, expectedTypes);
-        console.log(`📊 TOTAL PRODUCTS FROM API:`, response.data.length);
+        console.log(`📊 TOTAL PRODUCTS FROM API:`, response.data?.length || 0);
         
-        const transformedProducts: Product[] = response.data
+        // Check if data exists and is an array
+        const productsData = response.data || [];
+        const transformedProducts: Product[] = productsData
           .map((apiProduct: ApiProduct) => {
           try {
             return {
@@ -178,7 +182,7 @@ const ManageStore = () => {
       }
     } catch (err) {
       console.error('Error fetching products:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch products');
+     // setError(err instanceof Error ? err.message : 'Failed to fetch products');
       toast.error('Failed to load products');
     } finally {
       setLoading(false);
@@ -194,7 +198,7 @@ const ManageStore = () => {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedProducts(filteredProducts.map(p => p.id));
+      setSelectedProducts((filteredProducts || []).map(p => p.id));
     } else {
       setSelectedProducts([]);
     }
@@ -210,7 +214,7 @@ const ManageStore = () => {
 
   const handleEnableProducts = () => {
     setProducts(prev =>
-      prev.map(p =>
+      (prev || []).map(p =>
         selectedProducts.includes(p.id) ? { ...p, status: 'Available' } : p
       )
     );
@@ -220,7 +224,7 @@ const ManageStore = () => {
 
   const handleDisableProducts = () => {
     setProducts(prev =>
-      prev.map(p =>
+      (prev || []).map(p =>
         selectedProducts.includes(p.id) ? { ...p, status: 'Unavailable' } : p
       )
     );
@@ -230,7 +234,7 @@ const ManageStore = () => {
 
   const handleUpdatePrices = (updateType: 'percentage' | 'fixed' | 'new', value: number) => {
     setProducts(prev =>
-      prev.map(p => {
+      (prev || []).map(p => {
         if (!selectedProducts.includes(p.id)) return p;
 
         let newPrice = p.price;
@@ -251,7 +255,8 @@ const ManageStore = () => {
   };
 
   const handleExport = () => {
-    const selectedData = products.filter(p => selectedProducts.includes(p.id));
+    const productsList = products || [];
+    const selectedData = productsList.filter(p => selectedProducts.includes(p.id));
     const csv = [
       ['Product Name', 'SKU', 'Price', 'Stock', 'Status'],
       ...selectedData.map(p => [p.name, p.sku, p.price, p.stock, p.status])
@@ -286,17 +291,17 @@ const ManageStore = () => {
     setProductToDelete(null);
   };
 
-  const filteredProducts = products.filter(p => {
+  const filteredProducts = (products || []).filter(p => {
     if (statusFilter === 'All') return true;
     return p.status === statusFilter;
   });
 
   const stats = {
-    total: products.length,
-    inactive: products.filter(p => p.status === 'Unavailable').length,
-    active: products.filter(p => p.status === 'Available').length,
-    outOfStock: products.filter(p => p.stock === 0).length,
-    lowStock: products.filter(p => p.stock > 0 && p.stock < 50).length,
+    total: products?.length || 0,
+    inactive: products?.filter(p => p.status === 'Unavailable').length || 0,
+    active: products?.filter(p => p.status === 'Available').length || 0,
+    outOfStock: products?.filter(p => p.stock === 0).length || 0,
+    lowStock: products?.filter(p => p.stock > 0 && p.stock < 50).length || 0,
   };
 
   // Loading state
@@ -606,6 +611,43 @@ const ManageStore = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Empty State */}
+        {!loading && filteredProducts.length === 0 && (
+          <div className="bg-white rounded-[16px] shadow-[0px_1px_4px_0px_rgba(12,12,13,0.05),0px_1px_4px_0px_rgba(12,12,13,0.1)] p-8">
+            <div className="flex flex-col items-center justify-center text-center">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No products found</h3>
+              <p className="text-gray-500 mb-6 max-w-md">
+                {error 
+                  ? 'There was an error loading your products. Please try again.'
+                  : 'You haven\'t created any products yet. Start by adding your first product to showcase your offerings.'
+                }
+              </p>
+              <div className="flex gap-3">
+                {error ? (
+                  <button
+                    onClick={fetchProducts}
+                    className="px-6 py-3 bg-[#6CC049] text-white rounded-lg font-medium hover:bg-[#5AAE3A] transition-colors"
+                  >
+                    Try Again
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => router.push('/vendor/manage-store/create-product')}
+                    className="px-6 py-3 bg-[#6CC049] text-white rounded-lg font-medium hover:bg-[#5AAE3A] transition-colors"
+                  >
+                    Create Your First Product
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
 
         {/* Update Prices Modal */}

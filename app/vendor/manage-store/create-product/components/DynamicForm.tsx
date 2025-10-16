@@ -531,6 +531,16 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
             </svg>
           </div>
         </div>
+        <button
+          type="button"
+          onClick={() => {
+            const event = new CustomEvent('openSubcategoryModal');
+            window.dispatchEvent(event);
+          }}
+          className="mt-2 text-[#6CC049] text-[16px] font-bold font-urbanist hover:text-[#5AA83A] transition-colors duration-200 underline cursor-pointer"
+        >
+          Add a new sub-category
+        </button>
       </div>
 
       {/* Description */}
