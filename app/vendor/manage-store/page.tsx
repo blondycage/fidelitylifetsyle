@@ -125,10 +125,10 @@ const ManageStore = () => {
               status: getProductStatus(apiProduct.quantity || 0),
               image: (() => {
                 try {
-                  return Array.isArray(apiProduct.images) ? getPrimaryImageUrl(apiProduct.images) : '/placeholder-product.png';
+                  return Array.isArray(apiProduct.images) ? getPrimaryImageUrl(apiProduct.images) : '/images/icon-gallery-add.svg';
                 } catch (error) {
                   console.error('Error getting primary image:', error);
-                  return '/placeholder-product.png';
+                  return '/images/icon-gallery-add.svg';
                 }
               })(),
               type: (() => {
@@ -160,7 +160,7 @@ const ManageStore = () => {
               price: apiProduct.price || 0,
               stock: apiProduct.quantity || 0,
               status: 'Available' as const,
-              image: '/placeholder-product.png',
+              image: '/images/icon-gallery-add.svg',
               type: 'product' as const,
               categoryName: apiProduct.categoryName,
               subcategoryName: apiProduct.subcategoryName || '',
@@ -546,7 +546,7 @@ const ManageStore = () => {
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
-                          target.src = '/placeholder-product.png';
+                          target.src = '/images/icon-gallery-add.svg';
                         }}
                       />
                     </div>

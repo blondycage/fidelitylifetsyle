@@ -219,32 +219,18 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
       {/* Venue - Only show if address is not filled */}
       {!formData.address && (
         <div className="w-full max-w-full sm:max-w-[450px]">
-        <div className="flex items-center gap-2 mb-2">
-          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
-            Venue
-          </label>
-        </div>
-        <div className="relative">
+          <div className="flex items-center gap-2 mb-2">
+            <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+              Venue
+            </label>
+          </div>
           <input
             type="text"
             value={formData.venue || ''}
             onChange={(e) => onInputChange('venue', e.target.value)}
-            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
             placeholder="Enter venue name"
+            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
           />
-          {/* Clear button */}
-          {formData.venue && (
-            <button
-              type="button"
-              onClick={() => onInputChange('venue', '')}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
-          )}
-        </div>
         </div>
       )}
 
@@ -570,15 +556,13 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
           </label>
           <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
         </div>
-        <div className="relative">
-          <input
-            type="text"
-            value={formData.address || ''}
-            onChange={(e) => onInputChange('address', e.target.value)}
-            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
-            placeholder="Enter hotel address"
-          />
-        </div>
+        <input
+          type="text"
+          value={formData.address || ''}
+          onChange={(e) => onInputChange('address', e.target.value)}
+          placeholder="Enter hotel address"
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+        />
       </div>
 
       {/* Price */}
@@ -840,27 +824,13 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
             Address
           </label>
         </div>
-        <div className="relative">
-          <input
-            type="text"
-            value={formData.address || ''}
-            onChange={(e) => onInputChange('address', e.target.value)}
-            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
-            placeholder="Enter property address"
-          />
-          {/* Clear button */}
-          {formData.address && (
-            <button
-              type="button"
-              onClick={() => onInputChange('address', '')}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
-          )}
-        </div>
+        <input
+          type="text"
+          value={formData.address || ''}
+          onChange={(e) => onInputChange('address', e.target.value)}
+          placeholder="Enter property address"
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+        />
       </div>
 
       {/* Daily Rate */}
@@ -1178,27 +1148,13 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
             Address
           </label>
         </div>
-        <div className="relative">
-          <input
-            type="text"
-            value={formData.address || ''}
-            onChange={(e) => onInputChange('address', e.target.value)}
-            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
-            placeholder="Enter address"
-          />
-          {/* Clear button */}
-          {formData.address && (
-            <button
-              type="button"
-              onClick={() => onInputChange('address', '')}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
-          )}
-        </div>
+        <input
+          type="text"
+          value={formData.address || ''}
+          onChange={(e) => onInputChange('address', e.target.value)}
+          placeholder="Enter address"
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+        />
       </div>
 
       {/* Product Type */}
@@ -1739,8 +1695,8 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
           type="text"
           value={formData.address || ''}
           onChange={(e) => onInputChange('address', e.target.value)}
-          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
           placeholder="Enter address"
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
         />
       </div>
 

@@ -418,8 +418,12 @@ const CreateProductPage = () => {
       console.log('No images to upload');
       // Check if this is an event category and show ticket creation modal
       if (isEventCategory()) {
-        console.log('Showing ticket modal for event category with eventId:', productId);
-        setEventId(productId);
+        console.log('Showing ticket modal for event category with productId:', productId, 'eventId:', eventId);
+        // eventId should already be set from the creation response
+        if (!eventId) {
+          console.warn('EventId not found, using productId as fallback');
+          setEventId(productId);
+        }
         setShowTicketModal(true);
       } else if (isHotelCategory()) {
         console.log('Showing room modal for hotel category with hotelId:', productId);
@@ -462,8 +466,12 @@ const CreateProductPage = () => {
         
         // Check if this is an event category and show ticket creation modal
         if (isEventCategory()) {
-          console.log('After image upload: Showing ticket modal for event category with eventId:', productId);
-          setEventId(productId);
+          console.log('After image upload: Showing ticket modal for event category with productId:', productId, 'eventId:', eventId);
+          // eventId should already be set from the creation response
+          if (!eventId) {
+            console.warn('EventId not found, using productId as fallback');
+            setEventId(productId);
+          }
           setShowTicketModal(true);
         } else if (isHotelCategory()) {
           console.log('After image upload: Showing room modal for hotel category with hotelId:', productId);
@@ -492,9 +500,13 @@ const CreateProductPage = () => {
       }
       // For events, also proceed to ticket creation even if image upload fails
       else if (isEventCategory()) {
-        console.log('Image upload failed for event, but proceeding to ticket creation with eventId:', productId);
+        console.log('Image upload failed for event, but proceeding to ticket creation with productId:', productId, 'eventId:', eventId);
         toast.error('Image upload failed, but you can still create tickets for your event');
-        setEventId(productId);
+        // eventId should already be set from the creation response
+        if (!eventId) {
+          console.warn('EventId not found, using productId as fallback');
+          setEventId(productId);
+        }
         setShowTicketModal(true);
       }
       // For other categories, show success modal
@@ -788,9 +800,15 @@ const CreateProductPage = () => {
 
       if (response.ok && data.responseCode === 200) {
         const productId = data.data?.productId;
+        const eventId = data.data?.eventId; // Extract eventId from response
         if (productId) {
           console.log('Product created successfully, showing scroll prompt');
+          console.log('Event creation response - productId:', productId, 'eventId:', eventId);
           setCreatedProductId(productId);
+          // Store eventId if it exists (for events)
+          if (eventId && isEventCategory()) {
+            setEventId(eventId);
+          }
           setShowScrollPrompt(true);
           setUploadProgress('Product created successfully!');
           toast.success('Product created successfully! Scroll up to upload images or skip to manage store.');
@@ -1138,6 +1156,7 @@ const CreateProductPage = () => {
         isOpen={showTicketModal}
         onClose={() => setShowTicketModal(false)}
         onSuccess={handleTicketSuccess}
+        productId={createdProductId || 0}
         eventId={eventId || 0}
         eventName={formData.productName || 'Event'}
       />

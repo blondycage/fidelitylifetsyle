@@ -40,6 +40,15 @@ const CustomerSignup = () => {
         setErrors(prev => ({ ...prev, [name]: 'Please enter a valid email address' }));
       }
     }
+
+    // Real-time phone number validation
+    if (name === 'phoneNumber' && value.trim()) {
+      // Remove all non-digit characters for validation
+      const digitsOnly = value.replace(/\D/g, '');
+      if (digitsOnly.length !== 11) {
+        setErrors(prev => ({ ...prev, [name]: 'Phone number must be exactly 11 digits' }));
+      }
+    }
   };
 
   const validateForm = () => {
@@ -50,7 +59,12 @@ const CustomerSignup = () => {
     if (!formData.email.trim()) newErrors.email = 'Email is required.';
     if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email is invalid';
     if (!formData.phoneNumber.trim()) newErrors.phoneNumber = 'Phone Number is required.';
-    if (!/^\+?[\d\s\-()]+$/.test(formData.phoneNumber)) newErrors.phoneNumber = 'Phone number is invalid';
+    
+    // Check if phone number contains exactly 11 digits
+    const digitsOnly = formData.phoneNumber.replace(/\D/g, '');
+    if (digitsOnly.length !== 11) {
+      newErrors.phoneNumber = 'Phone number must be exactly 11 digits';
+    }
 
     // Enhanced password validation
     if (!formData.password) {
@@ -153,16 +167,26 @@ const CustomerSignup = () => {
           required
         />
 
-        <Input
-          type="tel"
-          name="phoneNumber"
-          placeholder="Phone number"
-          label="Phone Number"
-          value={formData.phoneNumber}
-          onChange={handleInputChange}
-          error={errors.phoneNumber}
-          required
-        />
+        <div>
+          <Input
+            type="tel"
+            name="phoneNumber"
+            placeholder="08012345678 (11 digits)"
+            label="Phone Number"
+            value={formData.phoneNumber}
+            onChange={handleInputChange}
+            error={errors.phoneNumber}
+            required
+          />
+          <div className="flex justify-between items-center mt-1">
+            <p className="text-xs text-gray-500">
+              Enter your 11-digit phone number (e.g., 08012345678)
+            </p>
+            <span className={`text-xs ${formData.phoneNumber.replace(/\D/g, '').length === 11 ? 'text-green-600' : 'text-gray-400'}`}>
+              {formData.phoneNumber.replace(/\D/g, '').length}/11 digits
+            </span>
+          </div>
+        </div>
 
         <PasswordInput
           name="password"

@@ -103,6 +103,7 @@ export interface ProductListResponse {
 }
 
 export interface TicketCreateRequest {
+  productId: number;
   eventId: number;
   price: number;
   quantity: number;

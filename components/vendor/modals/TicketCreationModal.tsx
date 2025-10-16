@@ -7,6 +7,7 @@ interface TicketCreationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  productId: number;
   eventId: number;
   eventName: string;
 }
@@ -15,10 +16,12 @@ const TicketCreationModal: React.FC<TicketCreationModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
+  productId,
   eventId,
   eventName
 }) => {
-  console.log('TicketCreationModal rendered with eventId:', eventId, 'eventName:', eventName);
+  console.log('TicketCreationModal rendered with productId:', productId, 'eventId:', eventId, 'eventName:', eventName);
+  console.log('TicketCreationModal - productId type:', typeof productId, 'eventId type:', typeof eventId);
   const [formData, setFormData] = useState({
     price: '',
     quantity: '',
@@ -42,6 +45,16 @@ const TicketCreationModal: React.FC<TicketCreationModalProps> = ({
       return;
     }
 
+    if (!productId || productId === 0) {
+      toast.error('Product ID is required for ticket creation');
+      return;
+    }
+
+    if (!eventId || eventId === 0) {
+      toast.error('Event ID is required for ticket creation');
+      return;
+    }
+
     try {
       setIsCreating(true);
       
@@ -51,6 +64,7 @@ const TicketCreationModal: React.FC<TicketCreationModalProps> = ({
       }
 
       const ticketData: TicketCreateRequest = {
+        productId,
         eventId,
         price: parseFloat(formData.price),
         quantity: parseInt(formData.quantity),
