@@ -105,7 +105,14 @@ const Signin = () => {
         toast.error('Please verify your account to continue');
         router.push('/otp-validation');
       } else {
-        const errorMessage = response.responseMessage || 'Login failed';
+        // Handle specific error messages
+        let errorMessage = response.responseMessage || 'Login failed';
+        
+        // Show user-friendly message for bad credentials
+        if (response.responseCode === 400 && response.responseMessage === 'Bad credentials') {
+          errorMessage = 'Invalid username/password';
+        }
+        
         setErrors({ general: errorMessage });
         toast.error(errorMessage);
       }
