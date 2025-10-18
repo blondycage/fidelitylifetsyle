@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -18,11 +18,14 @@ const CreateProductPage = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [isCreatingProduct, setIsCreatingProduct] = useState(false);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
+  const isSubmittingRef = useRef(false);
   const [createdProductId, setCreatedProductId] = useState<number | null>(null);
   const [isSubcategoryModalOpen, setIsSubcategoryModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<string>('');
   const [showUploadArea, setShowUploadArea] = useState(false);
+  const [productCreationResult, setProductCreationResult] = useState<{ success: boolean; productId?: number; error?: string } | null>(null);
+  const [imageUploadResult, setImageUploadResult] = useState<{ success: boolean; error?: string } | null>(null);
   const [showScrollPrompt, setShowScrollPrompt] = useState(false);
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [eventId, setEventId] = useState<number | null>(null);
@@ -213,6 +216,47 @@ const CreateProductPage = () => {
       ...prev,
       [field]: value
     }));
+    
+    // Validate date ranges when date fields change
+    if (field === 'eventDate' || field === 'eventEndDate') {
+      validateEventDateRange(field, value);
+    } else if (field === 'availableStartDate' || field === 'availableEndDate') {
+      validateAvailabilityDateRange(field, value);
+    }
+  };
+
+  const validateEventDateRange = (changedField: string, value: string) => {
+    const { eventDate, eventEndDate } = formData;
+    const currentEventDate = changedField === 'eventDate' ? value : eventDate;
+    const currentEventEndDate = changedField === 'eventEndDate' ? value : eventEndDate;
+    
+    if (currentEventDate && currentEventEndDate) {
+      const startDate = new Date(currentEventDate);
+      const endDate = new Date(currentEventEndDate);
+      
+      if (endDate <= startDate) {
+        toast.error('Event end date must be after the start date');
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const validateAvailabilityDateRange = (changedField: string, value: string) => {
+    const { availableStartDate, availableEndDate } = formData;
+    const currentStartDate = changedField === 'availableStartDate' ? value : availableStartDate;
+    const currentEndDate = changedField === 'availableEndDate' ? value : availableEndDate;
+    
+    if (currentStartDate && currentEndDate) {
+      const startDate = new Date(currentStartDate);
+      const endDate = new Date(currentEndDate);
+      
+      if (endDate <= startDate) {
+        toast.error('Available end date must be after the start date');
+        return false;
+      }
+    }
+    return true;
   };
 
   // Helper function to format business type for display
@@ -410,31 +454,277 @@ const CreateProductPage = () => {
     setEventId(null);
     setShowRoomModal(false);
     setHotelId(null);
+    setProductCreationResult(null);
+    setImageUploadResult(null);
   };
 
-  const handleUploadImages = async (productId: number) => {
+  // Create product function
+  const createProduct = async (): Promise<number | null> => {
+    if (!vendorData?.id) {
+      throw new Error('Vendor data not available');
+    }
+
+    // Check which endpoint to use based on business type
+    const createProductCategories = ['OTHERS', 'SUPERMARKET', 'PHARMACY', 'RESTAURANT'];
+    const eventsCategories = ['EVENTS', 'EXPERIENCES', 'TOUR_GUIDE', 'INFLUENCER'];
+    const accommodationCategories = ['HOSPITALITY', 'APARTMENT'];
+    const hotelCategories = ['HOTEL', 'HOTELS'];
+    const reservationCategories = ['CLUB', 'RESERVATIONS'];
+    const carCategories = ['CARS'];
+
+    let payload: any;
+    let endpoint: string;
+
+    if (eventsCategories.includes(vendorData.businessType)) {
+      // Events payload - matching the working format
+      payload = {
+        productName: formData.productName,
+        categoryName: vendorData.businessType,
+        description: formData.description,
+        vendorId: vendorData.id,
+        quantity: formData.quantity ? parseInt(formData.quantity) : 0,
+        price: formData.price ? parseFloat(formData.price) : 0,
+        productType: formData.productType || 'GENERAL_PRODUCT',
+        eventDate: formData.eventDate,
+        eventTime: formData.eventTime ? (formData.eventTime.includes(':') && formData.eventTime.split(':').length === 2 ? `${formData.eventTime}:00` : formData.eventTime) : '',
+        eventEndDate: formData.eventEndDate,
+        eventEndTime: formData.eventEndTime ? (formData.eventEndTime.includes(':') && formData.eventEndTime.split(':').length === 2 ? `${formData.eventEndTime}:00` : formData.eventEndTime) : '',
+        eventType: formData.eventType || 'PAID',
+        venue: formData.venue || '',
+        maxAttendees: formData.maxAttendees ? parseInt(formData.maxAttendees) : 0,
+        ageRestriction: formData.ageRestriction || '',
+        dressCode: formData.dressCode || ''
+      };
+      
+      if (formData.subcategoryId) {
+        payload.subcategoryId = formData.subcategoryId;
+      }
+      
+      endpoint = '/api/v1/product/create/event';
+    } else if (accommodationCategories.includes(vendorData.businessType)) {
+      // Accommodation payload
+      payload = {
+        vendorId: vendorData.id,
+        propertyType: formData.propertyType || '',
+        listingType: formData.listingType || '',
+        description: formData.description || '',
+        address: formData.address || '',
+        propertyName: formData.propertyName || '',
+        dailyRate: formData.dailyRate ? parseFloat(formData.dailyRate) : 0,
+        maxGuests: formData.maxGuests ? parseInt(formData.maxGuests) : 0,
+        bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : 0,
+        bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : 0,
+        totalArea: formData.totalArea || '',
+        furnishingStatus: formData.furnishingStatus || '',
+        amenities: Array.isArray(formData.amenities) ? formData.amenities : [],
+        floorNumber: formData.floorNumber || '',
+        parkingSpaces: formData.parkingSpaces ? parseInt(formData.parkingSpaces) : 0,
+        checkInTime: formData.checkInTime || '',
+        checkOutTime: formData.checkOutTime || '',
+        houseRules: Array.isArray(formData.houseRules) ? formData.houseRules : [],
+        cancellationPolicy: formData.cancellationPolicy || '',
+        availableStartDate: formData.availableStartDate || '',
+        availableEndDate: formData.availableEndDate || ''
+      };
+      
+      if (formData.subcategoryId) {
+        payload.subcategoryId = formData.subcategoryId;
+      }
+      
+      // Validate availability date range for accommodation
+      if (formData.availableStartDate && formData.availableEndDate) {
+        const startDate = new Date(formData.availableStartDate);
+        const endDate = new Date(formData.availableEndDate);
+        if (endDate <= startDate) {
+          toast.error('Available end date must be after the start date');
+          return;
+        }
+      }
+      
+      endpoint = '/api/v1/product/create/accomodation';
+    } else if (hotelCategories.includes(vendorData.businessType)) {
+      // Hotel payload
+      payload = {
+        vendorId: vendorData.id,
+        productName: formData.productName,
+        subcategoryId: formData.subcategoryId || 9007199254740991,
+        description: formData.description || '',
+        address: formData.address || '',
+        price: formData.price ? parseFloat(formData.price) : 0,
+        checkInTime: formData.checkInTime || '',
+        checkOutTime: formData.checkOutTime || '',
+        propertyAmenities: Array.isArray(formData.propertyAmenities) ? formData.propertyAmenities : [],
+        availableStartDate: formData.availableStartDate || '',
+        availableEndDate: formData.availableEndDate || '',
+        cancellationPolicy: formData.cancellationPolicy || ''
+      };
+      
+      // Validate availability date range for hotel
+      if (formData.availableStartDate && formData.availableEndDate) {
+        const startDate = new Date(formData.availableStartDate);
+        const endDate = new Date(formData.availableEndDate);
+        if (endDate <= startDate) {
+          toast.error('Available end date must be after the start date');
+          return;
+        }
+      }
+      
+      endpoint = '/api/v1/product/create/hotel';
+    } else if (reservationCategories.includes(vendorData.businessType)) {
+      // Reservation payload
+      payload = {
+        vendorId: vendorData.id,
+        productName: formData.productName || '',
+        categoryName: vendorData.businessType,
+        description: formData.description || '',
+        address: formData.address || '',
+        productType: formData.productType || '',
+        serviceType: formData.serviceType || '',
+        cuisineType: Array.isArray(formData.cuisineType) ? formData.cuisineType : [],
+        operatingHours: formData.operatingHours ? parseInt(formData.operatingHours) : 0,
+        tableCapacity: formData.tableCapacity ? parseInt(formData.tableCapacity) : 0,
+        reservationFee: formData.reservationFee ? parseFloat(formData.reservationFee) : 0,
+        reservationDuration: formData.reservationDuration ? parseInt(formData.reservationDuration) : 0,
+        acceptsWalkIns: formData.acceptsWalkIns,
+        dressCode: formData.dressCode || '',
+        specialFeatures: Array.isArray(formData.specialFeatures) ? formData.specialFeatures : [],
+        availableStartDate: formData.availableStartDate || '',
+        availableEndDate: formData.availableEndDate || ''
+      };
+      
+      if (formData.subcategoryId) {
+        payload.subcategoryId = formData.subcategoryId;
+      }
+      
+      // Validate availability date range for reservation
+      if (formData.availableStartDate && formData.availableEndDate) {
+        const startDate = new Date(formData.availableStartDate);
+        const endDate = new Date(formData.availableEndDate);
+        if (endDate <= startDate) {
+          toast.error('Available end date must be after the start date');
+          return;
+        }
+      }
+      
+      endpoint = '/api/v1/product/create/reservation';
+    } else if (carCategories.includes(vendorData.businessType)) {
+      // Car rental payload
+      payload = {
+        vendorId: vendorData.id,
+        productName: formData.productName,
+        categoryName: vendorData.businessType,
+        description: formData.description || '',
+        address: formData.address || '',
+        price: formData.price ? parseFloat(formData.price) : 0,
+        carMake: formData.carMake || '',
+        carModel: formData.carModel || '',
+        carYear: formData.carYear ? parseInt(formData.carYear) : 0,
+        licensePlate: formData.licensePlate || '',
+        carType: formData.carType || '',
+        seats: formData.seats ? parseInt(formData.seats) : 0,
+        hourlyRate: formData.hourlyRate ? parseFloat(formData.hourlyRate) : 0,
+        dailyRate: formData.dailyRate ? parseFloat(formData.dailyRate) : 0,
+        monthlyRate: formData.monthlyRate ? parseFloat(formData.monthlyRate) : 0,
+        securityDeposit: formData.securityDeposit ? parseFloat(formData.securityDeposit) : 0,
+        hasDriver: formData.hasDriver === 'true' || formData.hasDriver === true,
+        availableDays: Array.isArray(formData.availableDays) ? formData.availableDays : [],
+        availableHours: {
+          start: formData.availableHoursStart || '',
+          end: formData.availableHoursEnd || ''
+        },
+        termsAndConditions: formData.termsAndConditions || '',
+        addons: Array.isArray(formData.addons) ? formData.addons.map(addon => ({
+          name: addon.name || '',
+          price: addon.price ? parseFloat(addon.price) : 0,
+          description: addon.description || ''
+        })) : []
+      };
+      
+      if (formData.subcategoryId) {
+        payload.subcategoryId = formData.subcategoryId;
+      }
+      
+      endpoint = '/api/v1/product/create/car';
+    } else {
+      // Create product payload
+      payload = {
+        productName: formData.productName,
+        categoryName: vendorData.businessType,
+        vendorId: vendorData.id,
+        quantity: parseInt(formData.quantity),
+        price: parseFloat(formData.price)
+      };
+      
+      if (formData.subcategoryId) {
+        payload.subcategoryId = formData.subcategoryId;
+      }
+      
+      endpoint = '/api/v1/product/create';
+    }
+
+    console.log('Creating product with payload:', payload);
+
+    const token = localStorage.getItem('token');
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+
+    if (response.ok && data.responseCode === 200) {
+      const productId = data.data?.productId;
+      const eventId = data.data?.eventId;
+      
+      if (productId) {
+        console.log('Product created successfully, productId:', productId, 'eventId:', eventId);
+        setCreatedProductId(productId);
+        setProductCreationResult({ success: true, productId });
+        if (eventId && isEventCategory()) {
+          setEventId(eventId);
+        }
+        return productId;
+      } else {
+        const errorMessage = 'Product ID not returned from server';
+        setProductCreationResult({ success: false, error: errorMessage });
+        throw new Error(errorMessage);
+      }
+    } else {
+      const errorMessage = data.responseMessage || 'Failed to create product';
+      setProductCreationResult({ success: false, error: errorMessage });
+      throw new Error(errorMessage);
+    }
+  };
+
+  const handleUploadImages = async (productId?: number) => {
     console.log('handleUploadImages called with productId:', productId);
+    
+    // If no productId provided, create the product first
+    if (!productId) {
+      try {
+        setIsCreatingProduct(true);
+        const createdProductId = await createProduct();
+        if (createdProductId) {
+          productId = createdProductId;
+        } else {
+          throw new Error('Failed to create product');
+        }
+      } catch (error) {
+        console.error('Error creating product:', error);
+        toast.error(error instanceof Error ? error.message : 'Error creating product');
+        return;
+      } finally {
+        setIsCreatingProduct(false);
+      }
+    }
+
     if (formData.images.length === 0) {
       console.log('No images to upload');
-      // Check if this is an event category and show ticket creation modal
-      if (isEventCategory()) {
-        console.log('Showing ticket modal for event category with productId:', productId, 'eventId:', eventId);
-        // eventId should already be set from the creation response
-        if (!eventId) {
-          console.warn('EventId not found, using productId as fallback');
-          setEventId(productId);
-        }
-        setShowTicketModal(true);
-      } else if (isHotelCategory()) {
-        console.log('Showing room modal for hotel category with hotelId:', productId);
-        setHotelId(productId);
-        setShowRoomModal(true);
-      } else {
-        console.log('Showing success modal for non-event category');
-        // Clear form and show success modal for non-event categories
-        clearForm();
-        setIsSuccessModalOpen(true);
-      }
+      toast.error('Please select at least one image to upload.');
       return;
     }
 
@@ -458,10 +748,17 @@ const CreateProductPage = () => {
         body: formDataToSend,
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        console.error('JSON parsing error:', jsonError);
+        throw new Error('Failed to upload images - Invalid response from server');
+      }
 
       if (response.ok && data.responseCode === 200) {
         setUploadProgress('Images uploaded successfully!');
+        setImageUploadResult({ success: true });
         toast.success('Images uploaded successfully!');
         
         // Check if this is an event category and show ticket creation modal
@@ -484,12 +781,16 @@ const CreateProductPage = () => {
           setIsSuccessModalOpen(true);
         }
       } else {
-        throw new Error(data.responseMessage || 'Failed to upload images');
+        const errorMessage = data.responseMessage || 'Failed to upload images';
+        setImageUploadResult({ success: false, error: errorMessage });
+        throw new Error(errorMessage);
       }
     } catch (error) {
       console.error('Error uploading images:', error);
       setUploadProgress('Failed to upload images');
-      toast.error(error instanceof Error ? error.message : 'Error uploading images');
+      const errorMessage = error instanceof Error ? error.message : 'Error uploading images';
+      setImageUploadResult({ success: false, error: errorMessage });
+      toast.error(errorMessage);
       
       // For hotels, proceed to room creation even if image upload fails
       if (isHotelCategory()) {
@@ -509,9 +810,9 @@ const CreateProductPage = () => {
         }
         setShowTicketModal(true);
       }
-      // For other categories, show success modal
+      // For other categories, show success modal with combined results
       else {
-        console.log('Image upload failed for other category, showing success modal');
+        console.log('Image upload failed for other category, showing success modal with combined results');
         clearForm();
         setIsSuccessModalOpen(true);
       }
@@ -591,6 +892,16 @@ const CreateProductPage = () => {
         toast.error('Event End Date is required.');
         return;
       }
+      
+      // Validate event date range
+      if (formData.eventDate && formData.eventEndDate) {
+        const startDate = new Date(formData.eventDate);
+        const endDate = new Date(formData.eventEndDate);
+        if (endDate <= startDate) {
+          toast.error('Event end date must be after the start date');
+          return;
+        }
+      }
     }
 
     // Validate car-specific required fields (only productName, vendorId, and description are required)
@@ -610,222 +921,29 @@ const CreateProductPage = () => {
       }
     }
 
-    try {
-      setIsCreatingProduct(true);
-
-      let payload: any;
-      let endpoint: string;
-
-      if (eventsCategories.includes(vendorData.businessType)) {
-        // Events payload - matching the working format
-        payload = {
-          productName: formData.productName,
-          categoryName: vendorData.businessType,
-          description: formData.description,
-          vendorId: vendorData.id,
-          quantity: formData.quantity ? parseInt(formData.quantity) : 0,
-          price: formData.price ? parseFloat(formData.price) : 0,
-          productType: formData.productType || 'GENERAL_PRODUCT',
-          eventDate: formData.eventDate,
-          eventTime: formData.eventTime ? (formData.eventTime.includes(':') && formData.eventTime.split(':').length === 2 ? `${formData.eventTime}:00` : formData.eventTime) : '', // Ensure HH:MM:SS format
-          eventEndDate: formData.eventEndDate,
-          eventEndTime: formData.eventEndTime ? (formData.eventEndTime.includes(':') && formData.eventEndTime.split(':').length === 2 ? `${formData.eventEndTime}:00` : formData.eventEndTime) : '', // Ensure HH:MM:SS format
-          eventType: formData.eventType || 'PAID',
-          venue: formData.venue || '',
-          maxAttendees: formData.maxAttendees ? parseInt(formData.maxAttendees) : 0, // int32
-          ageRestriction: formData.ageRestriction || '',
-          dressCode: formData.dressCode || ''
-        };
-        
-        // Add subcategory field only if it exists
-        if (formData.subcategoryId) {
-          payload.subcategoryId = formData.subcategoryId;
-        }
-        
-        endpoint = '/api/v1/product/create/event';
-      } else if (accommodationCategories.includes(vendorData.businessType)) {
-        // Accommodation payload
-        payload = {
-          vendorId: vendorData.id,
-          propertyType: formData.propertyType || '',
-          listingType: formData.listingType || '',
-          description: formData.description || '',
-          address: formData.address || '',
-          propertyName: formData.propertyName || '',
-          dailyRate: formData.dailyRate ? parseFloat(formData.dailyRate) : 0,
-          maxGuests: formData.maxGuests ? parseInt(formData.maxGuests) : 0,
-          bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : 0,
-          bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : 0,
-          totalArea: formData.totalArea || '',
-          furnishingStatus: formData.furnishingStatus || '',
-          amenities: Array.isArray(formData.amenities) ? formData.amenities : [],
-          floorNumber: formData.floorNumber || '',
-          parkingSpaces: formData.parkingSpaces ? parseInt(formData.parkingSpaces) : 0,
-          checkInTime: formData.checkInTime || '',
-          checkOutTime: formData.checkOutTime || '',
-          houseRules: Array.isArray(formData.houseRules) ? formData.houseRules : [],
-          cancellationPolicy: formData.cancellationPolicy || '',
-          availableStartDate: formData.availableStartDate || '',
-          availableEndDate: formData.availableEndDate || ''
-        };
-        
-        // Add subcategory field only if it exists
-        if (formData.subcategoryId) {
-          payload.subcategoryId = formData.subcategoryId;
-        }
-        
-        endpoint = '/api/v1/product/create/accomodation';
-      } else if (hotelCategories.includes(vendorData.businessType)) {
-        // Hotel payload
-        payload = {
-          vendorId: vendorData.id,
-          productName: formData.productName,
-          subcategoryId: formData.subcategoryId || 9007199254740991,
-          description: formData.description || '',
-          address: formData.address || '',
-          price: formData.price ? parseFloat(formData.price) : 0,
-          checkInTime: formData.checkInTime || '',
-          checkOutTime: formData.checkOutTime || '',
-          propertyAmenities: Array.isArray(formData.propertyAmenities) ? formData.propertyAmenities : [],
-          availableStartDate: formData.availableStartDate || '',
-          availableEndDate: formData.availableEndDate || '',
-          cancellationPolicy: formData.cancellationPolicy || ''
-        };
-        
-        endpoint = '/api/v1/product/create/hotel';
-      } else if (reservationCategories.includes(vendorData.businessType)) {
-        // Reservation payload
-        payload = {
-          vendorId: vendorData.id,
-          productName: formData.productName || '',
-          categoryName: vendorData.businessType,
-          description: formData.description || '',
-          address: formData.address || '',
-          productType: formData.productType || '',
-          serviceType: formData.serviceType || '',
-          cuisineType: Array.isArray(formData.cuisineType) ? formData.cuisineType : [],
-          operatingHours: formData.operatingHours ? parseInt(formData.operatingHours) : 0,
-          tableCapacity: formData.tableCapacity ? parseInt(formData.tableCapacity) : 0,
-          reservationFee: formData.reservationFee ? parseFloat(formData.reservationFee) : 0,
-          reservationDuration: formData.reservationDuration ? parseInt(formData.reservationDuration) : 0,
-          acceptsWalkIns: formData.acceptsWalkIns,
-          dressCode: formData.dressCode || '',
-          specialFeatures: Array.isArray(formData.specialFeatures) ? formData.specialFeatures : [],
-          availableStartDate: formData.availableStartDate || '',
-          availableEndDate: formData.availableEndDate || ''
-        };
-        
-        // Add subcategory field only if it exists
-        if (formData.subcategoryId) {
-          payload.subcategoryId = formData.subcategoryId;
-        }
-        
-        endpoint = '/api/v1/product/create/reservation';
-      } else if (carCategories.includes(vendorData.businessType)) {
-        // Car rental payload - matching API specification
-        payload = {
-          vendorId: vendorData.id,
-          productName: formData.productName,
-          categoryName: vendorData.businessType,
-          description: formData.description || '',
-          address: formData.address || '',
-          price: formData.price ? parseFloat(formData.price) : 0,
-          carMake: formData.carMake || '',
-          carModel: formData.carModel || '',
-          carYear: formData.carYear ? parseInt(formData.carYear) : 0,
-          licensePlate: formData.licensePlate || '',
-          carType: formData.carType || '',
-          seats: formData.seats ? parseInt(formData.seats) : 0,
-          hourlyRate: formData.hourlyRate ? parseFloat(formData.hourlyRate) : 0,
-          dailyRate: formData.dailyRate ? parseFloat(formData.dailyRate) : 0,
-          monthlyRate: formData.monthlyRate ? parseFloat(formData.monthlyRate) : 0,
-          securityDeposit: formData.securityDeposit ? parseFloat(formData.securityDeposit) : 0,
-          hasDriver: formData.hasDriver === 'true' || formData.hasDriver === true,
-          availableDays: Array.isArray(formData.availableDays) ? formData.availableDays : [],
-          availableHours: {
-            start: formData.availableHoursStart || '',
-            end: formData.availableHoursEnd || ''
-          },
-          termsAndConditions: formData.termsAndConditions || '',
-          addons: Array.isArray(formData.addons) ? formData.addons.map(addon => ({
-            name: addon.name || '',
-            price: addon.price ? parseFloat(addon.price) : 0,
-            description: addon.description || ''
-          })) : []
-        };
-        
-        // Add subcategory field only if it exists
-        if (formData.subcategoryId) {
-          payload.subcategoryId = formData.subcategoryId;
-        }
-        
-        endpoint = '/api/v1/product/create/car';
-      } else {
-        // Create product payload
-        payload = {
-          productName: formData.productName,
-          categoryName: vendorData.businessType,
-          vendorId: vendorData.id,
-          quantity: parseInt(formData.quantity),
-          price: parseFloat(formData.price)
-        };
-        
-        // Add subcategory field only if it exists
-        if (formData.subcategoryId) {
-          payload.subcategoryId = formData.subcategoryId;
-        }
-        
-        endpoint = '/api/v1/product/create';
-      }
-
-      console.log('Creating product with payload:', payload);
-      console.log('Time format verification:', {
-        eventTime: formData.eventTime,
-        convertedEventTime: formData.eventTime ? (formData.eventTime.includes(':') && formData.eventTime.split(':').length === 2 ? `${formData.eventTime}:00` : formData.eventTime) : '',
-        eventEndTime: formData.eventEndTime,
-        convertedEventEndTime: formData.eventEndTime ? (formData.eventEndTime.includes(':') && formData.eventEndTime.split(':').length === 2 ? `${formData.eventEndTime}:00` : formData.eventEndTime) : ''
-      });
-
-      const token = localStorage.getItem('token');
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.responseCode === 200) {
-        const productId = data.data?.productId;
-        const eventId = data.data?.eventId; // Extract eventId from response
-        if (productId) {
-          console.log('Product created successfully, showing scroll prompt');
-          console.log('Event creation response - productId:', productId, 'eventId:', eventId);
-          setCreatedProductId(productId);
-          // Store eventId if it exists (for events)
-          if (eventId && isEventCategory()) {
-            setEventId(eventId);
-          }
-          setShowScrollPrompt(true);
-          setUploadProgress('Product created successfully!');
-          toast.success('Product created successfully! Scroll up to upload images or skip to manage store.');
-        } else {
-          throw new Error('Product ID not returned from server');
-        }
-      } else {
-        throw new Error(data.responseMessage || 'Failed to create product');
-      }
-      
-    } catch (error) {
-      console.error('Error creating product:', error);
-      toast.error(error instanceof Error ? error.message : 'Error creating product');
-      setUploadProgress('');
-    } finally {
-      setIsCreatingProduct(false);
+    // If upload area is already visible, just validate and show success
+    if (showUploadArea) {
+      console.log('Form updated successfully');
+      toast.success('Form updated successfully! You can continue with image upload.');
+      return;
     }
+    
+    // Instead of creating product, go directly to image upload
+    console.log('Form validated successfully, proceeding to image upload');
+    setShowUploadArea(true);
+    setShowScrollPrompt(false);
+    toast.success('Form completed! Please upload images to create your product.');
+    
+    // Scroll to upload area
+    setTimeout(() => {
+      const uploadArea = document.getElementById('upload-area');
+      if (uploadArea) {
+        uploadArea.scrollIntoView({ 
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+    }, 100);
   };
 
   return (
@@ -843,12 +961,20 @@ const CreateProductPage = () => {
                 {/* Product Details Card */}
                 <div className="bg-white rounded-[16px] sm:rounded-[24px] shadow-[0px_1px_4px_0px_rgba(12,12,13,0.05),0px_1px_4px_0px_rgba(12,12,13,0.1)] p-4 sm:p-6">
                   <div className="space-y-6 sm:space-y-8">
-                    {/* Header */}
-                    <div className="h-7">
-                      <h2 className="text-[20px] sm:text-[24px] font-bold text-[#212121] font-urbanist leading-[1.17]">
-                        Product Details
-                      </h2>
-                    </div>
+                      {/* Header */}
+                      <div className="h-7">
+                        <div className="flex items-center gap-3">
+                          <h2 className="text-[20px] sm:text-[24px] font-bold text-[#212121] font-urbanist leading-[1.17]">
+                            Product Details
+                          </h2>
+                          {showUploadArea && (
+                            <div className="flex items-center gap-2 px-3 py-1 bg-[#E8F5E8] border border-[#6CC049] rounded-full">
+                              <div className="w-2 h-2 bg-[#6CC049] rounded-full"></div>
+                              <span className="text-[12px] font-medium text-[#6CC049] font-urbanist">Edit Mode</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
 
                     {/* Input Fields */}
                     <div className="space-y-4 sm:space-y-6">
@@ -946,12 +1072,25 @@ const CreateProductPage = () => {
                   <div id="upload-area" className="bg-white rounded-[16px] sm:rounded-[24px] shadow-[0px_1px_4px_0px_rgba(12,12,13,0.05),0px_1px_4px_0px_rgba(12,12,13,0.1)] p-4 sm:p-6">
                     <div className="space-y-4 sm:space-y-6">
                       {/* Header */}
-                      <div className="h-7 text-center">
+                      <div className="flex items-center justify-between">
+                        <button
+                          type="button"
+                          onClick={() => setShowUploadArea(false)}
+                          className="flex items-center gap-2 text-[#6CC049] hover:text-[#5AA03A] transition-colors"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                          <span className="text-[14px] font-medium font-urbanist">Back to Edit Form</span>
+                        </button>
                         <h2 className="text-[20px] sm:text-[24px] font-bold text-[#212121] font-urbanist leading-[1.17]">
                           Upload Images
                         </h2>
-                       
+                        <div className="w-20"></div> {/* Spacer for centering */}
                       </div>
+                      
+                      {/* Helpful message */}
+                     
 
                     {/* Upload Area - Original Design */}
                     <div className="flex justify-center">
@@ -1039,15 +1178,20 @@ const CreateProductPage = () => {
                       <div className="w-full">
                         <button
                           type="button"
-                          onClick={() => createdProductId && handleUploadImages(createdProductId)}
-                          disabled={isUploadingImages || formData.images.length === 0}
+                          onClick={() => handleUploadImages()}
+                          disabled={isUploadingImages || isCreatingProduct || formData.images.length === 0}
                           className={`w-full h-[44px] sm:h-[48px] text-white text-[14px] sm:text-[16px] font-semibold font-urbanist rounded-[60px] transition-colors duration-200 flex items-center justify-center ${
-                            isUploadingImages || formData.images.length === 0
+                            isUploadingImages || isCreatingProduct || formData.images.length === 0
                               ? 'bg-[#BDBDBD] cursor-not-allowed'
                               : 'bg-[#6CC049] hover:bg-[#5AA03A]'
                           }`}
                         >
-                          {isUploadingImages ? (
+                          {isCreatingProduct ? (
+                            <div className="flex items-center gap-2">
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              Creating Product...
+                            </div>
+                          ) : isUploadingImages ? (
                             <div className="flex items-center gap-2">
                               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                               Uploading Images...
@@ -1055,7 +1199,7 @@ const CreateProductPage = () => {
                           ) : formData.images.length === 0 ? (
                             'Select images first'
                           ) : (
-                            `Upload ${formData.images.length} Image${formData.images.length > 1 ? 's' : ''}`
+                            `Create Product & Upload ${formData.images.length} Image${formData.images.length > 1 ? 's' : ''}`
                           )}
                         </button>
                       </div>
@@ -1101,8 +1245,8 @@ const CreateProductPage = () => {
             )}
 
 
-            {/* Submit Button - Only show for supported business types and when upload area is not visible */}
-            {!showUploadArea && vendorData?.businessType && (['OTHERS', 'SUPERMARKET', 'PHARMACY', 'RESTAURANT'].includes(vendorData.businessType) || ['EVENTS', 'EXPERIENCES', 'TOUR_GUIDE', 'INFLUENCER'].includes(vendorData.businessType) || ['HOTEL', 'HOSPITALITY', 'APARTMENT'].includes(vendorData.businessType) || ['CLUB', 'RESERVATIONS'].includes(vendorData.businessType) || ['CARS'].includes(vendorData.businessType)) && (
+            {/* Submit Button - Always show for supported business types */}
+            {vendorData?.businessType && (['OTHERS', 'SUPERMARKET', 'PHARMACY', 'RESTAURANT'].includes(vendorData.businessType) || ['EVENTS', 'EXPERIENCES', 'TOUR_GUIDE', 'INFLUENCER'].includes(vendorData.businessType) || ['HOTEL', 'HOSPITALITY', 'APARTMENT'].includes(vendorData.businessType) || ['CLUB', 'RESERVATIONS'].includes(vendorData.businessType) || ['CARS'].includes(vendorData.businessType)) && (
               <div className="w-full">
                 <button
                   type="submit"
@@ -1127,6 +1271,8 @@ const CreateProductPage = () => {
                     'Loading...'
                   ) : !vendorData?.id ? (
                     'Vendor data unavailable'
+                  ) : showUploadArea ? (
+                    'Update Form & Continue'
                   ) : (
                     'Next'
                   )}
@@ -1148,7 +1294,14 @@ const CreateProductPage = () => {
       {/* Product Success Modal */}
       <ProductSuccessModal
         isOpen={isSuccessModalOpen}
-        onClose={() => setIsSuccessModalOpen(false)}
+        onClose={() => {
+          setIsSuccessModalOpen(false);
+          // Reset results when modal is closed
+          setProductCreationResult(null);
+          setImageUploadResult(null);
+        }}
+        productCreationResult={productCreationResult}
+        imageUploadResult={imageUploadResult}
       />
 
       {/* Ticket Creation Modal */}

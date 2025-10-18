@@ -125,9 +125,6 @@ const Signin = () => {
     }
   };
 
-  const handleForgotPasswordSuccess = (email: string) => {
-    router.push(`/reset-password?email=${encodeURIComponent(email)}&userType=${userType}`);
-  };
 
   return (
     <AuthLayout
@@ -249,7 +246,6 @@ const Signin = () => {
       <ForgotPasswordModal
         isOpen={showForgotPasswordModal}
         onClose={() => setShowForgotPasswordModal(false)}
-        onSuccess={handleForgotPasswordSuccess}
         userType={userType}
       />
     </AuthLayout>

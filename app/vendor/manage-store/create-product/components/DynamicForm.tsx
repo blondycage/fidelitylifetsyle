@@ -1,6 +1,7 @@
 'use client';
 import React, { useState,useEffect } from 'react';
 import ArrayInput from './ArrayInput';
+import { SimpleAddressInput } from './SimpleAddressInput';
 import { SubcategoryItem } from '@/services/subcategoryService';
 
 interface DynamicFormProps {
@@ -10,9 +11,10 @@ interface DynamicFormProps {
   onNext: () => void;
   subcategories?: SubcategoryItem[];
   subcategoriesLoading?: boolean;
+  isSubmitting?: boolean;
 }
 
-const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInputChange, onNext, subcategories = [], subcategoriesLoading = false }) => {
+const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInputChange, onNext, subcategories = [], subcategoriesLoading = false, isSubmitting = false }) => {
   console.log('DynamicForm rendered with businessType:', businessType);
   console.log('DynamicForm props:', { businessType, formData, onNext });
 
@@ -130,12 +132,13 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
             type="date"
             value={formData.eventDate || ''}
             onChange={(e) => onInputChange('eventDate', e.target.value)}
+            min={new Date().toISOString().split('T')[0]}
             className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] [color-scheme:light]"
             style={{ colorScheme: 'light' }}
           />
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M3.333 6h9.334M8 1v3.333M8 1a3.333 3.333 0 0 0-3.333 3.333V6M8 1a3.333 3.333 0 0 1 3.333 3.333V6M3.333 6v6.667A1.333 1.333 0 0 0 4.667 14h6.666a1.333 1.333 0 0 0 1.334-1.333V6" stroke="#616161" strokeWidth="1.333" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M3.333 6h9.334M8 1v3.333M8 1a3.333 3.333 0 0 0-3.333 3.333V6M8 1a3.333 3.333 0 0 1 3.333 3.333V6M3.333 6v6.667A1.333 1.333 0 0 0 4.667 14h6.666a1.333 1.333 0 0 0 1.334-1.333V6" stroke="#6CC049" strokeWidth="1.333" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
         </div>
@@ -180,12 +183,13 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
             type="date"
             value={formData.eventEndDate || ''}
             onChange={(e) => onInputChange('eventEndDate', e.target.value)}
+            min={formData.eventDate || new Date().toISOString().split('T')[0]}
             className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] [color-scheme:light]"
             style={{ colorScheme: 'light' }}
           />
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M3.333 6h9.334M8 1v3.333M8 1a3.333 3.333 0 0 0-3.333 3.333V6M8 1a3.333 3.333 0 0 1 3.333 3.333V6M3.333 6v6.667A1.333 1.333 0 0 0 4.667 14h6.666a1.333 1.333 0 0 0 1.334-1.333V6" stroke="#616161" strokeWidth="1.333" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M3.333 6h9.334M8 1v3.333M8 1a3.333 3.333 0 0 0-3.333 3.333V6M8 1a3.333 3.333 0 0 1 3.333 3.333V6M3.333 6v6.667A1.333 1.333 0 0 0 4.667 14h6.666a1.333 1.333 0 0 0 1.334-1.333V6" stroke="#FF6B6B" strokeWidth="1.333" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
         </div>
@@ -218,20 +222,13 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
 
       {/* Venue - Only show if address is not filled */}
       {!formData.address && (
-        <div className="w-full max-w-full sm:max-w-[450px]">
-          <div className="flex items-center gap-2 mb-2">
-            <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
-              Venue
-            </label>
-          </div>
-          <input
-            type="text"
-            value={formData.venue || ''}
-            onChange={(e) => onInputChange('venue', e.target.value)}
-            placeholder="Enter venue name"
-            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
-          />
-        </div>
+        <SimpleAddressInput
+          value={formData.venue || ''}
+          onChange={(value) => onInputChange('venue', value)}
+          placeholder="Enter venue name"
+          label="Venue"
+          required={false}
+        />
       )}
 
       {/* Max Attendees */}
@@ -549,21 +546,13 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
       </div>
 
       {/* Address */}
-      <div className="w-full max-w-full sm:max-w-[450px]">
-        <div className="flex items-center gap-2 mb-2">
-          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
-            Address
-          </label>
-          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
-        </div>
-        <input
-          type="text"
-          value={formData.address || ''}
-          onChange={(e) => onInputChange('address', e.target.value)}
-          placeholder="Enter hotel address"
-          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
-        />
-      </div>
+      <SimpleAddressInput
+        value={formData.address || ''}
+        onChange={(value) => onInputChange('address', value)}
+        placeholder="Enter hotel address"
+        label="Address"
+        required={true}
+      />
 
       {/* Price */}
       <div className="w-full max-w-full sm:max-w-[450px]">
@@ -647,8 +636,14 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
             type="date"
             value={formData.availableStartDate || ''}
             onChange={(e) => onInputChange('availableStartDate', e.target.value)}
+            min={new Date().toISOString().split('T')[0]}
             className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
           />
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M8 1.333a6.667 6.667 0 1 0 0 13.334A6.667 6.667 0 0 0 8 1.333ZM8 4v4l2.667 1.6" stroke="#4CAF50" strokeWidth="1.333" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
         </div>
       </div>
 
@@ -664,8 +659,14 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
             type="date"
             value={formData.availableEndDate || ''}
             onChange={(e) => onInputChange('availableEndDate', e.target.value)}
+            min={formData.availableStartDate || new Date().toISOString().split('T')[0]}
             className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
           />
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M8 1.333a6.667 6.667 0 1 0 0 13.334A6.667 6.667 0 0 0 8 1.333ZM8 4v4l2.667 1.6" stroke="#FF9800" strokeWidth="1.333" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
         </div>
       </div>
 
@@ -818,20 +819,13 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
       </div>
 
       {/* Address */}
-      <div className="w-full max-w-full sm:max-w-[450px]">
-        <div className="flex items-center gap-2 mb-2">
-          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
-            Address
-          </label>
-        </div>
-        <input
-          type="text"
-          value={formData.address || ''}
-          onChange={(e) => onInputChange('address', e.target.value)}
-          placeholder="Enter property address"
-          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
-        />
-      </div>
+      <SimpleAddressInput
+        value={formData.address || ''}
+        onChange={(value) => onInputChange('address', value)}
+        placeholder="Enter property address"
+        label="Address"
+        required={false}
+      />
 
       {/* Daily Rate */}
       <div className="w-full max-w-full sm:max-w-[450px]">
@@ -1142,20 +1136,13 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
       </div>
 
       {/* Address */}
-      <div className="w-full max-w-full sm:max-w-[450px]">
-        <div className="flex items-center gap-2 mb-2">
-          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
-            Address
-          </label>
-        </div>
-        <input
-          type="text"
-          value={formData.address || ''}
-          onChange={(e) => onInputChange('address', e.target.value)}
-          placeholder="Enter address"
-          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
-        />
-      </div>
+      <SimpleAddressInput
+        value={formData.address || ''}
+        onChange={(value) => onInputChange('address', value)}
+        placeholder="Enter address"
+        label="Address"
+        required={false}
+      />
 
       {/* Product Type */}
       <div className="w-full max-w-full sm:max-w-[450px]">
@@ -1685,20 +1672,13 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
       </div>
 
       {/* Address */}
-      <div className="w-full max-w-full sm:max-w-[450px]">
-        <div className="flex items-center gap-2 mb-2">
-          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
-            Address
-          </label>
-        </div>
-        <input
-          type="text"
-          value={formData.address || ''}
-          onChange={(e) => onInputChange('address', e.target.value)}
-          placeholder="Enter address"
-          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
-        />
-      </div>
+      <SimpleAddressInput
+        value={formData.address || ''}
+        onChange={(value) => onInputChange('address', value)}
+        placeholder="Enter address"
+        label="Address"
+        required={false}
+      />
 
       {/* Price */}
       <div className="w-full max-w-full sm:max-w-[450px]">

@@ -123,14 +123,14 @@ const BASE_URL = 'http://45.33.68.176:9091';
 
 // Function to get full image URL
 export const getImageUrl = (imagePath: string): string => {
-  if (!imagePath) return '/placeholder-product.png';
+  if (!imagePath) return '/images/icon-gallery-add.svg';
   if (imagePath.startsWith('http')) return imagePath;
   return `${BASE_URL}${imagePath}`;
 };
 
 // Function to get primary image URL
 export const getPrimaryImageUrl = (images: ProductImage[]): string => {
-  if (!images || images.length === 0) return '/placeholder-product.png';
+  if (!images || images.length === 0) return '/images/icon-gallery-add.svg';
   
   const primaryImage = images.find(img => img.isPrimary);
   const firstImage = images[0];
