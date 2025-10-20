@@ -77,6 +77,30 @@ export interface CarRentalData {
   termsAndConditions: string;
 }
 
+export interface FoodData {
+  foodId: number;
+  productName: string;
+  categoryName: string;
+  subcategoryName: string;
+  description: string;
+  address: string;
+  price: number;
+  stockQuantity: number;
+  foodCategory: string;
+  dietaryInfo: string[];
+  spiceLevel: string;
+  ingredients: string[];
+  allergens: string[];
+  preparationTime: number;
+  servingSize: string;
+  availableForDelivery: boolean;
+  availableForPickup: boolean;
+  deliveryFee: number;
+  minimumOrderForDelivery: number;
+  operatingHours: number;
+  acceptsWalkIns: boolean;
+}
+
 export interface ApiProduct {
   productId: number;
   vendorId: number;
@@ -91,7 +115,7 @@ export interface ApiProduct {
   accommodation: AccommodationData | {};
   reservation: ReservationData | {};
   carRental: CarRentalData | {};
-  food: any; // Food product data
+  food: FoodData | {}; // Food product data
   hotel: any; // Hotel data (alternative accommodation)
   rooms: any[]; // Room data
 }
@@ -140,7 +164,7 @@ export const getPrimaryImageUrl = (images: ProductImage[]): string => {
 };
 
 // Function to determine product type based on which nested object has the most meaningful data
-export const getProductType = (product: ApiProduct): 'product' | 'event' | 'accommodation' | 'hotel' | 'reservation' | 'car' => {
+export const getProductType = (product: ApiProduct): 'product' | 'event' | 'accommodation' | 'hotel' | 'reservation' | 'car' | 'food' => {
   console.log(`\n🔍 Analyzing Product: ${product.productName} (ID: ${product.productId})`);
   console.log(`📋 CategoryName: ${product.categoryName || 'Not provided'}`);
   
@@ -198,6 +222,9 @@ export const getProductType = (product: ApiProduct): 'product' | 'event' | 'acco
       case 'RESERVATIONS':
         console.log(`✅ DETECTED: RESERVATION (via categoryName)`);
         return 'reservation';
+      case 'RESTAURANT':
+        console.log(`✅ DETECTED: FOOD (via categoryName)`);
+        return 'food';
       default:
         console.log(`✅ DETECTED: PRODUCT (via categoryName fallback)`);
         return 'product';
@@ -226,8 +253,8 @@ export const getProductType = (product: ApiProduct): 'product' | 'event' | 'acco
     return 'car';
   }
   if (foodFields === maxFields) {
-    console.log(`✅ DETECTED: PRODUCT via food (${foodFields} meaningful fields)`);
-    return 'product';
+    console.log(`✅ DETECTED: FOOD (${foodFields} meaningful fields)`);
+    return 'food';
   }
 
   console.log(`✅ DETECTED: PRODUCT (default fallback)`);
@@ -253,6 +280,11 @@ export const getDisplayName = (product: ApiProduct): string => {
     return hotel.productName || product.productName || 'Unnamed Hotel';
   }
   
+  if (type === 'food' && Object.keys(product.food).length > 0) {
+    const food = product.food as FoodData;
+    return food.productName || product.productName || 'Unnamed Food Item';
+  }
+  
   return product.productName || 'Unnamed Product';
 };
 
@@ -263,7 +295,8 @@ export const getProductSku = (product: ApiProduct): string => {
                  type === 'accommodation' ? 'ACC' : 
                  type === 'hotel' ? 'HTL' :
                  type === 'reservation' ? 'RES' : 
-                 type === 'car' ? 'CAR' : 'PRD';
+                 type === 'car' ? 'CAR' : 
+                 type === 'food' ? 'FOD' : 'PRD';
   return `${prefix}${product.productId.toString().padStart(3, '0')}`;
 };
 
@@ -289,6 +322,7 @@ const getExpectedProductTypes = (businessType: string): string[] => {
     case 'FASHION':
       return ['product']; // Fashion products are general products
     case 'RESTAURANT':
+      return ['food'];
     case 'SUPERMARKET':
     case 'PHARMACY':
     case 'OTHERS':

@@ -108,6 +108,19 @@ const CreateProductPage = () => {
     availableHoursEnd: '',
     termsAndConditions: '',
     addons: [] as Array<{name: string, price: string, description: string}>,
+    // Food payload fields
+    foodCategory: '',
+    dietaryInfo: [] as string[],
+    spiceLevel: '',
+    ingredients: [] as string[],
+    allergens: [] as string[],
+    preparationTime: '',
+    servingSize: '',
+    availableForDelivery: true,
+    availableForPickup: true,
+    deliveryFee: '',
+    minimumOrderForDelivery: '',
+    stockQuantity: '',
     // Additional fields for other categories (will be used later)
     subCategory: '',
     location: '',
@@ -436,6 +449,19 @@ const CreateProductPage = () => {
       availableHoursEnd: '',
       termsAndConditions: '',
       addons: [] as Array<{name: string, price: string, description: string}>,
+      // Food payload fields
+      foodCategory: '',
+      dietaryInfo: [] as string[],
+      spiceLevel: '',
+      ingredients: [] as string[],
+      allergens: [] as string[],
+      preparationTime: '',
+      servingSize: '',
+      availableForDelivery: true,
+      availableForPickup: true,
+      deliveryFee: '',
+      minimumOrderForDelivery: '',
+      stockQuantity: '',
       // Additional fields for other categories (will be used later)
       description: '',
       subCategory: '',
@@ -465,7 +491,8 @@ const CreateProductPage = () => {
     }
 
     // Check which endpoint to use based on business type
-    const createProductCategories = ['OTHERS', 'SUPERMARKET', 'PHARMACY', 'RESTAURANT'];
+    const createProductCategories = ['OTHERS', 'SUPERMARKET', 'PHARMACY'];
+    const foodCategories = ['RESTAURANT'];
     const eventsCategories = ['EVENTS', 'EXPERIENCES', 'TOUR_GUIDE', 'INFLUENCER'];
     const accommodationCategories = ['HOSPITALITY', 'APARTMENT'];
     const hotelCategories = ['HOTEL', 'HOTELS'];
@@ -645,6 +672,32 @@ const CreateProductPage = () => {
       }
       
       endpoint = '/api/v1/product/create/car';
+    } else if (foodCategories.includes(vendorData.businessType)) {
+      // Food payload
+      payload = {
+        vendorId: vendorData.id,
+        productName: formData.productName,
+        subcategoryId: formData.subcategoryId || 9007199254740991,
+        description: formData.description || '',
+        address: formData.address || '',
+        price: formData.price ? parseFloat(formData.price) : 0,
+        stockQuantity: formData.stockQuantity ? parseInt(formData.stockQuantity) : 0,
+        foodCategory: formData.foodCategory || '',
+        dietaryInfo: Array.isArray(formData.dietaryInfo) ? formData.dietaryInfo : [],
+        spiceLevel: formData.spiceLevel || '',
+        ingredients: Array.isArray(formData.ingredients) ? formData.ingredients : [],
+        allergens: Array.isArray(formData.allergens) ? formData.allergens : [],
+        preparationTime: formData.preparationTime ? parseInt(formData.preparationTime) : 0,
+        servingSize: formData.servingSize || '',
+        availableForDelivery: formData.availableForDelivery,
+        availableForPickup: formData.availableForPickup,
+        deliveryFee: formData.deliveryFee ? parseFloat(formData.deliveryFee) : 0,
+        minimumOrderForDelivery: formData.minimumOrderForDelivery ? parseFloat(formData.minimumOrderForDelivery) : 0,
+        operatingHours: formData.operatingHours ? parseInt(formData.operatingHours) : 0,
+        acceptsWalkIns: formData.acceptsWalkIns
+      };
+      
+      endpoint = '/api/v1/product/create/food';
     } else {
       // Create product payload
       payload = {
@@ -830,7 +883,8 @@ const CreateProductPage = () => {
     }
 
     // Check which endpoint to use based on business type
-    const createProductCategories = ['OTHERS', 'SUPERMARKET', 'PHARMACY', 'RESTAURANT'];
+    const createProductCategories = ['OTHERS', 'SUPERMARKET', 'PHARMACY'];
+    const foodCategories = ['RESTAURANT'];
     const eventsCategories = ['EVENTS', 'EXPERIENCES', 'TOUR_GUIDE', 'INFLUENCER'];
     const accommodationCategories = ['HOSPITALITY', 'APARTMENT'];
     const hotelCategories = ['HOTEL', 'HOTELS'];
@@ -842,7 +896,7 @@ const CreateProductPage = () => {
       return;
     }
     
-    if (!createProductCategories.includes(vendorData.businessType) && !eventsCategories.includes(vendorData.businessType) && !accommodationCategories.includes(vendorData.businessType) && !hotelCategories.includes(vendorData.businessType) && !reservationCategories.includes(vendorData.businessType) && !carCategories.includes(vendorData.businessType)) {
+    if (!createProductCategories.includes(vendorData.businessType) && !eventsCategories.includes(vendorData.businessType) && !accommodationCategories.includes(vendorData.businessType) && !hotelCategories.includes(vendorData.businessType) && !reservationCategories.includes(vendorData.businessType) && !carCategories.includes(vendorData.businessType) && !foodCategories.includes(vendorData.businessType)) {
       toast.error('This business type is not yet supported for product creation.');
       return;
     }
@@ -913,8 +967,28 @@ const CreateProductPage = () => {
       // All other car fields are optional
     }
 
+    // Validate food-specific required fields
+    if (foodCategories.includes(vendorData.businessType)) {
+      if (!formData.productName) {
+        toast.error('Food Name is required.');
+        return;
+      }
+      if (!formData.description) {
+        toast.error('Description is required.');
+        return;
+      }
+      if (!formData.price) {
+        toast.error('Price is required.');
+        return;
+      }
+      if (!formData.stockQuantity) {
+        toast.error('Stock Quantity is required.');
+        return;
+      }
+    }
+
     // Only validate price and quantity for business types that have these fields in the UI
-    if (['OTHERS', 'SUPERMARKET', 'PHARMACY', 'RESTAURANT'].includes(vendorData.businessType)) {
+    if (['OTHERS', 'SUPERMARKET', 'PHARMACY'].includes(vendorData.businessType)) {
       if (!formData.price || !formData.quantity) {
         toast.error('Price and Quantity are required.');
         return;
@@ -1012,7 +1086,7 @@ const CreateProductPage = () => {
               {/* Right Column - Pricing & Inventory and Upload Image */}
               <div className="flex-1 space-y-4 sm:space-y-6">
                 {/* Pricing & Inventory Card - Only show for create-product business types */}
-                {vendorData?.businessType && ['OTHERS', 'SUPERMARKET', 'PHARMACY', 'RESTAURANT'].includes(vendorData.businessType) && (
+                {vendorData?.businessType && ['OTHERS', 'SUPERMARKET', 'PHARMACY'].includes(vendorData.businessType) && (
                   <div className="bg-white rounded-[16px] sm:rounded-[24px] shadow-[0px_1px_4px_0px_rgba(12,12,13,0.05),0px_1px_4px_0px_rgba(12,12,13,0.1)] p-4 sm:p-6">
                     <div className="space-y-4 sm:space-y-6">
                       {/* Header */}
@@ -1246,7 +1320,7 @@ const CreateProductPage = () => {
 
 
             {/* Submit Button - Always show for supported business types */}
-            {vendorData?.businessType && (['OTHERS', 'SUPERMARKET', 'PHARMACY', 'RESTAURANT'].includes(vendorData.businessType) || ['EVENTS', 'EXPERIENCES', 'TOUR_GUIDE', 'INFLUENCER'].includes(vendorData.businessType) || ['HOTEL', 'HOSPITALITY', 'APARTMENT'].includes(vendorData.businessType) || ['CLUB', 'RESERVATIONS'].includes(vendorData.businessType) || ['CARS'].includes(vendorData.businessType)) && (
+            {vendorData?.businessType && (['OTHERS', 'SUPERMARKET', 'PHARMACY'].includes(vendorData.businessType) || ['RESTAURANT'].includes(vendorData.businessType) || ['EVENTS', 'EXPERIENCES', 'TOUR_GUIDE', 'INFLUENCER'].includes(vendorData.businessType) || ['HOTEL', 'HOSPITALITY', 'APARTMENT'].includes(vendorData.businessType) || ['CLUB', 'RESERVATIONS'].includes(vendorData.businessType) || ['CARS'].includes(vendorData.businessType)) && (
               <div className="w-full">
                 <button
                   type="submit"

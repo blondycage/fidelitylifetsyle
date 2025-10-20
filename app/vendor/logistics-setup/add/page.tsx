@@ -4,36 +4,62 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'iconsax-react';
 import { SuccessModal } from '@/components/vendor/modals/SuccessModal';
 import { VendorDashboardLayout } from '@/components/vendor/VendorDashboardLayout';
+import { useVendor } from '@/contexts/VendorContext';
+import { createLogisticsArea, CreateLogisticsPayload } from '@/services/logisticsService';
+import toast from 'react-hot-toast';
 
 const AddNewArea = () => {
   const router = useRouter();
+  const { vendorData, loading: vendorLoading } = useVendor();
   const [formData, setFormData] = useState({
     areaName: '',
     feeAmount: '',
-    active: true,
   });
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Get existing areas from localStorage
-    const saved = localStorage.getItem('logisticsAreas');
-    const areas = saved ? JSON.parse(saved) : [];
+    if (!vendorData?.id || !vendorData?.email) {
+      toast.error('Vendor data not available. Please try again.');
+      return;
+    }
 
-    // Create new area
-    const newArea = {
-      id: Date.now().toString(),
-      areaName: formData.areaName,
-      deliveryFee: parseFloat(formData.feeAmount),
-      status: formData.active ? 'Active' : 'Inactive'
-    };
+    if (!formData.areaName.trim()) {
+      toast.error('Area name is required');
+      return;
+    }
 
-    // Add to areas and save
-    areas.push(newArea);
-    localStorage.setItem('logisticsAreas', JSON.stringify(areas));
+    if (!formData.feeAmount || parseFloat(formData.feeAmount) <= 0) {
+      toast.error('Please enter a valid delivery fee');
+      return;
+    }
 
-    setShowSuccessModal(true);
+    try {
+      setIsSubmitting(true);
+
+      const payload: CreateLogisticsPayload = {
+        deliveryArea: formData.areaName.trim(),
+        deliveryFee: parseFloat(formData.feeAmount),
+        vendorId: vendorData.id,
+        vendorEmail: vendorData.email,
+      };
+
+      const response = await createLogisticsArea(payload);
+
+      if (response.responseCode === 200) {
+        toast.success('Delivery area created successfully');
+        setShowSuccessModal(true);
+      } else {
+        throw new Error(response.responseMessage || 'Failed to create delivery area');
+      }
+    } catch (error) {
+      console.error('Error creating delivery area:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to create delivery area');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCloseModal = () => {
@@ -76,47 +102,39 @@ const AddNewArea = () => {
         {/* Fee Amount */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Fee amount
+            Delivery Fee (₦)
           </label>
           <input
-            type="text"
+            type="number"
+            step="0.01"
+            min="0"
             value={formData.feeAmount}
             onChange={(e) => setFormData({ ...formData, feeAmount: e.target.value })}
             className="w-full px-4 py-3 !bg-gray-100 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--greenHex)] focus:border-[var(--greenHex)] focus:!bg-gray-100 transition-all"
-            placeholder=""
+            placeholder="Enter delivery fee"
             required
           />
-        </div>
-
-        {/* Active Toggle */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Active
-          </label>
-          <div className="flex items-center">
-            <button
-              type="button"
-              onClick={() => setFormData({ ...formData, active: !formData.active })}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                formData.active ? 'bg-[var(--greenHex)]' : 'bg-gray-300'
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  formData.active ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
-            </button>
-          </div>
         </div>
 
         {/* Submit Button */}
         <div className="pt-6">
           <button
             type="submit"
-            className="w-full px-6 py-3 bg-[var(--greenHex)] text-white rounded-full hover:bg-green-600 transition-all duration-200 font-medium"
+            disabled={isSubmitting || vendorLoading}
+            className={`w-full px-6 py-3 rounded-full transition-all duration-200 font-medium ${
+              isSubmitting || vendorLoading
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-[var(--greenHex)] text-white hover:bg-green-600'
+            }`}
           >
-            Add
+            {isSubmitting ? (
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Creating...
+              </div>
+            ) : (
+              'Add Delivery Area'
+            )}
           </button>
         </div>
         </form>

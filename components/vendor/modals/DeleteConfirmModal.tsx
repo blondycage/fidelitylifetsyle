@@ -6,12 +6,14 @@ interface DeleteConfirmModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  areaName?: string;
 }
 
 export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
   isOpen,
   onClose,
-  onConfirm
+  onConfirm,
+  areaName
 }) => {
   if (!isOpen) return null;
 
@@ -30,7 +32,10 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
         <div className="flex flex-col items-center text-center">
           {/* Title */}
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Delete Area?</h2>
-          <p className="text-sm text-gray-500 mb-8">This will permanently delete this area</p>
+          <p className="text-sm text-gray-500 mb-2">
+            {areaName ? `Are you sure you want to delete "${areaName}"?` : 'Are you sure you want to delete this area?'}
+          </p>
+          <p className="text-xs text-gray-400 mb-8">This action cannot be undone</p>
 
           {/* Delete Icon with concentric circles */}
           <div className="relative mb-8">

@@ -25,11 +25,25 @@ interface Product {
   stock: number;
   status: 'Available' | 'Unavailable';
   image: string;
-  type: 'product' | 'event' | 'accommodation' | 'hotel' | 'reservation' | 'car';
+  type: 'product' | 'event' | 'accommodation' | 'hotel' | 'reservation' | 'car' | 'food';
   categoryName?: string;
   subcategoryName: string;
   description?: string;
   images?: string[];
+  // Food-specific fields
+  foodCategory?: string;
+  dietaryInfo?: string[];
+  spiceLevel?: string;
+  ingredients?: string[];
+  allergens?: string[];
+  preparationTime?: number;
+  servingSize?: string;
+  availableForDelivery?: boolean;
+  availableForPickup?: boolean;
+  deliveryFee?: number;
+  minimumOrderForDelivery?: number;
+  operatingHours?: number;
+  acceptsWalkIns?: boolean;
 }
 
 const ManageStore = () => {
@@ -66,6 +80,7 @@ const ManageStore = () => {
       case 'FASHION':
         return ['product']; // Fashion products are general products
       case 'RESTAURANT':
+        return ['food'];
       case 'SUPERMARKET':
       case 'PHARMACY':
       case 'OTHERS':
@@ -570,6 +585,7 @@ const ManageStore = () => {
                       product.type === 'accommodation' ? 'bg-blue-100 text-blue-600' :
                       product.type === 'reservation' ? 'bg-orange-100 text-orange-600' :
                       product.type === 'car' ? 'bg-green-100 text-green-600' :
+                      product.type === 'food' ? 'bg-red-100 text-red-600' :
                       'bg-gray-100 text-gray-600'
                     }`}>
                       {product.type.charAt(0).toUpperCase() + product.type.slice(1)}

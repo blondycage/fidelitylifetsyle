@@ -23,65 +23,9 @@ const ManageOrdersPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const ordersPerPage = 3;
 
-  // Initialize mock data
+  // Initialize empty data for live deployment (no order endpoints available)
   useEffect(() => {
-    const mockOrders: Order[] = [
-      {
-        id: '1',
-        orderId: '#123456',
-        customerName: 'John Doe',
-        items: 3,
-        amount: 400000,
-        status: 'Pending',
-        date: '2024-01-15'
-      },
-      {
-        id: '2',
-        orderId: '#123457',
-        customerName: 'Jane Smith',
-        items: 2,
-        amount: 250000,
-        status: 'Pending',
-        date: '2024-01-15'
-      },
-      {
-        id: '3',
-        orderId: '#123458',
-        customerName: 'Mike Johnson',
-        items: 1,
-        amount: 150000,
-        status: 'Pending',
-        date: '2024-01-15'
-      },
-      {
-        id: '4',
-        orderId: '#123459',
-        customerName: 'Sarah Wilson',
-        items: 4,
-        amount: 600000,
-        status: 'Accepted',
-        date: '2024-01-14'
-      },
-      {
-        id: '5',
-        orderId: '#123460',
-        customerName: 'David Brown',
-        items: 2,
-        amount: 300000,
-        status: 'Delivered',
-        date: '2024-01-13'
-      },
-      {
-        id: '6',
-        orderId: '#123461',
-        customerName: 'Lisa Davis',
-        items: 1,
-        amount: 180000,
-        status: 'Rejected',
-        date: '2024-01-12'
-      }
-    ];
-    setOrders(mockOrders);
+    setOrders([]);
   }, []);
 
   const handleAccept = (orderId: string) => {
@@ -220,124 +164,146 @@ const ManageOrdersPage = () => {
 
         {/* Orders Table */}
         <div className="bg-[#FAFAFA] rounded-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-[#FAFAFA]">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-bold text-[#9E9E9E] uppercase tracking-wider">
-                    Order ID
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-bold text-[#9E9E9E] uppercase tracking-wider">
-                    Customer Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-bold text-[#9E9E9E] uppercase tracking-wider">
-                    Items
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-bold text-[#9E9E9E] uppercase tracking-wider">
-                    Amount
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-bold text-[#9E9E9E] uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-bold text-[#9E9E9E] uppercase tracking-wider">
-                    Action
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#EEEEEE]">
-                {currentOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <button
-                        onClick={() => handleViewOrder(order.id)}
-                        className="text-sm font-bold text-[#212121] hover:text-[#6CC049] transition-colors"
-                      >
-                        {order.orderId}
-                      </button>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#212121]">
-                      {order.customerName}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#212121]">
-                      {order.items}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#212121]">
-                      ₦{order.amount.toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(order.status)}`}>
-                        <span className="w-2 h-2 rounded-full bg-current mr-2"></span>
-                        {order.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {order.status === 'Pending' && (
-                        <div className="flex items-center gap-3">
-                          <button
-                            onClick={() => handleReject(order.id)}
-                            className="px-6 py-2 bg-red-100 text-red-500 border border-red-200 rounded-full text-sm font-semibold hover:bg-red-200 transition-colors"
-                          >
-                            Reject
-                          </button>
-                          <button
-                            onClick={() => handleAccept(order.id)}
-                            className="px-6 py-2 bg-[#6CC049] text-white rounded-full text-sm font-semibold hover:bg-[#5AA83A] transition-colors"
-                          >
-                            Accept
-                          </button>
-                        </div>
-                      )}
-                      {order.status !== 'Pending' && (
-                        <span className="text-sm text-gray-500">No actions available</span>
-                      )}
-                    </td>
+          {orders.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16">
+              <div className="text-gray-400 mb-6">
+                <svg className="w-20 h-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">No orders yet</h3>
+              <p className="text-gray-500 text-center max-w-md mb-6">
+                You haven't received any orders yet. Once customers start placing orders, they'll appear here for you to manage.
+              </p>
+              <div className="flex items-center gap-2 text-sm text-gray-400">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Orders will appear here when customers make purchases</span>
+              </div>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-[#FAFAFA]">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-[#9E9E9E] uppercase tracking-wider">
+                      Order ID
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-[#9E9E9E] uppercase tracking-wider">
+                      Customer Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-[#9E9E9E] uppercase tracking-wider">
+                      Items
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-[#9E9E9E] uppercase tracking-wider">
+                      Amount
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-[#9E9E9E] uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-[#9E9E9E] uppercase tracking-wider">
+                      Action
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-[#EEEEEE]">
+                  {currentOrders.map((order) => (
+                    <tr key={order.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <button
+                          onClick={() => handleViewOrder(order.id)}
+                          className="text-sm font-bold text-[#212121] hover:text-[#6CC049] transition-colors"
+                        >
+                          {order.orderId}
+                        </button>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#212121]">
+                        {order.customerName}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#212121]">
+                        {order.items}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-[#212121]">
+                        ₦{order.amount.toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(order.status)}`}>
+                          <span className="w-2 h-2 rounded-full bg-current mr-2"></span>
+                          {order.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {order.status === 'Pending' && (
+                          <div className="flex items-center gap-3">
+                            <button
+                              onClick={() => handleReject(order.id)}
+                              className="px-6 py-2 bg-red-100 text-red-500 border border-red-200 rounded-full text-sm font-semibold hover:bg-red-200 transition-colors"
+                            >
+                              Reject
+                            </button>
+                            <button
+                              onClick={() => handleAccept(order.id)}
+                              className="px-6 py-2 bg-[#6CC049] text-white rounded-full text-sm font-semibold hover:bg-[#5AA83A] transition-colors"
+                            >
+                              Accept
+                            </button>
+                          </div>
+                        )}
+                        {order.status !== 'Pending' && (
+                          <span className="text-sm text-gray-500">No actions available</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
-        {/* Pagination */}
-        <div className="mt-6 flex items-center justify-between">
-          <p className="text-sm text-[#212121]">
-            Showing {startIndex + 1}-{Math.min(endIndex, filteredOrders.length)} of {filteredOrders.length} orders
-          </p>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-3 py-2 border border-[#6CC049] text-[#6CC049] rounded-lg text-sm font-medium hover:bg-[#6CC049] hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Previous
-            </button>
-            
-            {Array.from({ length: Math.min(3, totalPages) }, (_, i) => {
-              const pageNum = i + 1;
-              return (
-                <button
-                  key={pageNum}
-                  onClick={() => setCurrentPage(pageNum)}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    currentPage === pageNum
-                      ? 'bg-[#84CA67] text-white'
-                      : 'border border-[#6CC049] text-[#6CC049] hover:bg-[#6CC049] hover:text-white'
-                  }`}
-                >
-                  {pageNum}
-                </button>
-              );
-            })}
-            
-            <button
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className="px-3 py-2 border border-[#6CC049] text-[#6CC049] rounded-lg text-sm font-medium hover:bg-[#6CC049] hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Next
-            </button>
+        {/* Pagination - Only show if there are orders */}
+        {orders.length > 0 && (
+          <div className="mt-6 flex items-center justify-between">
+            <p className="text-sm text-[#212121]">
+              Showing {startIndex + 1}-{Math.min(endIndex, filteredOrders.length)} of {filteredOrders.length} orders
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-2 border border-[#6CC049] text-[#6CC049] rounded-lg text-sm font-medium hover:bg-[#6CC049] hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              
+              {Array.from({ length: Math.min(3, totalPages) }, (_, i) => {
+                const pageNum = i + 1;
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      currentPage === pageNum
+                        ? 'bg-[#84CA67] text-white'
+                        : 'border border-[#6CC049] text-[#6CC049] hover:bg-[#6CC049] hover:text-white'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+              
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 border border-[#6CC049] text-[#6CC049] rounded-lg text-sm font-medium hover:bg-[#6CC049] hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
           </div>
-        </div>
+        )}
         </div>
       </div>
     </DashboardLayout>

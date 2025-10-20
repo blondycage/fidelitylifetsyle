@@ -1591,6 +1591,348 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
     </div>
   );
 
+  // Food form
+  const renderFoodForm = () => (
+    <div className="space-y-4 sm:space-y-6">
+      {/* Food Name */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Food Name
+          </label>
+          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
+        </div>
+        <input
+          type="text"
+          value={formData.productName || ''}
+          onChange={(e) => onInputChange('productName', e.target.value)}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+          placeholder="Enter food name"
+        />
+      </div>
+
+      {/* Description */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Description
+          </label>
+          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
+        </div>
+        <textarea
+          value={formData.description || ''}
+          onChange={(e) => onInputChange('description', e.target.value)}
+          className="w-full h-24 px-4 py-3 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] resize-none"
+          placeholder="Enter food description"
+          rows={3}
+        />
+      </div>
+
+      {/* Address */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Address
+          </label>
+        </div>
+        <SimpleAddressInput
+          value={formData.address || ''}
+          onChange={(address, lat, lng) => {
+            onInputChange('address', address);
+            onInputChange('addressLatitude', lat);
+            onInputChange('addressLongitude', lng);
+          }}
+          placeholder="Enter restaurant address"
+        />
+      </div>
+
+      {/* Sub-category */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Sub-category
+          </label>
+        </div>
+        <div className="relative">
+          <select
+            value={formData.subCategory || formData.subcategoryId || ''}
+            onChange={(e) => {
+              const selectedSubcategory = subcategories?.find(sub => sub.subcategoryId.toString() === e.target.value);
+              onInputChange('subCategory', e.target.value);
+              onInputChange('subcategoryName', selectedSubcategory?.subcategoryName || '');
+              onInputChange('subcategoryId', selectedSubcategory?.subcategoryId || null);
+            }}
+            disabled={subcategoriesLoading}
+            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] appearance-none disabled:opacity-50"
+          >
+            <option value="">
+              {subcategoriesLoading ? 'Loading subcategories...' : 'Select sub-category'}
+            </option>
+            {subcategories?.map((subcategory) => (
+              <option key={subcategory.subcategoryId} value={subcategory.subcategoryId}>
+                {subcategory.subcategoryName}
+              </option>
+            ))}
+          </select>
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new CustomEvent('openSubcategoryModal'))}
+          className="mt-2 text-[#6CC049] text-[12px] font-urbanist hover:underline"
+        >
+          + Add new sub-category
+        </button>
+      </div>
+
+      {/* Price */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Price
+          </label>
+          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
+        </div>
+        <input
+          type="number"
+          step="0.01"
+          value={formData.price || ''}
+          onChange={(e) => onInputChange('price', e.target.value)}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+          placeholder="Enter price"
+        />
+      </div>
+
+      {/* Stock Quantity */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Stock Quantity
+          </label>
+          <span className="text-[12px] font-normal text-[#FF383C] font-urbanist">*</span>
+        </div>
+        <input
+          type="number"
+          value={formData.stockQuantity || ''}
+          onChange={(e) => onInputChange('stockQuantity', e.target.value)}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+          placeholder="Enter stock quantity"
+        />
+      </div>
+
+      {/* Food Category */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Food Category
+          </label>
+        </div>
+        <input
+          type="text"
+          value={formData.foodCategory || ''}
+          onChange={(e) => onInputChange('foodCategory', e.target.value)}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+          placeholder="e.g., Main Course, Appetizer, Dessert"
+        />
+      </div>
+
+      {/* Dietary Info */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Dietary Information
+          </label>
+        </div>
+        <ArrayInput
+          values={formData.dietaryInfo || []}
+          onChange={(values) => onInputChange('dietaryInfo', values)}
+          placeholder="e.g., Vegetarian, Vegan, Gluten-Free"
+        />
+      </div>
+
+      {/* Spice Level */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Spice Level
+          </label>
+        </div>
+        <select
+          value={formData.spiceLevel || ''}
+          onChange={(e) => onInputChange('spiceLevel', e.target.value)}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] appearance-none"
+        >
+          <option value="">Select spice level</option>
+          <option value="Mild">Mild</option>
+          <option value="Medium">Medium</option>
+          <option value="Hot">Hot</option>
+          <option value="Very Hot">Very Hot</option>
+        </select>
+      </div>
+
+      {/* Ingredients */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Ingredients
+          </label>
+        </div>
+        <ArrayInput
+          values={formData.ingredients || []}
+          onChange={(values) => onInputChange('ingredients', values)}
+          placeholder="e.g., Chicken, Rice, Vegetables"
+        />
+      </div>
+
+      {/* Allergens */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Allergens
+          </label>
+        </div>
+        <ArrayInput
+          values={formData.allergens || []}
+          onChange={(values) => onInputChange('allergens', values)}
+          placeholder="e.g., Nuts, Dairy, Shellfish"
+        />
+      </div>
+
+      {/* Preparation Time */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Preparation Time (minutes)
+          </label>
+        </div>
+        <input
+          type="number"
+          value={formData.preparationTime || ''}
+          onChange={(e) => onInputChange('preparationTime', e.target.value)}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+          placeholder="Enter preparation time in minutes"
+        />
+      </div>
+
+      {/* Serving Size */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Serving Size
+          </label>
+        </div>
+        <input
+          type="text"
+          value={formData.servingSize || ''}
+          onChange={(e) => onInputChange('servingSize', e.target.value)}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+          placeholder="e.g., 1 plate, 2 pieces, 500g"
+        />
+      </div>
+
+      {/* Delivery Options */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Delivery Options
+          </label>
+        </div>
+        <div className="space-y-3">
+          <label className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              checked={formData.availableForDelivery || false}
+              onChange={(e) => onInputChange('availableForDelivery', e.target.checked)}
+              className="w-4 h-4 text-[#6CC049] bg-gray-100 border-gray-300 rounded focus:ring-[#6CC049] focus:ring-2"
+            />
+            <span className="text-[14px] font-urbanist text-[#212121]">Available for Delivery</span>
+          </label>
+          <label className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              checked={formData.availableForPickup || false}
+              onChange={(e) => onInputChange('availableForPickup', e.target.checked)}
+              className="w-4 h-4 text-[#6CC049] bg-gray-100 border-gray-300 rounded focus:ring-[#6CC049] focus:ring-2"
+            />
+            <span className="text-[14px] font-urbanist text-[#212121]">Available for Pickup</span>
+          </label>
+        </div>
+      </div>
+
+      {/* Delivery Fee */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Delivery Fee
+          </label>
+        </div>
+        <input
+          type="number"
+          step="0.01"
+          value={formData.deliveryFee || ''}
+          onChange={(e) => onInputChange('deliveryFee', e.target.value)}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+          placeholder="Enter delivery fee"
+        />
+      </div>
+
+      {/* Minimum Order for Delivery */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Minimum Order for Delivery
+          </label>
+        </div>
+        <input
+          type="number"
+          step="0.01"
+          value={formData.minimumOrderForDelivery || ''}
+          onChange={(e) => onInputChange('minimumOrderForDelivery', e.target.value)}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+          placeholder="Enter minimum order amount"
+        />
+      </div>
+
+      {/* Operating Hours */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Operating Hours (hours per day)
+          </label>
+        </div>
+        <input
+          type="number"
+          value={formData.operatingHours || ''}
+          onChange={(e) => onInputChange('operatingHours', e.target.value)}
+          className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
+          placeholder="Enter operating hours per day"
+        />
+      </div>
+
+      {/* Accepts Walk-ins */}
+      <div className="w-full max-w-full sm:max-w-[450px]">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
+            Accepts Walk-ins
+          </label>
+        </div>
+        <label className="flex items-center gap-3">
+          <input
+            type="checkbox"
+            checked={formData.acceptsWalkIns || false}
+            onChange={(e) => onInputChange('acceptsWalkIns', e.target.checked)}
+            className="w-4 h-4 text-[#6CC049] bg-gray-100 border-gray-300 rounded focus:ring-[#6CC049] focus:ring-2"
+          />
+          <span className="text-[14px] font-urbanist text-[#212121]">Yes, accepts walk-ins</span>
+        </label>
+      </div>
+    </div>
+  );
+
   // Car rental form
   const renderCarForm = () => (
     <div className="space-y-4 sm:space-y-6">
@@ -2112,6 +2454,8 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
         console.log('Rendering fashion form');
         return renderFashionForm();
       case 'RESTAURANT':
+        console.log('Rendering food form');
+        return renderFoodForm();
       case 'SUPERMARKET':
       case 'PHARMACY':
       case 'OTHERS':
