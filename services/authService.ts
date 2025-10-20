@@ -83,6 +83,19 @@ export const registerVendor = async (payload: VendorPayload): Promise<ApiRespons
     return apiRequest<VendorData>('/api/vendor/register', payload, 'VENDOR_REGISTER');
 };
 
+export const uploadVendorLogo = async (vendorId: number, file: File): Promise<ApiResponse<any>> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`/api/vendor/upload-logo/${vendorId}`, {
+        method: 'POST',
+        body: formData,
+    });
+
+    const data = await response.json();
+    return data;
+};
+
 export const generateOTP = async (payload: OTPpayload): Promise<ApiResponse<String>> => {
     return apiRequest<String>('/api/otp/generate', payload, 'OTP_GENERATE');
 };

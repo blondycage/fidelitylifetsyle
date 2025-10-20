@@ -17,12 +17,22 @@ const nextConfig = {
     },
   },
   async rewrites() {
-    return [
-      {
-        source: '/api/v1/:path*',
-        destination: 'http://45.33.68.176:9091/api/v1/:path*',
-      },
-    ];
+    return {
+      beforeFiles: [],
+      afterFiles: [
+        // Exclude product fetch by ID - handled by local API route
+        {
+          source: '/api/v1/product/:id(\\d+)',
+          destination: '/api/v1/product/:id',
+        },
+        // Proxy all other /api/v1 requests to backend
+        {
+          source: '/api/v1/:path*',
+          destination: 'http://45.33.68.176:9091/api/v1/:path*',
+        },
+      ],
+      fallback: [],
+    };
   },
 };
 

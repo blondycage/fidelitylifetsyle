@@ -9,12 +9,15 @@ interface ProductSuccessModalProps {
   imageUploadResult?: { success: boolean; error?: string } | null;
 }
 
-export const ProductSuccessModal: React.FC<ProductSuccessModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  productCreationResult, 
-  imageUploadResult 
+export const ProductSuccessModal: React.FC<ProductSuccessModalProps> = ({
+  isOpen,
+  onClose,
+  productCreationResult,
+  imageUploadResult
 }) => {
+  // Debug logging
+  console.log('🔍 ProductSuccessModal - productCreationResult:', productCreationResult);
+  console.log('🔍 ProductSuccessModal - imageUploadResult:', imageUploadResult);
   if (!isOpen) return null;
 
   return (

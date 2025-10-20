@@ -76,6 +76,7 @@ export interface VendorPayload {
     "EXPERIENCES" |
     "EVENTS" |
     "CARS",
+  termsAndConditions: boolean,
   businessProfileDTO: {
     id?: number,
     name: string,

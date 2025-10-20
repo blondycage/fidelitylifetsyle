@@ -18,6 +18,48 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
   console.log('DynamicForm rendered with businessType:', businessType);
   console.log('DynamicForm props:', { businessType, formData, onNext });
 
+  // Validation function to check if required fields are filled
+  const isFormValid = () => {
+    // Always require product name (or property name for accommodation)
+    const hasProductName = businessType === 'HOSPITALITY' || businessType === 'APARTMENT' 
+      ? formData.propertyName?.trim() 
+      : formData.productName?.trim();
+    
+    if (!hasProductName) {
+      console.log('❌ Form validation failed: Missing product name');
+      return false;
+    }
+    
+    // Check if availability dates are required and filled
+    const hasAvailabilityDates = formData.availableStartDate && formData.availableEndDate;
+    
+    // For business types that require availability dates, check if they exist
+    const requiresAvailabilityDates = ['HOSPITALITY', 'APARTMENT', 'HOTEL', 'HOTELS', 'CLUB', 'RESERVATIONS'];
+    
+    if (requiresAvailabilityDates.includes(businessType)) {
+      if (!hasAvailabilityDates) {
+        console.log('❌ Form validation failed: Missing availability dates for', businessType);
+        return false;
+      }
+    }
+    
+    console.log('✅ Form validation passed for', businessType);
+    return true;
+  };
+
+  const isNextDisabled = !isFormValid() || isSubmitting;
+  
+  // Debug logging
+  console.log('🔍 Form validation state:', {
+    businessType,
+    hasProductName: businessType === 'HOSPITALITY' || businessType === 'APARTMENT' 
+      ? formData.propertyName?.trim() 
+      : formData.productName?.trim(),
+    hasAvailabilityDates: formData.availableStartDate && formData.availableEndDate,
+    isFormValid: isFormValid(),
+    isNextDisabled
+  });
+
 
 
 
@@ -554,24 +596,6 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
         required={true}
       />
 
-      {/* Price */}
-      <div className="w-full max-w-full sm:max-w-[450px]">
-        <div className="flex items-center gap-2 mb-2">
-          <label className="text-[14px] sm:text-[16px] font-normal text-[#616161] font-urbanist">
-            Base Price
-          </label>
-        </div>
-        <div className="relative">
-          <input
-            type="number"
-            step="0.01"
-            value={formData.price || ''}
-            onChange={(e) => onInputChange('price', e.target.value)}
-            className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
-            placeholder="Enter base price"
-          />
-        </div>
-      </div>
 
       {/* Check-in Time */}
       <div className="w-full max-w-full sm:max-w-[450px]">
@@ -693,9 +717,14 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
         <button
           type="button"
           onClick={onNext}
-          className="px-6 py-3 bg-[#6CC049] text-white rounded-lg text-[14px] font-urbanist hover:bg-[#5AAE3A] transition-colors"
+          disabled={isNextDisabled}
+          className={`px-6 py-3 rounded-lg text-[14px] font-urbanist transition-colors ${
+            isNextDisabled
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : 'bg-[#6CC049] text-white hover:bg-[#5AAE3A]'
+          }`}
         >
-          Next
+          {isSubmitting ? 'Processing...' : 'Next'}
         </button>
       </div>
     </div>
@@ -2414,9 +2443,14 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
         <button
           type="button"
           onClick={onNext}
-          className="px-6 py-3 bg-[#6CC049] text-white rounded-lg text-[14px] font-urbanist hover:bg-[#5AAE3A] transition-colors"
+          disabled={isNextDisabled}
+          className={`px-6 py-3 rounded-lg text-[14px] font-urbanist transition-colors ${
+            isNextDisabled
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : 'bg-[#6CC049] text-white hover:bg-[#5AAE3A]'
+          }`}
         >
-          Next
+          {isSubmitting ? 'Processing...' : 'Next'}
         </button>
       </div>
     </div>

@@ -6,7 +6,7 @@ import { AuthLayout } from '@/components/layout/AuthLayout';
 import { Input } from '@/components/ui/Input';
 import { PasswordInput } from '@/components/ui/PasswordInput';
 import { Button } from '@/components/ui/Button';
-import { registerVendor } from '@/services/authService';
+import { registerVendor, uploadVendorLogo } from '@/services/authService';
 import { VendorPayload } from '@/types/api';
 import { validatePassword } from '@/utils/passwordValidation';
 import { getCategories, Category } from '@/services/categoryService';
@@ -30,6 +30,7 @@ const VendorSignup = () => {
     businessLatitude: 0,
     businessLongitude: 0,
     businessDescription: '',
+    coverImage: null as File | null,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -280,6 +281,7 @@ const VendorSignup = () => {
         password: formData.password,
         username: formData.username,
         businessType: formData.businessType,
+        termsAndConditions: true,
         businessProfileDTO: {
           name: formData.businessName,
           address: formData.businessAddress,
@@ -292,6 +294,18 @@ const VendorSignup = () => {
       const response = await registerVendor(payload);
 
       if (response.responseCode === 200 || response.responseCode === 201) {
+        // Upload cover image if provided
+        if (formData.coverImage && response.data?.id) {
+          try {
+            console.log('📤 Uploading cover image for vendor ID:', response.data.id);
+            await uploadVendorLogo(response.data.id, formData.coverImage);
+            console.log('✅ Cover image uploaded successfully');
+          } catch (uploadError) {
+            console.error('❌ Cover image upload failed:', uploadError);
+            // Don't show error to user, just log it
+          }
+        }
+
         toast.success('Vendor account created successfully! Please check your email for verification.');
 
         localStorage.setItem('registrationEmail', formData.email);
@@ -541,6 +555,36 @@ const VendorSignup = () => {
                 <span>{errors.businessDescription && <span className="text-red-500">{errors.businessDescription}</span>}</span>
                 <span>{formData.businessDescription.length}/500</span>
               </div>
+            </div>
+
+            {/* Cover Image Upload */}
+            <div>
+              <label className="block text-sm font-medium text-[var(--greyHex)] mb-2">
+                Cover Image
+              </label>
+              <div className="relative">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null;
+                    setFormData(prev => ({ ...prev, coverImage: file }));
+                  }}
+                  className="w-full px-4 py-3 bg-[var(--inputHex)] border border-[var(--borderHex)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--blueHex)] focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[var(--blueHex)] file:text-white hover:file:bg-[var(--greenHex)]"
+                />
+              </div>
+              {formData.coverImage && (
+                <div className="mt-2">
+                  <img
+                    src={URL.createObjectURL(formData.coverImage)}
+                    alt="Cover preview"
+                    className="w-32 h-32 object-cover rounded-lg border border-[var(--borderHex)]"
+                  />
+                  <p className="text-xs text-[var(--greyHex)] mt-1">
+                    Selected: {formData.coverImage.name}
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center">

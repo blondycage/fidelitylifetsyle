@@ -291,13 +291,38 @@ const ManageStore = () => {
     setShowDeleteModal(true);
   };
 
-  const confirmDelete = () => {
-    if (productToDelete) {
-      setProducts(prev => prev.filter(p => p.id !== productToDelete));
-      setSelectedProducts(prev => prev.filter(id => id !== productToDelete));
-      toast.success('Product deleted');
-      setShowDeleteModal(false);
-      setProductToDelete(null);
+  const confirmDelete = async () => {
+    if (!productToDelete) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Authentication required');
+        return;
+      }
+
+      const response = await fetch(`/api/v1/product/delete/${productToDelete}`, {
+        method: 'DELETE',
+        headers: {
+          'accept': '*/*',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.responseCode === 200) {
+        setProducts(prev => prev.filter(p => p.id !== productToDelete));
+        setSelectedProducts(prev => prev.filter(id => id !== productToDelete));
+        toast.success(data.responseMessage || 'Product deleted successfully');
+        setShowDeleteModal(false);
+        setProductToDelete(null);
+      } else {
+        toast.error(data.responseMessage || 'Failed to delete product');
+      }
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      toast.error('Failed to delete product');
     }
   };
 
@@ -540,10 +565,10 @@ const ManageStore = () => {
             </thead>
             <tbody>
               {filteredProducts.map((product) => (
-                <tr 
-                  key={product.id} 
+                <tr
+                  key={product.id}
                   className="border-b border-gray-100 hover:bg-gray-50 hover:border-[#6CC049]/20 transition-all duration-200 cursor-pointer group"
-                  onClick={() => router.push(`/vendor/manage-store/${product.id}`)}
+                  onClick={() => router.push(`/vendor/manage-store/update-product/${product.id}?vendorId=${vendorData?.id || ''}`)}
                 >
                   <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                     <input
@@ -609,8 +634,9 @@ const ManageStore = () => {
                   <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center gap-3">
                       <button
-                        onClick={() => router.push(`/vendor/manage-store/${product.id}`)}
+                        onClick={() => router.push(`/vendor/manage-store/update-product/${product.id}?vendorId=${vendorData?.id || ''}`)}
                         className="text-gray-400 hover:text-gray-600 transition-colors"
+                        title="Edit product"
                       >
                         <Edit size={20} color="currentColor" />
                       </button>

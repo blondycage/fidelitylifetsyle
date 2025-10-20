@@ -109,6 +109,9 @@ export interface ApiProduct {
   quantity: number | null;
   categoryName?: string;
   subcategoryName: string | null;
+  subcategoryId?: number;
+  address?: string;
+  description?: string;
   images: ProductImage[];
   event: EventData | {};
   tickets: any[];
@@ -142,6 +145,172 @@ export interface TicketCreateResponse {
   };
 }
 
+// Update request interfaces
+export interface ReservationUpdateRequest {
+  productId: number;
+  subcategoryId: number;
+  productName: string;
+  categoryName: string;
+  description: string;
+  address: string;
+  productType: string;
+  serviceType: string;
+  cuisineType: string[];
+  operatingHours: number;
+  tableCapacity: number;
+  reservationFee: number;
+  reservationDuration: number;
+  acceptsWalkIns: boolean;
+  dressCode: string;
+  availableStartDate: string;
+  availableEndDate: string;
+  specialFeatures: string[];
+}
+
+export interface HotelUpdateRequest {
+  productId: number;
+  subcategoryId: number;
+  productName: string;
+  categoryName: string;
+  description: string;
+  address: string;
+  price: number;
+  checkInTime: string;
+  checkOutTime: string;
+  propertyAmenities: string;
+  cancellationPolicy: string;
+  availableStartDate: string;
+  availableEndDate: string;
+  roomTypeName: string;
+  dailyRate: number;
+  capacity: number;
+  totalRooms: number;
+  availableRooms: number;
+  amenities: string;
+}
+
+export interface EventUpdateRequest {
+  productId: number;
+  productName: string;
+  categoryName: string;
+  subcategoryId: number;
+  price: number;
+  address: string;
+  quantity: number;
+  description: string;
+  eventDate: string;
+  eventEndDate: string;
+  eventTime: string;
+  eventEndTime: string;
+  venue: string;
+  maxAttendees: number;
+  dressCode: string;
+  ageRestriction: string;
+  ticketId?: number;
+  ticketPrice?: number;
+  ticketQuantity?: number;
+  ticketDescription?: string;
+}
+
+export interface CarUpdateRequest {
+  productId: number;
+  productName: string;
+  categoryName: string;
+  subcategoryId: number;
+  description: string;
+  address: string;
+  price: number;
+  carMake: string;
+  carModel: string;
+  carYear: number;
+  licensePlate: string;
+  carType: string;
+  seats: number;
+  hourlyRate: number;
+  dailyRate: number;
+  monthlyRate: number;
+  securityDeposit: number;
+  hasDriver: boolean;
+  availableDays: string[];
+  availableHours: {
+    start: string;
+    end: string;
+  };
+  termsAndConditions: string;
+  addons: Array<{
+    name: string;
+    price: number;
+    description: string;
+  }>;
+}
+
+export interface AccommodationUpdateRequest {
+  productId: number;
+  propertyType: string;
+  listingType: string;
+  subcategoryId: number;
+  description: string;
+  address: string;
+  propertyName: string;
+  dailyRate: number;
+  maxGuests: number;
+  bedrooms: number;
+  bathrooms: number;
+  totalArea: string;
+  furnishingStatus: string;
+  amenities: string[];
+  floorNumber: string;
+  parkingSpaces: number;
+  checkInTime: string;
+  checkOutTime: string;
+  houseRules: string[];
+  availableStartDate: string;
+  availableEndDate: string;
+  cancellationPolicy: string;
+}
+
+export interface FoodUpdateRequest {
+  productId: number;
+  productName: string;
+  categoryName: string;
+  subcategoryId: number;
+  description: string;
+  address: string;
+  price: number;
+  stockQuantity: number;
+  foodCategory: string;
+  dietaryInfo: string[];
+  spiceLevel: string;
+  ingredients: string[];
+  allergens: string[];
+  preparationTime: number;
+  servingSize: string;
+  availableForDelivery: boolean;
+  availableForPickup: boolean;
+  deliveryFee: number;
+  minimumOrderForDelivery: number;
+  operatingHours: number;
+  acceptsWalkIns: boolean;
+}
+
+export interface EventUpdateRequest {
+  productId: number;
+  subcategoryId: number;
+  productName: string;
+  description: string;
+  address: string;
+  price: number;
+  eventDate: string;
+  eventTime: string;
+  eventEndDate: string;
+  eventEndTime: string;
+  eventType: string;
+  venue: string;
+  maxAttendees: number;
+  ageRestriction: string;
+  dressCode: string;
+}
+
 // Base URL for the API
 const BASE_URL = 'http://45.33.68.176:9091';
 
@@ -171,11 +340,11 @@ export const getProductType = (product: ApiProduct): 'product' | 'event' | 'acco
   // Helper function to count meaningful fields in an object
   const countMeaningfulFields = (obj: any): number => {
     if (!obj || Object.keys(obj).length === 0) return 0;
-    
-    return Object.entries(obj).filter(([key, value]) => 
-      value !== null && 
-      value !== undefined && 
-      value !== '' && 
+
+    return Object.entries(obj).filter(([, value]) =>
+      value !== null &&
+      value !== undefined &&
+      value !== '' &&
       !(Array.isArray(value) && value.length === 0)
     ).length;
   };
@@ -416,3 +585,214 @@ export const createTicket = async (ticketData: TicketCreateRequest, token: strin
     throw error;
   }
 };
+
+// Function to fetch a single product by ID
+export const fetchProductById = async (productId: number, vendorId: number): Promise<ApiProduct> => {
+  console.log('🚀 === CLIENT: FETCH PRODUCT REQUEST ===');
+  console.log('🚀 Product ID:', productId);
+  console.log('🚀 Vendor ID:', vendorId);
+  console.log('🚀 API URL:', `/api/v1/product/${productId}?vendorId=${vendorId}`);
+  console.log('🚀 Window location:', typeof window !== 'undefined' ? window.location.href : 'SSR');
+
+  try {
+    console.log('🔄 About to call fetch...');
+
+    const response = await fetch(`/api/v1/product/${productId}?vendorId=${vendorId}`, {
+      method: 'GET',
+      headers: {
+        'accept': '*/*',
+      },
+    });
+
+    console.log('📡 === CLIENT: API RESPONSE ===');
+    console.log('📡 Status:', response.status);
+    console.log('📡 Status Text:', response.statusText);
+    console.log('📡 Response URL:', response.url);
+    console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
+
+    if (!response.ok) {
+      console.log('❌ Response not OK, trying to parse error...');
+      const errorData = await response.json().catch(() => ({}));
+      console.error('❌ Error response data:', errorData);
+
+      if (response.status === 404) {
+        throw new Error(errorData.responseMessage || 'Product not found');
+      }
+
+      throw new Error(errorData.responseMessage || `HTTP error! status: ${response.status}`);
+    }
+
+    console.log('✅ Response OK, parsing JSON...');
+    const data = await response.json();
+    console.log('📦 === CLIENT: RESPONSE DATA ===');
+    console.log(JSON.stringify(data, null, 2));
+
+    // The API returns the product in data array, so we take the first item
+    if (data.data && Array.isArray(data.data) && data.data.length > 0) {
+      console.log('✅ Product found in data array');
+      console.log('✅ Product details:', JSON.stringify(data.data[0], null, 2));
+      return data.data[0];
+    }
+
+    console.log('❌ Product not found in expected format');
+    throw new Error('Product not found');
+  } catch (error) {
+    console.error('❌ === FETCH ERROR ===');
+    console.error('❌ Error type:', error instanceof Error ? error.constructor.name : typeof error);
+    console.error('❌ Error message:', error instanceof Error ? error.message : String(error));
+    console.error('❌ Full error:', error);
+    throw error;
+  }
+};
+
+// Function to update a reservation product
+export const updateReservationProduct = async (productData: ReservationUpdateRequest, token: string): Promise<any> => {
+  try {
+    const response = await fetch('/api/v1/product/update/reservation', {
+      method: 'PUT',
+      headers: {
+        'accept': '*/*',
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(productData),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error updating reservation product:', error);
+    throw error;
+  }
+};
+
+// Function to update a hotel product
+export const updateHotelProduct = async (productData: HotelUpdateRequest, token: string): Promise<any> => {
+  try {
+    const response = await fetch('/api/v1/product/update/hotel', {
+      method: 'PUT',
+      headers: {
+        'accept': '*/*',
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(productData),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error updating hotel product:', error);
+    throw error;
+  }
+};
+
+// Function to update a food product
+export const updateFoodProduct = async (productData: FoodUpdateRequest, token: string): Promise<any> => {
+  try {
+    const response = await fetch('/api/v1/product/update/food', {
+      method: 'PUT',
+      headers: {
+        'accept': '*/*',
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(productData),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error updating food product:', error);
+    throw error;
+  }
+};
+
+// Function to update a car product
+export const updateCarProduct = async (productData: CarUpdateRequest, token: string): Promise<any> => {
+  try {
+    const response = await fetch('/api/v1/product/update/car', {
+      method: 'PUT',
+      headers: {
+        'accept': '*/*',
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(productData),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error updating car product:', error);
+    throw error;
+  }
+};
+
+// Function to update an event product
+export const updateEventProduct = async (productData: EventUpdateRequest, token: string): Promise<any> => {
+  try {
+    const response = await fetch('/api/v1/product/update/event', {
+      method: 'PUT',
+      headers: {
+        'accept': '*/*',
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(productData),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error updating event product:', error);
+    throw error;
+  }
+};
+
+// Function to update an accommodation product
+export const updateAccommodationProduct = async (productData: AccommodationUpdateRequest, token: string): Promise<any> => {
+  try {
+    const response = await fetch('/api/v1/product/update/accomodation', {
+      method: 'PUT',
+      headers: {
+        'accept': '*/*',
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(productData),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error updating accommodation product:', error);
+    throw error;
+  }
+};
+
+// Note: Food and Event update functions will be added when endpoints are provided

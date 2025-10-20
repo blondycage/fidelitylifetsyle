@@ -361,7 +361,6 @@ const CreateProductPage = () => {
   const handleTicketSuccess = () => {
     setShowTicketModal(false);
     setEventId(null);
-    clearForm();
     setIsSuccessModalOpen(true);
   };
 
@@ -369,7 +368,6 @@ const CreateProductPage = () => {
   const handleRoomSuccess = () => {
     setShowRoomModal(false);
     setHotelId(null);
-    clearForm();
     setIsSuccessModalOpen(true);
   };
 
@@ -829,8 +827,9 @@ const CreateProductPage = () => {
           setShowRoomModal(true);
         } else {
           console.log('After image upload: Showing success modal for non-event category');
-          // Clear form and show success modal for non-event categories
-          clearForm();
+          console.log('🔍 Before showing modal - productCreationResult:', productCreationResult);
+          console.log('🔍 Before showing modal - imageUploadResult:', imageUploadResult);
+          // Show success modal for non-event categories (don't clear form yet)
           setIsSuccessModalOpen(true);
         }
       } else {
@@ -866,7 +865,10 @@ const CreateProductPage = () => {
       // For other categories, show success modal with combined results
       else {
         console.log('Image upload failed for other category, showing success modal with combined results');
-        clearForm();
+        // Ensure productCreationResult is set to success if product was created
+        if (productId && !productCreationResult?.success) {
+          setProductCreationResult({ success: true, productId });
+        }
         setIsSuccessModalOpen(true);
       }
     } finally {
@@ -1006,7 +1008,7 @@ const CreateProductPage = () => {
     console.log('Form validated successfully, proceeding to image upload');
     setShowUploadArea(true);
     setShowScrollPrompt(false);
-    toast.success('Form completed! Please upload images to create your product.');
+    toast.success('Please upload images to create your product.');
     
     // Scroll to upload area
     setTimeout(() => {
@@ -1370,9 +1372,8 @@ const CreateProductPage = () => {
         isOpen={isSuccessModalOpen}
         onClose={() => {
           setIsSuccessModalOpen(false);
-          // Reset results when modal is closed
-          setProductCreationResult(null);
-          setImageUploadResult(null);
+          // Clear form and reset results when modal is closed
+          clearForm();
         }}
         productCreationResult={productCreationResult}
         imageUploadResult={imageUploadResult}
