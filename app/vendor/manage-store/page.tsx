@@ -42,7 +42,7 @@ interface Product {
   availableForPickup?: boolean;
   deliveryFee?: number;
   minimumOrderForDelivery?: number;
-  operatingHours?: number;
+  operatingHours?: string;
   acceptsWalkIns?: boolean;
 }
 

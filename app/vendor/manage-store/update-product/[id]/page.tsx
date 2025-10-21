@@ -48,7 +48,7 @@ const UpdateProductPage: React.FC = () => {
     productType: '',
     serviceType: '',
     cuisineType: [],
-    operatingHours: 0,
+    operatingHours: '',
     tableCapacity: 0,
     reservationFee: 0,
     reservationDuration: 0,
@@ -121,7 +121,7 @@ const UpdateProductPage: React.FC = () => {
         productType: '',
         serviceType: reservation.serviceType || '',
         cuisineType: reservation.cuisineType || [],
-        operatingHours: reservation.operatingHours || 0,
+        operatingHours: reservation.operatingHours || '',
         tableCapacity: reservation.tableCapacity || 0,
         reservationFee: reservation.reservationFee || 0,
         reservationDuration: reservation.reservationDuration || 0,
@@ -177,7 +177,7 @@ const UpdateProductPage: React.FC = () => {
         availableForPickup: food.availableForPickup ?? true,
         deliveryFee: food.deliveryFee || 0,
         minimumOrderForDelivery: food.minimumOrderForDelivery || 0,
-        operatingHours: food.operatingHours || 0,
+        operatingHours: food.operatingHours || '',
         acceptsWalkIns: food.acceptsWalkIns ?? true
       });
     } else if (productData.carRental && Object.keys(productData.carRental).length > 0) {
@@ -513,10 +513,11 @@ const UpdateProductPage: React.FC = () => {
                     Operating Hours
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     value={'operatingHours' in formData ? formData.operatingHours : ''}
-                    onChange={(e) => handleInputChange('operatingHours', Number(e.target.value))}
+                    onChange={(e) => handleInputChange('operatingHours', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6CC049]"
+                    placeholder="Enter operating hours (e.g., 9 AM - 5 PM)"
                   />
                 </div>
 
@@ -963,13 +964,14 @@ const UpdateProductPage: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Operating Hours (per day)
+                    Operating Hours
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     value={'operatingHours' in formData ? formData.operatingHours : ''}
-                    onChange={(e) => handleInputChange('operatingHours', Number(e.target.value))}
+                    onChange={(e) => handleInputChange('operatingHours', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#6CC049]"
+                    placeholder="Enter operating hours (e.g., 9 AM - 5 PM)"
                   />
                 </div>
               </div>

@@ -489,7 +489,7 @@ const CreateProductPage = () => {
     }
 
     // Check which endpoint to use based on business type
-    const createProductCategories = ['OTHERS', 'SUPERMARKET', 'PHARMACY'];
+    const createProductCategories = ['OTHERS', 'SUPERMARKET', 'PHARMACY', 'FASHION'];
     const foodCategories = ['RESTAURANT'];
     const eventsCategories = ['EVENTS', 'EXPERIENCES', 'TOUR_GUIDE', 'INFLUENCER'];
     const accommodationCategories = ['HOSPITALITY', 'APARTMENT'];
@@ -526,6 +526,8 @@ const CreateProductPage = () => {
       }
       
       endpoint = '/api/v1/product/create/event';
+      console.log('Using event creation endpoint for business type:', vendorData.businessType);
+      console.log('Event creation payload:', payload);
     } else if (accommodationCategories.includes(vendorData.businessType)) {
       // Accommodation payload
       payload = {
@@ -606,7 +608,7 @@ const CreateProductPage = () => {
         productType: formData.productType || '',
         serviceType: formData.serviceType || '',
         cuisineType: Array.isArray(formData.cuisineType) ? formData.cuisineType : [],
-        operatingHours: formData.operatingHours ? parseInt(formData.operatingHours) : 0,
+        operatingHours: formData.operatingHours || '',
         tableCapacity: formData.tableCapacity ? parseInt(formData.tableCapacity) : 0,
         reservationFee: formData.reservationFee ? parseFloat(formData.reservationFee) : 0,
         reservationDuration: formData.reservationDuration ? parseInt(formData.reservationDuration) : 0,
@@ -691,7 +693,7 @@ const CreateProductPage = () => {
         availableForPickup: formData.availableForPickup,
         deliveryFee: formData.deliveryFee ? parseFloat(formData.deliveryFee) : 0,
         minimumOrderForDelivery: formData.minimumOrderForDelivery ? parseFloat(formData.minimumOrderForDelivery) : 0,
-        operatingHours: formData.operatingHours ? parseInt(formData.operatingHours) : 0,
+        operatingHours: formData.operatingHours || '',
         acceptsWalkIns: formData.acceptsWalkIns
       };
       
@@ -726,17 +728,52 @@ const CreateProductPage = () => {
     });
 
     const data = await response.json();
+    
+    // Debug logging for response analysis
+    console.log('Product creation response:', {
+      status: response.status,
+      ok: response.ok,
+      responseCode: data.responseCode,
+      responseMessage: data.responseMessage,
+      data: data.data,
+      fullResponse: data,
+      businessType: vendorData.businessType,
+      isEventCategory: isEventCategory()
+    });
 
-    if (response.ok && data.responseCode === 200) {
-      const productId = data.data?.productId;
-      const eventId = data.data?.eventId;
+    // Check for success - either response.ok with 200 responseCode, or response.ok with any 2xx responseCode
+    const isSuccess = response.ok && (
+      data.responseCode === 200 || 
+      (data.responseCode >= 200 && data.responseCode < 300) ||
+      (response.status >= 200 && response.status < 300)
+    );
+    
+    if (isSuccess) {
+      const productId = data.data?.productId || data.productId;
+      const eventId = data.data?.eventId || data.eventId;
+      
+      console.log('Event creation response data:', {
+        productId,
+        eventId,
+        isEventCategory: isEventCategory(),
+        fullData: data.data,
+        // Check alternative possible locations for eventId
+        eventIdFromRoot: data.eventId,
+        productIdFromRoot: data.productId,
+        // Check if data is nested differently
+        dataKeys: data.data ? Object.keys(data.data) : 'no data object',
+        responseKeys: Object.keys(data)
+      });
       
       if (productId) {
         console.log('Product created successfully, productId:', productId, 'eventId:', eventId);
         setCreatedProductId(productId);
         setProductCreationResult({ success: true, productId });
         if (eventId && isEventCategory()) {
+          console.log('Setting eventId for event category:', eventId);
           setEventId(eventId);
+        } else if (isEventCategory() && !eventId) {
+          console.error('Event category but no eventId in response:', data);
         }
         return productId;
       } else {
@@ -815,10 +852,14 @@ const CreateProductPage = () => {
         // Check if this is an event category and show ticket creation modal
         if (isEventCategory()) {
           console.log('After image upload: Showing ticket modal for event category with productId:', productId, 'eventId:', eventId);
+          console.log('Current eventId state:', eventId);
+          console.log('Current createdProductId state:', createdProductId);
           // eventId should already be set from the creation response
           if (!eventId) {
-            console.warn('EventId not found, using productId as fallback');
-            setEventId(productId);
+            console.error('EventId not found in event creation response - cannot create ticket');
+            console.error('Full response data:', data);
+            toast.error('Event ID not found - cannot create ticket');
+            return;
           }
           setShowTicketModal(true);
         } else if (isHotelCategory()) {
@@ -854,11 +895,15 @@ const CreateProductPage = () => {
       // For events, also proceed to ticket creation even if image upload fails
       else if (isEventCategory()) {
         console.log('Image upload failed for event, but proceeding to ticket creation with productId:', productId, 'eventId:', eventId);
+        console.log('Current eventId state:', eventId);
+        console.log('Current createdProductId state:', createdProductId);
         toast.error('Image upload failed, but you can still create tickets for your event');
         // eventId should already be set from the creation response
         if (!eventId) {
-          console.warn('EventId not found, using productId as fallback');
-          setEventId(productId);
+          console.error('EventId not found in event creation response - cannot create ticket');
+          console.error('Full response data:', data);
+          toast.error('Event ID not found - cannot create ticket');
+          return;
         }
         setShowTicketModal(true);
       }
@@ -885,7 +930,7 @@ const CreateProductPage = () => {
     }
 
     // Check which endpoint to use based on business type
-    const createProductCategories = ['OTHERS', 'SUPERMARKET', 'PHARMACY'];
+    const createProductCategories = ['OTHERS', 'SUPERMARKET', 'PHARMACY', 'FASHION'];
     const foodCategories = ['RESTAURANT'];
     const eventsCategories = ['EVENTS', 'EXPERIENCES', 'TOUR_GUIDE', 'INFLUENCER'];
     const accommodationCategories = ['HOSPITALITY', 'APARTMENT'];
@@ -990,7 +1035,7 @@ const CreateProductPage = () => {
     }
 
     // Only validate price and quantity for business types that have these fields in the UI
-    if (['OTHERS', 'SUPERMARKET', 'PHARMACY'].includes(vendorData.businessType)) {
+    if (['OTHERS', 'SUPERMARKET', 'PHARMACY', 'FASHION'].includes(vendorData.businessType)) {
       if (!formData.price || !formData.quantity) {
         toast.error('Price and Quantity are required.');
         return;
@@ -1078,6 +1123,7 @@ const CreateProductPage = () => {
                           onNext={handleSubmit}
                           subcategories={subcategories}
                           subcategoriesLoading={subcategoriesLoading}
+                          hideButton={showUploadArea}
                         />
                       )}
                     </div>
@@ -1088,7 +1134,7 @@ const CreateProductPage = () => {
               {/* Right Column - Pricing & Inventory and Upload Image */}
               <div className="flex-1 space-y-4 sm:space-y-6">
                 {/* Pricing & Inventory Card - Only show for create-product business types */}
-                {vendorData?.businessType && ['OTHERS', 'SUPERMARKET', 'PHARMACY'].includes(vendorData.businessType) && (
+                {vendorData?.businessType && ['OTHERS', 'SUPERMARKET', 'PHARMACY', 'FASHION'].includes(vendorData.businessType) && (
                   <div className="bg-white rounded-[16px] sm:rounded-[24px] shadow-[0px_1px_4px_0px_rgba(12,12,13,0.05),0px_1px_4px_0px_rgba(12,12,13,0.1)] p-4 sm:p-6">
                     <div className="space-y-4 sm:space-y-6">
                       {/* Header */}
@@ -1321,8 +1367,8 @@ const CreateProductPage = () => {
             )}
 
 
-            {/* Submit Button - Always show for supported business types */}
-            {vendorData?.businessType && (['OTHERS', 'SUPERMARKET', 'PHARMACY'].includes(vendorData.businessType) || ['RESTAURANT'].includes(vendorData.businessType) || ['EVENTS', 'EXPERIENCES', 'TOUR_GUIDE', 'INFLUENCER'].includes(vendorData.businessType) || ['HOTEL', 'HOSPITALITY', 'APARTMENT'].includes(vendorData.businessType) || ['CLUB', 'RESERVATIONS'].includes(vendorData.businessType) || ['CARS'].includes(vendorData.businessType)) && (
+            {/* Submit Button - Always show for supported business types, but hide when in upload mode */}
+            {vendorData?.businessType && !showUploadArea && (['OTHERS', 'SUPERMARKET', 'PHARMACY', 'FASHION'].includes(vendorData.businessType) || ['RESTAURANT'].includes(vendorData.businessType) || ['EVENTS', 'EXPERIENCES', 'TOUR_GUIDE', 'INFLUENCER'].includes(vendorData.businessType) || ['HOTEL', 'HOSPITALITY', 'APARTMENT'].includes(vendorData.businessType) || ['CLUB', 'RESERVATIONS'].includes(vendorData.businessType) || ['CARS'].includes(vendorData.businessType)) && (
               <div className="w-full">
                 <button
                   type="submit"

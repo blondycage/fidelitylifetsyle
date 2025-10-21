@@ -12,11 +12,10 @@ interface DynamicFormProps {
   subcategories?: SubcategoryItem[];
   subcategoriesLoading?: boolean;
   isSubmitting?: boolean;
+  hideButton?: boolean;
 }
 
-const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInputChange, onNext, subcategories = [], subcategoriesLoading = false, isSubmitting = false }) => {
-  console.log('DynamicForm rendered with businessType:', businessType);
-  console.log('DynamicForm props:', { businessType, formData, onNext });
+const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInputChange, onNext, subcategories = [], subcategoriesLoading = false, isSubmitting = false, hideButton = false }) => {
 
   // Validation function to check if required fields are filled
   const isFormValid = () => {
@@ -26,7 +25,6 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
       : formData.productName?.trim();
     
     if (!hasProductName) {
-      console.log('❌ Form validation failed: Missing product name');
       return false;
     }
     
@@ -38,27 +36,14 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
     
     if (requiresAvailabilityDates.includes(businessType)) {
       if (!hasAvailabilityDates) {
-        console.log('❌ Form validation failed: Missing availability dates for', businessType);
         return false;
       }
     }
     
-    console.log('✅ Form validation passed for', businessType);
     return true;
   };
 
   const isNextDisabled = !isFormValid() || isSubmitting;
-  
-  // Debug logging
-  console.log('🔍 Form validation state:', {
-    businessType,
-    hasProductName: businessType === 'HOSPITALITY' || businessType === 'APARTMENT' 
-      ? formData.propertyName?.trim() 
-      : formData.productName?.trim(),
-    hasAvailabilityDates: formData.availableStartDate && formData.availableEndDate,
-    isFormValid: isFormValid(),
-    isNextDisabled
-  });
 
 
 
@@ -178,11 +163,6 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
             className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] [color-scheme:light]"
             style={{ colorScheme: 'light' }}
           />
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M3.333 6h9.334M8 1v3.333M8 1a3.333 3.333 0 0 0-3.333 3.333V6M8 1a3.333 3.333 0 0 1 3.333 3.333V6M3.333 6v6.667A1.333 1.333 0 0 0 4.667 14h6.666a1.333 1.333 0 0 0 1.334-1.333V6" stroke="#6CC049" strokeWidth="1.333" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
         </div>
       </div>
 
@@ -203,11 +183,6 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
             style={{ colorScheme: 'light' }}
             step="1"
           />
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M8 1.333a6.667 6.667 0 1 0 0 13.334A6.667 6.667 0 0 0 8 1.333ZM8 4v4l2.667 1.6" stroke="#616161" strokeWidth="1.333" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
         </div>
        
       </div>
@@ -229,11 +204,6 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
             className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049] [color-scheme:light]"
             style={{ colorScheme: 'light' }}
           />
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M3.333 6h9.334M8 1v3.333M8 1a3.333 3.333 0 0 0-3.333 3.333V6M8 1a3.333 3.333 0 0 1 3.333 3.333V6M3.333 6v6.667A1.333 1.333 0 0 0 4.667 14h6.666a1.333 1.333 0 0 0 1.334-1.333V6" stroke="#FF6B6B" strokeWidth="1.333" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
         </div>
       </div>
 
@@ -253,11 +223,6 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
             style={{ colorScheme: 'light' }}
             step="1"
           />
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M8 1.333a6.667 6.667 0 1 0 0 13.334A6.667 6.667 0 0 0 8 1.333ZM8 4v4l2.667 1.6" stroke="#616161" strokeWidth="1.333" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
         </div>
        
       </div>
@@ -334,10 +299,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
           >
             <option value="PAID">Paid Event</option>
             <option value="FREE">Free Event</option>
-            <option value="ADULT">Adult Event</option>
-            <option value="CHILD">Child Event</option>
-            <option value="STANDARD_MEET_AND_GREET">Standard Meet and Greet</option>
-            <option value="VIP_EXPERIENCE">VIP Experience</option>
+          
           </select>
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -663,11 +625,6 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
             min={new Date().toISOString().split('T')[0]}
             className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
           />
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M8 1.333a6.667 6.667 0 1 0 0 13.334A6.667 6.667 0 0 0 8 1.333ZM8 4v4l2.667 1.6" stroke="#4CAF50" strokeWidth="1.333" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
         </div>
       </div>
 
@@ -686,11 +643,6 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
             min={formData.availableStartDate || new Date().toISOString().split('T')[0]}
             className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
           />
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M8 1.333a6.667 6.667 0 1 0 0 13.334A6.667 6.667 0 0 0 8 1.333ZM8 4v4l2.667 1.6" stroke="#FF9800" strokeWidth="1.333" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
         </div>
       </div>
 
@@ -713,20 +665,22 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
       </div>
 
       {/* Next Button */}
-      <div className="flex justify-end mt-6">
-        <button
-          type="button"
-          onClick={onNext}
-          disabled={isNextDisabled}
-          className={`px-6 py-3 rounded-lg text-[14px] font-urbanist transition-colors ${
-            isNextDisabled
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-[#6CC049] text-white hover:bg-[#5AAE3A]'
-          }`}
-        >
-          {isSubmitting ? 'Processing...' : 'Next'}
-        </button>
-      </div>
+      {!hideButton && (
+        <div className="flex justify-end mt-6">
+          <button
+            type="button"
+            onClick={onNext}
+            disabled={isNextDisabled}
+            className={`px-6 py-3 rounded-lg text-[14px] font-urbanist transition-colors ${
+              isNextDisabled
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-[#6CC049] text-white hover:bg-[#5AAE3A]'
+            }`}
+          >
+            {isSubmitting ? 'Processing...' : 'Next'}
+          </button>
+        </div>
+      )}
     </div>
   );
 
@@ -1232,11 +1186,11 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
           </label>
         </div>
         <input
-          type="number"
+          type="text"
           value={formData.operatingHours || ''}
           onChange={(e) => onInputChange('operatingHours', e.target.value)}
           className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
-          placeholder="Enter operating hours (e.g., 12)"
+          placeholder="Enter operating hours (e.g., 9 AM - 5 PM)"
         />
       </div>
 
@@ -1934,11 +1888,11 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
           </label>
         </div>
         <input
-          type="number"
+          type="text"
           value={formData.operatingHours || ''}
           onChange={(e) => onInputChange('operatingHours', e.target.value)}
           className="w-full h-12 px-4 bg-[#EEEEEE] border border-[#EEEEEE] rounded-[8px] text-[14px] sm:text-[16px] font-urbanist text-[#212121] placeholder-[#9E9E9E] focus:outline-none focus:border-[#6CC049] focus:ring-1 focus:ring-[#6CC049]"
-          placeholder="Enter operating hours per day"
+          placeholder="Enter operating hours (e.g., 9 AM - 5 PM)"
         />
       </div>
 
@@ -2439,64 +2393,54 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ businessType, formData, onInp
       </div>
 
       {/* Next Button */}
-      <div className="flex justify-end mt-6">
-        <button
-          type="button"
-          onClick={onNext}
-          disabled={isNextDisabled}
-          className={`px-6 py-3 rounded-lg text-[14px] font-urbanist transition-colors ${
-            isNextDisabled
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-[#6CC049] text-white hover:bg-[#5AAE3A]'
-          }`}
-        >
-          {isSubmitting ? 'Processing...' : 'Next'}
-        </button>
-      </div>
+      {!hideButton && (
+        <div className="flex justify-end mt-6">
+          <button
+            type="button"
+            onClick={onNext}
+            disabled={isNextDisabled}
+            className={`px-6 py-3 rounded-lg text-[14px] font-urbanist transition-colors ${
+              isNextDisabled
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-[#6CC049] text-white hover:bg-[#5AAE3A]'
+            }`}
+          >
+            {isSubmitting ? 'Processing...' : 'Next'}
+          </button>
+        </div>
+      )}
     </div>
   );
 
   // Render appropriate form based on business type
   const renderForm = () => {
     const upperBusinessType = businessType?.toUpperCase();
-    console.log('DynamicForm - businessType:', businessType, 'upperBusinessType:', upperBusinessType);
-    console.log('Available cases: EVENTS, EXPERIENCES, TOUR_GUIDE, INFLUENCER, HOTEL, HOTELS, HOSPITALITY, APARTMENT, CLUB, RESERVATIONS, CARS, FASHION, RESTAURANT, SUPERMARKET, PHARMACY, OTHERS');
     
     switch (upperBusinessType) {
       case 'EVENTS':
       case 'EXPERIENCES':
       case 'TOUR_GUIDE':
       case 'INFLUENCER':
-        console.log('Rendering events form');
         return renderEventsForm();
       case 'HOTEL':
       case 'HOTELS':
-        console.log('Rendering hotel form');
         return renderHotelForm();
       case 'HOSPITALITY':
       case 'APARTMENT':
-        console.log('Rendering accommodation form');
         return renderAccommodationForm();
       case 'CLUB':
       case 'RESERVATIONS':
-        console.log('Rendering reservation form');
         return renderReservationForm();
       case 'CARS':
-        console.log('Rendering car form');
         return renderCarForm();
       case 'FASHION':
-        console.log('Rendering fashion form');
-        return renderFashionForm();
-      case 'RESTAURANT':
-        console.log('Rendering food form');
-        return renderFoodForm();
       case 'SUPERMARKET':
       case 'PHARMACY':
       case 'OTHERS':
-        console.log('Rendering create product form');
         return renderCreateProductForm();
+      case 'RESTAURANT':
+        return renderFoodForm();
       default:
-        console.log('No form found for business type:', upperBusinessType);
         return null;
     }
   };
