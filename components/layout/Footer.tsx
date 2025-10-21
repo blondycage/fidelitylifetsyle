@@ -41,9 +41,16 @@ export default function Footer() {
             <div className="space-y-4">
               <div className="font-urbanist font-semibold text-[20px] text-black">ABOUT NAIJA CONNECT</div>
               <div className="flex flex-col gap-3">
-                {['About Us','Sell With Us','Advertise on Naija Connect','Privacy Policy','Payment Options','Terms & Conditions'].map((text) => (
-                  <Link key={text} href="#" className="text-[#9E9E9E] text-[20px] font-urbanist font-semibold hover:text-black">
-                    {text}
+                {[
+                  { text: 'About Us', href: '/about-us' },
+                  { text: 'Sell With Us', href: '#' },
+                  { text: 'Advertise on Naija Connect', href: '#' },
+                  { text: 'Privacy Policy', href: '#' },
+                  { text: 'Payment Options', href: '#' },
+                  { text: 'Terms & Conditions', href: '#' }
+                ].map((item) => (
+                  <Link key={item.text} href={item.href} className="text-[#9E9E9E] text-[20px] font-urbanist font-semibold hover:text-black">
+                    {item.text}
                   </Link>
                 ))}
               </div>
